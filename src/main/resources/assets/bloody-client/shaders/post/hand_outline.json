@@ -1,0 +1,19 @@
+{
+  "targets": [
+    "bufIn",
+    "swap",
+    "bufOut"
+  ],
+  "passes": [
+    {
+      "name": "hand_outline",
+      "intarget": "bufIn",
+      "outtarget": "swap"
+    },
+    {
+      "name": "blit",
+      "intarget": "swap",
+      "outtarget": "bufOut"
+    }
+  ]
+}

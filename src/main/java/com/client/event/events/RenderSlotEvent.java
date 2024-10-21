@@ -1,0 +1,10 @@
+package com.client.event.events;
+
+import net.minecraft.screen.slot.Slot;
+
+import java.awt.*;
+
+public class RenderSlotEvent {
+    public Slot minSlot, minCountSlot;
+    public Color minColor, minCountColor;
+}

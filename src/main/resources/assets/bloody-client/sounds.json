@@ -1,0 +1,82 @@
+{
+  "disable": {
+    "sounds": [
+      "bloody-client:disable"
+    ]
+  },
+  "enable": {
+    "sounds": [
+      "bloody-client:enable"
+    ]
+  },
+  "amogus": {
+    "sounds": [
+      "bloody-client:amogus"
+    ]
+  },
+  "awp": {
+    "sounds": [
+      "bloody-client:awp"
+    ]
+  },
+  "clock": {
+    "sounds": [
+      "bloody-client:clock"
+    ]
+  },
+  "uuuh": {
+    "sounds": [
+      "bloody-client:uuuh"
+    ]
+  },
+  "yay": {
+    "sounds": [
+      "bloody-client:yay"
+    ]
+  },
+  "beeep": {
+    "sounds": [
+      "bloody-client:beeep"
+    ]
+  },
+  "glu": {
+    "sounds": [
+      "bloody-client:glu"
+    ]
+  },
+  "glu2": {
+    "sounds": [
+      "bloody-client:glu2"
+    ]
+  },
+  "punch": {
+    "sounds": [
+      "bloody-client:punch"
+    ]
+  },
+  "punch2": {
+    "sounds": [
+      "bloody-client:punch2"
+    ]
+  },
+  "bonk": {
+    "sounds": [
+      "bloody-client:bonk"
+    ]
+  },
+  "bass": {
+    "sounds": [
+      "bloody-client:bass"
+    ]
+  },
+  "chime": {
+    "sounds": [
+      "bloody-client:chime"
+    ]
+  },
+  "done": {
+    "sounds": [
+      "bloody-client:done"
+    ]
+  }
+}

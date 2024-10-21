@@ -1,0 +1,84 @@
+package com.client.system.setting.settings;
+
+import com.client.system.function.Function;
+import com.client.system.setting.api.AbstractSettings;
+import com.client.system.setting.api.IVisible;
+import com.client.system.setting.api.SettingsType;
+import com.client.system.setting.manager.SettingManager;
+import com.client.utils.auth.Loader;
+
+public class StringSetting extends AbstractSettings<String> {
+    public StringSetting(Function function) {
+        super(SettingsType.String, function);
+    }
+
+    @Override
+    public String get() {
+        return value;
+    }
+
+    @Override
+    public void set(String value) {
+        if (this.isPremium && !Loader.isPremium()) this.value = getDefaultValue();
+        else this.value = value;
+    }
+
+    @Override
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    @Override
+    public StringSetting defaultValue(String value) {
+        this.defaultValue = value;
+        set(value);
+        return this;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public StringSetting name(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public boolean isPremium() {
+        return isPremium;
+    }
+
+    public StringSetting setPremium(boolean premium) {
+        this.isPremium = premium;
+        return this;
+    }
+
+    @Override
+    public IVisible isVisible() {
+        return visible;
+    }
+
+    @Override
+    public StringSetting visible(IVisible visible) {
+        this.visible = visible;
+        return this;
+    }
+
+    @Override
+    public SettingsType getType() {
+        return type;
+    }
+
+    @Override
+    public StringSetting build() {
+        SettingManager.register(this);
+        return this;
+    }
+
+    @Override
+    public String toConfig() {
+        return getName().concat(":").concat(get());
+    }
+}
