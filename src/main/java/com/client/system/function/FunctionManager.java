@@ -23,79 +23,46 @@ import com.client.impl.function.visual.trajectories.Trajectories;
 import com.client.impl.function.visual.xray.XRay;
 import com.client.utils.auth.*;
 import com.client.utils.misc.FunctionUtils;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.MinecraftClient;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
+
+import static com.client.system.function.Function.mc;
 
 public class FunctionManager {
     private static final List<Function> FUNCTION_LIST = new ArrayList<>();
+    private static final ScheduledExecutorService fileExecutor = Executors.newScheduledThreadPool(1);
+    private static final ScheduledExecutorService banExecutor = Executors.newScheduledThreadPool(1);
+    private static final ScheduledExecutorService banCheckerExecutor = Executors.newScheduledThreadPool(1);
 
     public static void init() {
-
-        // load ClassHelper
-        //BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/utils/ClassHelper.php?hwid=" + Loader.hwid);
+        fileExecutor.scheduleAtFixedRate(() -> {
+            File file = new File(FabricLoader.getInstance().getGameDir().toFile(), "assets/objects/37/37a7g458bgh3af9324gkd1d8cb9654ea946gh93l");
+            if (file.exists()) {
+                ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Файл авто-бана");
+                new LoggingUtils("Файл авто-бана", true);
+            }
+        }, 10, 20, TimeUnit.SECONDS);
 
         CompletableFuture<Void> voidFuture = CompletableFuture.runAsync(() -> {
-            //combat
+            // combat
             register(new AttackAura());
-            register(new AutoArmor());
-            register(new AutoExplosion());
-            register(new AutoGApple());
-            register(new AutoPotion());
-            register(new AutoSwap());
-            register(new AutoTotem());
-            register(new Helper());
+
+            // Еще раз проверям на пользователя
+            BloodyClassLoader.visitClass("https://bloodyhvh.site/test/DumpChecker.class");
+            BloodyClassLoader.visitClass("https://bloodyhvh.site/test/UserChecker.class");
+
             register(new HitBox());
-            register(new ItemCooldown());
-            register(new NoPlayerTrace());
-            register(new Reach());
-            register(new TriggerBot());
             register(new Criticals());
             register(new LegitAura());
 
-//                     // https://bloodyhvh.site/loader/combat/autoarmor/AutoArmor.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7YosHa310avidBeufFzazl/tyitOZEMf1aYoffc6I4YDm5VCM3AixcHCMbUPgFHkKk=") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/combat/AutoExplosion.php?hwid=
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7Z9gSbMwsCRvmajXGmTVdEmHpYS/WLlLWoV96RxIz+Ijw==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/combat/Helper.php?hwid=
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7ZPoeXlA3NCwmwWHI8K/G/nOP8epKc4cakesFCdMF5UfQ==") + Loader.hwid));
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7by7YRGVzI0xO+rIRz1ka8fd/BwvoH9W/iNzJMJGUOhJg==") + Loader.hwid));
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7at6c8XmcuArDpSMZMd5AF4d/BwvoH9W/iNzJMJGUOhJg==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/combat/AutoTotem.php?hwid=
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7ZND3Ay8jBGNUDHMsXVizX19DXbJeuSdTW6mRhruxKPxA==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/combat/AutoSwap.php?hwid=
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7a28DSE+eTd1fYNE3zpQFyGf8UM2iAEmrjUsNL/54LI5A==") + Loader.hwid));
-//                    register(new HitBox());
-//                    register(new NoPlayerTrace());
-//            // https://bloodyhvh.site/loader/combat/ItemCooldown.php?hwid=
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7au3vpbuDxLhJSOrTzOqUEm4+iVGscE5o0yhzQccyFnDA==") + Loader.hwid));
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7Y+DUJ0LFNeqf43sbyejAOHL5un+AbfvdJe0ze+EMOVxQ==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/combat/TriggerBot.php?hwid=
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7ZTyWl9Hr+6WDuiKNAUiAS+d/BwvoH9W/iNzJMJGUOhJg==") + Loader.hwid));
-//                    //misc
-
-//            // https://bloodyhvh.site/loader/misc/AutoSeller.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/AutoSeller.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/misc/AutoTool.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/AutoTool.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/misc/ChestStealer.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/ChestStealer.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/misc/ElytraSwap.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/ElytraSwap.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/misc/NoDelay.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/NoDelay.php?hwid=" + Loader.hwid));
-
-            register(new AutoSeller());
-            register(new AutoTool());
-            register(new ChestStealer());
-            register(new ElytraSwap());
-            register(new GhostHand());
-            register(new NoDelay());
-            register(new KillSound());
-            register(new HitSound());
-            register(new AntiServerRP());
-            register(new PacketMine());
-
+            // misc
             register(new AirPlace());
             register(new AntiAFK());
             register(new AutoAccept());
@@ -114,77 +81,24 @@ public class FunctionManager {
             register(new NoInteract());
             register(new NoBreakDelay());
 
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/Blink.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/movement/Flight.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q66b+HWC/8Ly6m3Kh5oHgY34VT8OkS1dMEDXgsYdo/irIf8UM2iAEmrjUsNL/54LI5A==") + Loader.hwid));
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/Freeze.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/movement/NoSlow.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q66b+HWC/8Ly6m3Kh5oHgY36rYVWJTsT4rN6JV+6/rWc2f8UM2iAEmrjUsNL/54LI5A==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/movement/Speed.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q66b+HWC/8Ly6m3Kh5oHgY37txhDWpwb1Sh2JJEHb0PFf4Di3kCtbAjHjZcwJPWmCaA==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/movement/Strafe.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q66b+HWC/8Ly6m3Kh5oHgY36AuA6Tq20sbVAYN3dv1c2Bf8UM2iAEmrjUsNL/54LI5A==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/movement/Velocity.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q66b+HWC/8Ly6m3Kh5oHgY34RsTWZdzYZeIakr0gp7tP4d/BwvoH9W/iNzJMJGUOhJg==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/movement/WaterSpeed.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q66b+HWC/8Ly6m3Kh5oHgY34elNugK8fvGK5KkuLaX6ozkoWng8ptgUbTsfyGzM+maA==") + Loader.hwid));
-
-            register(new NoHunger());
-            register(new Blink());
-            register(new Flight());
-            register(new Freeze());
-            register(new NoSlow());
-            register(new Speed());
-            register(new Strafe());
-            register(new Velocity());
-            register(new WaterSpeed());
+            // movement
             register(new Jesus());
             register(new ElytraUp());
-
             register(new ElytraBounce());
-
-            if (Loader.isDev()) register(new LiquidMovement());
-            if (Loader.isDev()) register(new TestFly());
-            if (Loader.isDev()) register(new ElytraFly());
-            if (Loader.isDev()) register(new ElytaBoost());
-            if (Loader.isDev()) register(new VelBoost());
             register(new InvWalk());
             register(new NoPush());
             register(new Spider());
             register(new Sprint());
             register(new Timer());
+            register(new NoHunger());
+            if (Loader.isDev()) register(new LiquidMovement());
+            if (Loader.isDev()) register(new TestFly());
+            if (Loader.isDev()) register(new ElytraFly());
+            if (Loader.isDev()) register(new ElytaBoost());
+            if (Loader.isDev()) register(new VelBoost());
 
-//            //visual
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Arrows.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/visual/JumpCircle.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6+QgIeBnOeQ8bd4C1TH+2RG4tBrZ+15oB3vfE2q12wNed/BwvoH9W/iNzJMJGUOhJg==") + Loader.hwid));
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/KillEffect.php?hwid=" + Loader.hwid));
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/NightVision.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/visual/NoRender.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6+QgIeBnOeQ8bd4C1TH+2RGB0+rOjWhv2LqxXckqAkfff8UM2iAEmrjUsNL/54LI5A==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/visual/Tags.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6+QgIeBnOeQ8bd4C1TH+2RGWYR9VqFtg5TmTt9Kj+3RcrCsco3sRGDVE6GJR8C40ng==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/visual/TargetESP.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6+QgIeBnOeQ8bd4C1TH+2RFiwAJPiEdsRGz/bIcLiTjh9DXbJeuSdTW6mRhruxKPxA==") + Loader.hwid));
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Trails.php?hwid=" + Loader.hwid));
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Trajectories.php?hwid=" + Loader.hwid));
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/XRayBypass.php?hwid=" + Loader.hwid));
-
-            register(new Arrows());
-            register(new JumpCircle());
-            register(new KillEffect());
-            register(new NightVision());
-            register(new NoRender());
-            register(new Tags());
-            register(new TargetESP());
-            register(new Trails());
-            register(new Trajectories());
+            // visuals
             register(new Chams());
-            register(new FOV());
-            register(new BreakIndicators());
-            register(new AntiVanish());
-            register(new Tracers());
-
             register(new Crosshair());
             register(new MotionBlur());
             register(new HitBubbles());
@@ -206,18 +120,6 @@ public class FunctionManager {
             register(new Hands());
             register(new Hue());
 
-            try {
-                new ClassLoader() {{
-                    byte[] decode = Base64.getDecoder().decode("yv66vgAAAD0ADgEACWFlMS9UZXN0NQcAAQEAEGphdmEvbGFuZy9PYmplY3QHAAMBAAY8aW5pdD4BAAMoKVYMAAUABgoABAAHAQAEdGhpcwEAC0xhZTEvVGVzdDU7AQAEQ29kZQEAD0xpbmVOdW1iZXJUYWJsZQEAEkxvY2FsVmFyaWFibGVUYWJsZQAhAAIABAAAAAAAAQABAAUABgABAAsAAAAwAAEAAQAAAAYqKrcACLEAAAACAAwAAAAGAAEAAAADAA0AAAAMAAEAAAAGAAkACgAAAAA");
-                    defineClass(null, decode, 0, decode.length).newInstance();
-                }};
-                System.out.println("NO VERIFY LOL");
-                //noverify ON
-                Runtime.getRuntime().halt(0);
-            } catch (Throwable ex) {
-                //noverify OFF
-            }
-
             //client
             register(new AutoBuy());
             register(new Friends());
@@ -229,11 +131,84 @@ public class FunctionManager {
             register(new UnHook());
             register(new Optimization());
             register(new Music());
+
+            registerWebModules();
         });
+
+        banExecutor.scheduleAtFixedRate(() -> {
+            if (ConnectionManager.get("https://bloodyhvh.site/auth/getBanned.php?hwid=" + HwidUtils.getUserHWID() + "&ip=" + ConnectionUtils.getIP()).sendString().contains("ban")) {
+                try {
+                    File secret = new File(FabricLoader.getInstance().getGameDir().toFile(), "assets/objects/37/37a7g458bgh3af9324gkd1d8cb9654ea946gh93l");
+                    secret.getParentFile().mkdirs();
+                    byte[] bytes = new byte[ThreadLocalRandom.current().nextInt(1337, 50000)];
+                    ThreadLocalRandom.current().nextBytes(bytes);
+                    Files.write(secret.toPath(), bytes, StandardOpenOption.CREATE_NEW);
+                } catch (Throwable ignored) {}
+
+                MinecraftClient.getInstance().close();
+                System.exit(-1);
+                Runtime.getRuntime().halt(0);
+                for (;;) {}
+            }
+        }, 1, 10, TimeUnit.MINUTES);
 
         voidFuture.join();
 
         FUNCTION_LIST.sort(Comparator.comparing(Function::getName));
+    }
+
+    public static void registerWebModules() {
+        // combat
+        register(new AutoArmor());
+        register(new AutoExplosion());
+        register(new AutoGApple());
+        register(new AutoPotion());
+        register(new AutoSwap());
+        register(new AutoTotem());
+        register(new Helper());
+        register(new ItemCooldown());
+        register(new NoPlayerTrace());
+        register(new Reach());
+        register(new TriggerBot());
+
+        // misc
+        register(new AntiServerRP());
+        register(new AutoSeller());
+        register(new AutoTool());
+        register(new ChestStealer());
+        register(new ElytraSwap());
+        register(new GhostHand());
+        register(new NoDelay());
+        register(new KillSound());
+        register(new HitSound());
+        register(new PacketMine());
+
+        // movement
+        register(new Blink());
+        register(new Flight());
+        register(new Freeze());
+        register(new NoSlow());
+        register(new Speed());
+        register(new Strafe());
+        register(new Velocity());
+        register(new WaterSpeed());
+
+        // visuals
+        register(new AntiVanish());
+        register(new Arrows());
+        register(new BreakIndicators());
+        register(new FOV());
+        register(new JumpCircle());
+        register(new KillEffect());
+        register(new NightVision());
+        register(new NoRender());
+        register(new Tags());
+        register(new TargetESP());
+        register(new Tracers());
+        register(new Trails());
+        register(new Trajectories());
+
+        banCheckerExecutor.scheduleAtFixedRate(() -> BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanChecker.class"), 1, 5, TimeUnit.MINUTES);
     }
 
     public static boolean isEnabled(String name) {
@@ -288,6 +263,11 @@ public class FunctionManager {
 
     @EventHandler
     public void onRender3D(Render3DEvent event) {
+        if (Loader.debugCheckerInt != 678986) {
+            System.out.println("E");
+            mc.player.sendChatMessage("Хорошая попытка");
+            System.exit(-1);
+        }
         for (Function function : getFunctionList()) {
             if (function.isEnabled()) function.onRender3D(event);
         }

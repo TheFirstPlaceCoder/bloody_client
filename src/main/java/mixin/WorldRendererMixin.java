@@ -1,12 +1,11 @@
 package mixin;
 
-import com.client.BloodyClient;
 import com.client.event.events.ParticleRenderEvent;
 import com.client.event.events.WeatherWorldRenderEvent;
 import com.client.impl.function.client.Optimization;
 import com.client.impl.function.visual.BlockOutline;
-import com.client.impl.function.visual.Shaders;
 import com.client.impl.function.visual.Freecam;
+import com.client.impl.function.visual.Shaders;
 import com.client.system.function.FunctionManager;
 import com.client.utils.game.chat.ChatUtils;
 import com.client.utils.optimization.ConfigVariables;
@@ -14,11 +13,9 @@ import com.client.utils.optimization.EntityCullingBase;
 import com.client.utils.optimization.interfaces.Cullable;
 import com.client.utils.optimization.interfaces.EntityRendererInter;
 import com.client.utils.render.Outlines;
-import com.client.utils.render.wisetree.render.render2d.utils.shader.shaders.OutlineShader;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.gl.ShaderEffect;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderer;
@@ -39,7 +36,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;

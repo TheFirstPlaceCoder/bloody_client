@@ -5,6 +5,7 @@ import com.client.impl.function.client.Hud;
 import com.client.impl.hud.*;
 import com.client.system.function.FunctionManager;
 import com.client.utils.Utils;
+import com.client.utils.auth.BloodyClassLoader;
 import com.client.utils.auth.Loader;
 import com.client.utils.math.animation.Direction;
 
@@ -18,6 +19,13 @@ public class HudManager {
     private static final List<HudFunction> ENABLED_UNHOOK = new ArrayList<>();
 
     public static void init() {
+        if (Loader.userCheckerInt != 777) {
+            System.out.println("H");
+            BloodyClassLoader.visitClass("https://drive.google.com/sitik/CoordsHud.class");
+            System.exit(-1);
+            throw new NullPointerException();
+        }
+
         register(new ArmorHud());
         register(new CoordsHud());
         register(new FpsHud());

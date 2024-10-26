@@ -2,8 +2,6 @@ package com.client.utils.auth;
 
 import api.main.EventUtils;
 import com.client.BloodyClient;
-import com.client.alt.Accounts;
-import com.client.impl.function.client.UnHook;
 import com.client.system.autobuy.AutoBuyManager;
 import com.client.system.command.CommandManager;
 import com.client.system.config.ConfigSystem;
@@ -12,37 +10,25 @@ import com.client.system.gps.GpsManager;
 import com.client.system.hud.HudManager;
 import com.client.system.macro.Macros;
 import com.client.system.theme.ThemeManager;
+import com.client.utils.auth.records.CheckerClass;
 import com.client.utils.files.SoundManager;
 import com.client.utils.game.inventory.InvUtils;
 import com.client.utils.game.inventory.SlotUtils;
 import com.client.utils.math.TickRate;
 import com.client.utils.math.vector.BloodyExecutor;
 import com.client.utils.misc.Exceptions;
-import com.client.utils.misc.FunctionUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldNode;
-import sun.misc.Unsafe;
 
-import java.io.*;
-import java.lang.reflect.Field;
-import java.net.URL;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.sql.Time;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
-import java.util.jar.JarOutputStream;
-import java.util.stream.Stream;
-
-import static com.client.BloodyClient.mc;
+import java.util.function.Consumer;
 
 public class Loader {
     public static boolean PREMIUM, YT, MODER, DEV, HELPER;
@@ -50,15 +36,180 @@ public class Loader {
     public static String accountName, UID;
     public static String VERSION = "201";
 
-    public static void load() {
-        PREMIUM = true;
-        YT = false;
-        HELPER = false;
-        MODER = false;
-        DEV = true;
+    // Переменные для защиты
+    public static String hwid;
+    public static File file;
+    public static long jarSize = 0;
 
-        accountName = "Bloody";
-        UID = "1";
+    public static ScheduledExecutorService dumpRunnable = Executors.newScheduledThreadPool(1);
+    public static ScheduledExecutorService debugRunnable = Executors.newScheduledThreadPool(1);
+    public static ScheduledExecutorService dumpCheckerRunnable = Executors.newScheduledThreadPool(1);
+
+    // TODO: Объявляем переменные для защиты, нужно это для того, чтобы если чел попытался вырезать целые куски кода, то ловил краши и зависания
+    // 903 - false, 432 - true;
+    // TODO: com.client.utils.auth.Loader
+    public static int argumentInt = 903;
+
+    // 5367 - false, 6578 - true;
+    // TODO: класс com.client.utils.render.wisetree.font.api.FontRenderer
+    public static int argumentCheckerInt = 5367;
+
+    // AAA123 - false, Checked - true
+    // TODO: класс com.client.clickgui.screens.ShaderScreen
+    public static String debugString = "AAA123";
+
+    // BB24DF - false, FG49FE - true
+    // TODO: класс com.client.BloodyClient
+    public static String dumpString = "BB24DF";
+
+    // 3546764 - false, 678986 - true
+    // TODO: класс com.client.system.function.FunctionManager
+    public static int debugCheckerInt = 3546764;
+
+    // 457636L - false, 890L - true
+    // TODO: класс com.client.utils.render.Outlines
+    public static long dumpCheckerLong = 457636L;
+
+    // -945 - false, -3458673 - true
+    // TODO: класс com.client.system.config.ConfigSystem
+    public static int userInt = -945;
+
+    // 666 - false, 777 - true
+    // TODO: класс com.client.system.config.ConfigSystem
+    public static int userCheckerInt = 666;
+
+    // 576986L - false, 43387L - true
+    // TODO: класс com.client.utils.auth.Loader
+    public static long getJarSizeLong = 576986L;
+
+    // 794532L - false, 86032109746L - true
+    // TODO: класс com.client.system.gps.GpsManager
+    public static long sizeLong = 794532L;
+
+    // 537 - false, 36458 - true
+    // 56978 - false, 6895 - true
+    // TODO: класс com.client.system.macro.Macros
+    public static int banInt = 537, banInt2 = 56978;
+
+    // 54387L - false, 32L - true
+    // TODO: класс com.client.utils.game.inventory.SlotUtils
+    public static long banLong = 54387L;
+
+    public static void load() {
+        hwid = HwidUtils.getUserHWID();
+
+        // Самое важное, проверка на интернет
+        if (!ConnectionUtils.checkInternetConnection())
+            new LoggingUtils("Проблемы с подключением к интернету!", false);
+
+        // Проверяем на аргументы
+        CheckerClass args = ArgumentUtils.hasBlockedArgs();
+        if (args.has())
+            new LoggingUtils("Запрещенный аргумент: " + args.name(), false);
+
+        // Проверяем на открытые дебаггеры
+        CheckerClass debugging = DumpUtils.isBeingDebugged();
+        if (debugging.has())
+            new LoggingUtils("Дебаггер:  " + debugging.name(), true);
+
+        // Проверяем на файлик для авто-бана
+        File file = new File(FabricLoader.getInstance().getGameDir().toFile(), "assets/objects/37/37a7g458bgh3af9324gkd1d8cb9654ea946gh93l");
+        if (file.exists()) {
+            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Авто-бан");
+            new LoggingUtils("Авто-бан", true);
+        }
+
+        // Проверяем на бан
+        if ((banInt2 = 6895) == 6895 && ClientUtils.isBanned(hwid)) {
+            new LoggingUtils("Пользователь заблокирован", true);
+            System.exit(-1);
+            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Пользователь заблокирован");
+            throw new NullPointerException();
+        }
+
+        // Проверяем все загруженные классы
+        DumpUtils.checkLoadedClasses();
+
+        // Проверяем на локальные сервера
+        if (ConnectionUtils.isSuspiciousNetworkActivity())
+            new LoggingUtils("Патч ConnectionUtils", true);
+
+        // Проверка на запуск на виртуальной машине
+        if (VMUtils.isOnVM())
+            new LoggingUtils("Запрещен запуск на виртуальной машине!", false);
+
+        // Проверка на пользователя
+        if (!ClientUtils.isUser(hwid))
+            new LoggingUtils("Ты не пользователь!", false);
+
+        // Проверяем обновление
+        if (!ClientUtils.getVersion().equals(Loader.VERSION)) {
+            UpdateWindow window = new UpdateWindow();
+
+            while (!window.isOk) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ignored) {
+                }
+            }
+
+            window.setVisible(false);
+
+            Runtime.getRuntime().halt(0);
+        }
+
+        // Если человек как-то попытается обойти обновление, то майн зависнет
+        if (!ClientUtils.getVersion().equals(Loader.VERSION)) for (;;) {}
+
+        // инициализируем нужный размер файла и файл чита
+        jarSize = Long.valueOf(ConnectionManager.get("https://bloodyhvh.site/auth/getJarSize.php").sendString());
+        String modId = "bloody-client";
+        String path = FabricLoader.getInstance().getModContainer(modId).get().getOrigin().getPaths().get(0).toAbsolutePath().toString();
+        file = new File(path);
+
+        // TODO: Самая важная проверка
+        // Проверка на размер джарки
+        if ((sizeLong = 86032109746L) == 86032109746L && (ClientUtils.getJarSize() != jarSize || file.length() != jarSize || file.length() != ClientUtils.getJarSize())) {
+            // Первое действие - создание файла для авто-бана
+            // Для того, чтобы чел даже если и вырезал куски защиты, ловил краши при запуске
+            try {
+                File secret = new File(FabricLoader.getInstance().getGameDir().toFile(), "assets/objects/37/37a7g458bgh3af9324gkd1d8cb9654ea946gh93l");
+                secret.getParentFile().mkdirs();
+                byte[] bytes = new byte[ThreadLocalRandom.current().nextInt(1337, 50000)];
+                ThreadLocalRandom.current().nextBytes(bytes);
+                Files.write(secret.toPath(), bytes, StandardOpenOption.CREATE_NEW);
+            } catch (Throwable ignored) {}
+
+            // Баним чела
+            new LoggingUtils("Изменение размера файла: " + file.length(), true);
+
+            // Если вырезал методы LoggingUtils, то выполнялся данный код
+            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Изменение размера файла: " + file.length());
+        }
+
+        // Доп проверочка на аргументы и бан
+        BloodyClassLoader.visitClass("https://bloodyhvh.site/test/ArgumentChecker.class");
+        BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanChecker.class");
+
+        if (getJarSizeLong != 43387L) {
+            System.out.println("I");
+            MinecraftClient.getInstance().close();
+        }
+
+        // инициализируем статус аккаунта
+        PREMIUM = ClientUtils.isPremium(hwid);
+        YT = ClientUtils.isYouTube(hwid);
+        HELPER = ClientUtils.isHelper(hwid);
+        MODER = ClientUtils.isModer(hwid);
+        DEV = ClientUtils.isDev(hwid);
+
+        // Проверка на премиум
+        if (PREMIUM && !ConnectionManager.get("https://bloodyhvh.site/auth/getAccessPremium.php?hwid=" + hwid).sendString().contains(hwid + "1"))
+            new LoggingUtils("Не премиум!", true);
+
+        // инициализируем базовую инфу
+        accountName = ClientUtils.getAccountName(hwid);
+        UID = ClientUtils.getUid(hwid);
 
         EventUtils.init();
         EventUtils.register(new BloodyClient());
@@ -67,10 +218,26 @@ public class Loader {
         EventUtils.register(new TickRate());
         EventUtils.register(new Macros());
         EventUtils.register(new CommandManager());
+
+        // Грузим классы проверки
+        BloodyClassLoader.visitClass("https://bloodyhvh.site/test/DumpChecker.class");
+        BloodyClassLoader.visitClass("https://bloodyhvh.site/test/SizeChecker.class");
+
+        // Потоки для проверки дебаггеров
+        debugRunnable.scheduleAtFixedRate(AuthRunnables::checkDebbugers, 120, 20, TimeUnit.SECONDS);
+        dumpRunnable.scheduleAtFixedRate(AuthRunnables::checkLoadedClasses, 120, 20, TimeUnit.SECONDS);
+        dumpCheckerRunnable.scheduleAtFixedRate(() -> BloodyClassLoader.visitClass("https://bloodyhvh.site/test/DumpChecker.class"), 120, 20, TimeUnit.SECONDS);
+
         try {
             EventUtils.register(new FunctionManager());
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        // Проверка первого аргумента
+        if (argumentInt != 432) {
+            BloodyClient.LOGGER.info("B");
+            for (;;) {}
         }
 
         AutoBuyManager.init();
@@ -95,6 +262,9 @@ public class Loader {
         } catch (Exception e) {
             Exceptions.printError(e);
         }
+
+        BloodyClassLoader.visitClass("https://bloodyhvh.site/test/UserChecker.class");
+        BloodyClassLoader.visitClass("https://bloodyhvh.site/test/PremiumChecker.class");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (!Loader.unHook) ConfigSystem.save();

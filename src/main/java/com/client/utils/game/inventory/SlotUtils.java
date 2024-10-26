@@ -1,7 +1,9 @@
 package com.client.utils.game.inventory;
 
+import com.client.utils.auth.Loader;
 import mixin.accessor.CreativeInventoryScreenAccessor;
 import mixin.accessor.HorseScreenHandlerAccessor;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.entity.mob.SkeletonHorseEntity;
 import net.minecraft.entity.mob.ZombieHorseEntity;
@@ -37,6 +39,12 @@ public class SlotUtils {
     public static final int BOOTS_SLOT = 36;
 
     public static void init() {
+        if (Loader.banLong != 32L) {
+            System.exit(-1);
+            Runtime.getRuntime().halt(0);
+            MinecraftClient.getInstance().close();
+        }
+
         for (int i = HOTBAR_START; i <= HOTBAR_END; i++) INDEX_LIST.add(i);
         for (int i = MAIN_START; i <= MAIN_END; i++) INDEX_LIST.add(i);
         INDEX_LIST.add(HELMET_SLOT);
