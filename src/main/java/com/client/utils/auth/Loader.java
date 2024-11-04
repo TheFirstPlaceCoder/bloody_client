@@ -130,17 +130,13 @@ public class Loader {
         // Проверяем все загруженные классы
         DumpUtils.checkLoadedClasses();
 
-        // Проверяем на локальные сервера
-        if (ConnectionUtils.isSuspiciousNetworkActivity())
-            new LoggingUtils("Патч ConnectionUtils", true);
-
         // Проверка на запуск на виртуальной машине
         if (VMUtils.isOnVM())
             new LoggingUtils("Запрещен запуск на виртуальной машине!", false);
 
         // Проверка на пользователя
         if (!ClientUtils.isUser(hwid))
-            new LoggingUtils("Ты не пользователь!", false);
+            new LoggingUtils("HWID не найден!", false);
 
         // Проверяем обновление
         if (!ClientUtils.getVersion().equals(Loader.VERSION)) {
