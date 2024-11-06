@@ -13,6 +13,7 @@ import com.client.impl.function.visual.Freecam;
 import com.client.system.function.FunctionManager;
 import com.client.utils.Utils;
 import com.client.utils.render.Outlines;
+import com.client.utils.render.OutlinesCompanion;
 import com.client.utils.render.ScoreboardEvent;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;

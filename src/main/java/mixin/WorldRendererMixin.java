@@ -7,6 +7,7 @@ import com.client.impl.function.client.Optimization;
 import com.client.impl.function.visual.BlockOutline;
 import com.client.impl.function.visual.Shaders;
 import com.client.impl.function.visual.Freecam;
+import com.client.system.companion.DumboOctopusEntity;
 import com.client.system.function.FunctionManager;
 import com.client.utils.game.chat.ChatUtils;
 import com.client.utils.optimization.ConfigVariables;
@@ -14,6 +15,7 @@ import com.client.utils.optimization.EntityCullingBase;
 import com.client.utils.optimization.interfaces.Cullable;
 import com.client.utils.optimization.interfaces.EntityRendererInter;
 import com.client.utils.render.Outlines;
+import com.client.utils.render.OutlinesCompanion;
 import com.client.utils.render.wisetree.render.render2d.utils.shader.shaders.OutlineShader;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
@@ -121,36 +123,55 @@ public abstract class WorldRendererMixin {
     @Inject(method = "loadEntityOutlineShader", at = @At("TAIL"))
     private void onLoadEntityOutlineShader(CallbackInfo info) {
         Outlines.load();
+        OutlinesCompanion.load();
     }
 
     @Inject(method = "render", at = @At("HEAD"))
     private void onRenderHead(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo info) {
         ChatUtils.update();
         Outlines.beginRender();
+        OutlinesCompanion.beginRender();
     }
 
     @Inject(method = "renderEntity", at = @At("HEAD"))
     private void renderEntity(Entity entity, double cameraX, double cameraY, double cameraZ, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, CallbackInfo info) {
-        if (vertexConsumers == Outlines.vertexConsumerProvider) return;
+        if (vertexConsumers == Outlines.vertexConsumerProvider || vertexConsumers == OutlinesCompanion.vertexConsumerProvider) return;
 
         if (shaders.isEnabled() && shaders.shouldDraw(entity)) {
             Color c0 = shaders.getColore(entity);
 
             Framebuffer prevBuffer = this.entityOutlinesFramebuffer;
-            this.entityOutlinesFramebuffer = Outlines.outlinesFbo;
+            if (entity instanceof DumboOctopusEntity) {
+                this.entityOutlinesFramebuffer = OutlinesCompanion.outlinesFbo;
 
-            Outlines.setUniform("resolution", (float) mc.getWindow().getScaledWidth(), (float) mc.getWindow().getScaledHeight());
-            Outlines.setUniform("radius", shaders.lineWidth.get().floatValue());
-            Outlines.setUniform("fillOpacity", (shaders.getColor(entity).getAlpha() / 255F));
-            Outlines.setUniform("time", time);
-            Outlines.setUniform("renderMode", shaders.getIndexOfMode());
-            Outlines.setUniform("glowMode", shaders.getGlow());
-            Outlines.setUniform("power", shaders.glowPower.get() / 10f);
-            time += (shaders.speed.floatValue() / 1000);
+                OutlinesCompanion.setUniform("resolution", (float) mc.getWindow().getScaledWidth(), (float) mc.getWindow().getScaledHeight());
+                OutlinesCompanion.setUniform("radius", shaders.lineWidth.get().floatValue());
+                OutlinesCompanion.setUniform("fillOpacity", (shaders.getColor(entity).getAlpha() / 255F));
+                OutlinesCompanion.setUniform("time", time);
+                OutlinesCompanion.setUniform("renderMode", shaders.getIndexOfMode());
+                OutlinesCompanion.setUniform("glowMode", shaders.getGlow());
+                OutlinesCompanion.setUniform("power", shaders.glowPower.get() / 10f);
+                time += (shaders.speed.floatValue() / 1000);
 
-            Outlines.vertexConsumerProvider.setColor(c0.getRed(), c0.getGreen(), c0.getBlue(), c0.getAlpha());
-            renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrices, Outlines.vertexConsumerProvider);
+                OutlinesCompanion.vertexConsumerProvider.setColor(c0.getRed(), c0.getGreen(), c0.getBlue(), c0.getAlpha());
+                renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrices, OutlinesCompanion.vertexConsumerProvider);
 
+            } else {
+                this.entityOutlinesFramebuffer = Outlines.outlinesFbo;
+
+                Outlines.setUniform("resolution", (float) mc.getWindow().getScaledWidth(), (float) mc.getWindow().getScaledHeight());
+                Outlines.setUniform("radius", shaders.lineWidth.get().floatValue());
+                Outlines.setUniform("fillOpacity", (shaders.getColor(entity).getAlpha() / 255F));
+                Outlines.setUniform("time", time);
+                Outlines.setUniform("renderMode", shaders.getIndexOfMode());
+                Outlines.setUniform("glowMode", shaders.getGlow());
+                Outlines.setUniform("power", shaders.glowPower.get() / 10f);
+                time += (shaders.speed.floatValue() / 1000);
+
+                Outlines.vertexConsumerProvider.setColor(c0.getRed(), c0.getGreen(), c0.getBlue(), c0.getAlpha());
+                renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrices, Outlines.vertexConsumerProvider);
+
+            }
             this.entityOutlinesFramebuffer = prevBuffer;
         }
     }
@@ -158,16 +179,19 @@ public abstract class WorldRendererMixin {
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/OutlineVertexConsumerProvider;draw()V"))
     private void onRender(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo info) {
         Outlines.endRender(tickDelta);
+        OutlinesCompanion.endRender(tickDelta);
     }
 
     @Inject(method = "drawEntityOutlinesFramebuffer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gl/Framebuffer;draw(IIZ)V"))
     private void onDrawEntityOutlinesFramebuffer(CallbackInfo info) {
         Outlines.renderFbo();
+        OutlinesCompanion.renderFbo();
     }
 
     @Inject(method = "onResized", at = @At("HEAD"))
     private void onResized(int i, int j, CallbackInfo info) {
         Outlines.onResized(i, j);
+        OutlinesCompanion.onResized(i, j);
     }
 
     @Inject(method = "renderWeather", at = @At("HEAD"), cancellable = true)

@@ -69,7 +69,7 @@ dependencies {
 
 	libImpl(group: "com.github.oshi", name: "oshi-core-java11", version: "5.8.5")
 	libImpl(group: "javazoom", name: "jlayer", version: "1.0.1")
-	//modImpl(name: "satin-1.5.1")
+	modImpl(name: "geckolib-fabric-1.16.5-3.0.107")
 	//libImpl(group: "org.reflections", name: "reflections", version: "0.10.2")
 //Thanks for using https://jar-download.com
 

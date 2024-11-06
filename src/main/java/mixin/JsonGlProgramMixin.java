@@ -1,6 +1,7 @@
 package mixin;
 
 import com.client.utils.render.Outlines;
+import com.client.utils.render.OutlinesCompanion;
 import net.minecraft.client.gl.JsonEffectGlShader;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 public class JsonGlProgramMixin {
     @ModifyVariable(method = "<init>", at = @At("STORE"))
     private Identifier onInitNewIdentifierModifyVariable(Identifier identifier) {
-        if (Outlines.loadingOutlineShader && identifier.getPath().equals("shaders/program/my_entity_outline.json")) {
+        if ((Outlines.loadingOutlineShader || OutlinesCompanion.loadingOutlineShader) && identifier.getPath().equals("shaders/program/my_entity_outline.json")) {
             return new Identifier("bloody-client", identifier.getPath());
         }
 
@@ -24,7 +25,7 @@ public class JsonGlProgramMixin {
 
     @ModifyVariable(method = "getShader", at = @At("STORE"))
     private static Identifier onGetShaderNewIdentifierModifyVariable(Identifier identifier) {
-        if (Outlines.loadingOutlineShader && identifier.getPath().equals("shaders/program/my_entity_sobel.fsh")) {
+        if ((Outlines.loadingOutlineShader || OutlinesCompanion.loadingOutlineShader) && identifier.getPath().equals("shaders/program/my_entity_sobel.fsh")) {
             return new Identifier("bloody-client", identifier.getPath());
         }
 

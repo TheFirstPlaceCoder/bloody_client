@@ -17,6 +17,9 @@
 	"entrypoints": {
 		"main": [
 			"com.client.BloodyClient"
+		],
+		"client": [
+			"com.client.BloodyClient"
 		]
 	},
 	"mixins": [

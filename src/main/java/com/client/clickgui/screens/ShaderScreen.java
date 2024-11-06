@@ -149,13 +149,13 @@ public class ShaderScreen extends Screen {
             GL.prepare();
             GL.drawRoundedGradientRect(rect, 3, ColorUtils.injectAlpha(Colors.getColor(0, 13), alphach),
                     ColorUtils.injectAlpha(Colors.getColor(90, 13), alphach),
-                    ColorUtils.injectAlpha(Colors.getColor(0, 13), alphach),
-                    ColorUtils.injectAlpha(Colors.getColor(90, 13), alphach));
+                    ColorUtils.injectAlpha(Colors.getColor(270, 13), alphach),
+                    ColorUtils.injectAlpha(Colors.getColor(180, 13), alphach));
 
             GL.drawRoundedGradientOutline(rect, 3, 1, ColorUtils.injectAlpha(Colors.getColor(0, 13), 255),
                     ColorUtils.injectAlpha(Colors.getColor(90, 13), 255),
-                    ColorUtils.injectAlpha(Colors.getColor(0, 13), 255),
-                    ColorUtils.injectAlpha(Colors.getColor(90, 13), 255));
+                    ColorUtils.injectAlpha(Colors.getColor(270, 13), 255),
+                    ColorUtils.injectAlpha(Colors.getColor(180, 13), 255));
 
             GL.end();
 //            Matrices.push();

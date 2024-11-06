@@ -222,6 +222,7 @@ public class FunctionManager {
             register(new AutoBuy());
             register(new Friends());
             register(new ClickGui());
+            register(new Companion());
             register(new DiscordRPC());
             register(new Notifications());
             register(new Hud());

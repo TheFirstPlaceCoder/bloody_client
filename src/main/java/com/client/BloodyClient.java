@@ -5,6 +5,7 @@ import com.client.event.events.TickEvent;
 import com.client.impl.function.client.ClickGui;
 import com.client.impl.function.visual.MotionBlur;
 import com.client.interfaces.IClientConnection;
+import com.client.system.companion.CompanionRegistry;
 import com.client.system.function.FunctionManager;
 import com.client.system.gps.GpsManager;
 import com.client.utils.auth.Encryptor;
@@ -21,6 +22,7 @@ import com.client.utils.render.wisetree.render.render2d.utils.shader.shaders.Out
 import ladysnake.satin.api.event.ShaderEffectRenderCallback;
 import ladysnake.satin.api.managed.ManagedShaderEffect;
 import ladysnake.satin.api.managed.ShaderEffectManager;
+import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
@@ -29,19 +31,19 @@ import net.minecraft.network.Packet;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import software.bernie.geckolib3.GeckoLib;
 
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class BloodyClient implements ModInitializer {
+public class BloodyClient implements ModInitializer, ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("bloody-client");
 	public static final MinecraftClient mc = MinecraftClient.getInstance();
 	public static final File FOLDER = new File(FabricLoader.getInstance().getGameDir().toString(), "bloody-client");
 	public static final File GPS_FOLDER = new File(FabricLoader.getInstance().getGameDir().toString(), "assets");
 	public static final File UNHOOK_FOLDER = new File(FabricLoader.getInstance().getGameDir().toString(), "sessions");
 	public static final String REPORT_WEBHOOK = Encryptor.decrypt("nmyLCLOG21nGewzmS/21vlcsgpDpwLi7DVdnnR/UmxxpWjNHyZGWGUhnqmIYzIz+UAHjqKZ7p3QrjytEHSFuvxANGP59JQ3JlFIhcFmFa2W6j75GV5Nri1NtGn36YHEIcMoV55ep3IWPbpYqsoo1ZzCgyWNbK3Ppg2iAcYDK1VE=");
-	public static final String VERSION = "1.0.8";
 	public static long initTime;
 	public static Shader shader;
 	public static OutlineShader shaderManager = new OutlineShader();
@@ -50,7 +52,16 @@ public class BloodyClient implements ModInitializer {
 		shader.setUniformValue("BlendFactor", this.getBlur());
 	});;
 
+	@Override
+	public void onInitializeClient() {
+		CompanionRegistry.registerEntityRenderers();
+	}
+
+	@Override
 	public void onInitialize() {
+		GeckoLib.initialize();
+		CompanionRegistry.ENTITIES.register();
+		CompanionRegistry.onAttributeCreation();
 		Loader.unHook = UNHOOK_FOLDER.exists();
 		Loader.load();
 		new EntityCullingBase().onInitialize();

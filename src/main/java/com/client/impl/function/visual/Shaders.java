@@ -1,9 +1,12 @@
 package com.client.impl.function.visual;
 
 import com.client.event.events.Render3DEvent;
+import com.client.impl.function.client.Companion;
+import com.client.system.companion.DumboOctopusEntity;
 import com.client.system.friend.FriendManager;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
+import com.client.system.function.FunctionManager;
 import com.client.system.setting.settings.*;
 import com.client.system.setting.settings.multiboolean.MultiBooleanSetting;
 import com.client.system.setting.settings.multiboolean.MultiBooleanValue;
@@ -72,7 +75,7 @@ public class Shaders extends Function {
     }
 
     private int getAlpha(Entity entity) {
-        if (entity == null || entity == mc.player) return 255;
+        if (entity == null || entity == mc.player || entity instanceof DumboOctopusEntity) return 255;
 
         double dist = mc.player.distanceTo(entity);
         double fadeDist = fadeDistance.get().floatValue() * fadeDistance.get().floatValue();
@@ -86,6 +89,9 @@ public class Shaders extends Function {
 
     public Color getColor(Entity entity) {
         if (entity instanceof ItemEntity) return (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : colorSettingItems.get());
+
+        if (entity instanceof DumboOctopusEntity) return (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : FunctionManager.get(Companion.class).glowColor.get());
+
         if (FriendManager.isFriend(entity)) return ((PlayerEntity) entity).hurtTime != 0 ? ColorUtils.injectAlpha(getColorHurt((PlayerEntity) entity, FriendManager.getFriendsColor()), (mode.get().equals("Градиент") ? (int) (fillOpacity.get() * 2.55f) : FriendManager.getFriendsColor().getAlpha())) : (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : FriendManager.getFriendsColor());
 
         return ((PlayerEntity) entity).hurtTime != 0 ? ColorUtils.injectAlpha(getColorHurt((PlayerEntity) entity, colorSetting.get()), (mode.get().equals("Градиент") ? (int) (fillOpacity.get() * 2.55f) : colorSetting.get().getAlpha())) : (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : colorSetting.get());
@@ -136,6 +142,8 @@ public class Shaders extends Function {
 
             return filter.get(0) || (player == mc.player && filter.get(1) && mc.options.getPerspective() != Perspective.FIRST_PERSON);
         }
+
+        if (entity instanceof DumboOctopusEntity) return FunctionManager.get(Companion.class).isEnabled() && FunctionManager.get(Companion.class).glow.get();
 
         return entity instanceof ItemEntity && filter.get(4);
     }

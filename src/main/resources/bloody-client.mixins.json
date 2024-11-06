@@ -53,6 +53,7 @@
     "ChatHudMixin",
     "ChatScreenMixin",
     "ChunkOcclusionDataBuilderMixin",
+    "ClickableWidgetMixin",
     "ClickSlotC2SPacketMixin",
     "ClientPlayerInteractionManagerMixin",
     "ClientPlayNetworkHandlerMixin",
