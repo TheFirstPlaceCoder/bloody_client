@@ -83,7 +83,7 @@ public class Velocity extends Function {
                         mc.options.keySneak.setPressed(true);
                     }
                     case "Прыжок" -> {
-                        e.setCancelled(true);
+                        //e.setCancelled(true);
                         mc.player.jump();
                         //mc.player.setVelocity(0, -1, 0);
                     }

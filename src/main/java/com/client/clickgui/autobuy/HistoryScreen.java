@@ -70,13 +70,14 @@ public class HistoryScreen {
         //GL.drawRoundedRect(x, y, w, h, 4, new Color(39, 37, 37, 255));
 
         double y2 = y + 4 + scroll;
-        ScissorUtils.enableScissor(new FloatRect(x, y + 24, w, h - 27));
+        ScissorUtils.enableScissor(new FloatRect(x, y + 4, w, h - 7));
         for (HistoryItemButton autoBuyButton : historyItemButtons) {
             autoBuyButton.y = y2;
             y2 += 20;
             if (y2 > y + h + 100 || y2 < y) continue;
             if (isHover(autoBuyButton.x + 4, autoBuyButton.y, 16, 16, mx, my)) {
-                stack = autoBuyButton.historyItem.stack;
+                stack = autoBuyButton.historyItem.stack.getDefaultStack();
+                stack.setCount(autoBuyButton.historyItem.count);
             }
             autoBuyButton.render(mx, my);
         }

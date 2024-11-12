@@ -32,9 +32,6 @@ public class FunctionManager {
 
     public static void init() {
 
-        // load ClassHelper
-        //BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/utils/ClassHelper.php?hwid=" + Loader.hwid);
-
         CompletableFuture<Void> voidFuture = CompletableFuture.runAsync(() -> {
             //combat
             register(new AttackAura());
@@ -52,38 +49,6 @@ public class FunctionManager {
             register(new TriggerBot());
             register(new Criticals());
             register(new LegitAura());
-
-//                     // https://bloodyhvh.site/loader/combat/autoarmor/AutoArmor.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7YosHa310avidBeufFzazl/tyitOZEMf1aYoffc6I4YDm5VCM3AixcHCMbUPgFHkKk=") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/combat/AutoExplosion.php?hwid=
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7Z9gSbMwsCRvmajXGmTVdEmHpYS/WLlLWoV96RxIz+Ijw==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/combat/Helper.php?hwid=
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7ZPoeXlA3NCwmwWHI8K/G/nOP8epKc4cakesFCdMF5UfQ==") + Loader.hwid));
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7by7YRGVzI0xO+rIRz1ka8fd/BwvoH9W/iNzJMJGUOhJg==") + Loader.hwid));
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7at6c8XmcuArDpSMZMd5AF4d/BwvoH9W/iNzJMJGUOhJg==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/combat/AutoTotem.php?hwid=
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7ZND3Ay8jBGNUDHMsXVizX19DXbJeuSdTW6mRhruxKPxA==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/combat/AutoSwap.php?hwid=
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7a28DSE+eTd1fYNE3zpQFyGf8UM2iAEmrjUsNL/54LI5A==") + Loader.hwid));
-//                    register(new HitBox());
-//                    register(new NoPlayerTrace());
-//            // https://bloodyhvh.site/loader/combat/ItemCooldown.php?hwid=
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7au3vpbuDxLhJSOrTzOqUEm4+iVGscE5o0yhzQccyFnDA==") + Loader.hwid));
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7Y+DUJ0LFNeqf43sbyejAOHL5un+AbfvdJe0ze+EMOVxQ==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/combat/TriggerBot.php?hwid=
-//                    register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6zlwpWOGCfdBaoh+gGWgy7ZTyWl9Hr+6WDuiKNAUiAS+d/BwvoH9W/iNzJMJGUOhJg==") + Loader.hwid));
-//                    //misc
-
-//            // https://bloodyhvh.site/loader/misc/AutoSeller.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/AutoSeller.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/misc/AutoTool.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/AutoTool.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/misc/ChestStealer.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/ChestStealer.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/misc/ElytraSwap.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/ElytraSwap.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/misc/NoDelay.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/NoDelay.php?hwid=" + Loader.hwid));
 
             register(new AutoSeller());
             register(new AutoTool());
@@ -114,21 +79,6 @@ public class FunctionManager {
             register(new NoInteract());
             register(new NoBreakDelay());
 
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/Blink.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/movement/Flight.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q66b+HWC/8Ly6m3Kh5oHgY34VT8OkS1dMEDXgsYdo/irIf8UM2iAEmrjUsNL/54LI5A==") + Loader.hwid));
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/Freeze.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/movement/NoSlow.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q66b+HWC/8Ly6m3Kh5oHgY36rYVWJTsT4rN6JV+6/rWc2f8UM2iAEmrjUsNL/54LI5A==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/movement/Speed.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q66b+HWC/8Ly6m3Kh5oHgY37txhDWpwb1Sh2JJEHb0PFf4Di3kCtbAjHjZcwJPWmCaA==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/movement/Strafe.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q66b+HWC/8Ly6m3Kh5oHgY36AuA6Tq20sbVAYN3dv1c2Bf8UM2iAEmrjUsNL/54LI5A==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/movement/Velocity.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q66b+HWC/8Ly6m3Kh5oHgY34RsTWZdzYZeIakr0gp7tP4d/BwvoH9W/iNzJMJGUOhJg==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/movement/WaterSpeed.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q66b+HWC/8Ly6m3Kh5oHgY34elNugK8fvGK5KkuLaX6ozkoWng8ptgUbTsfyGzM+maA==") + Loader.hwid));
-
             register(new NoHunger());
             register(new Blink());
             register(new Flight());
@@ -153,22 +103,6 @@ public class FunctionManager {
             register(new Spider());
             register(new Sprint());
             register(new Timer());
-
-//            //visual
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Arrows.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/visual/JumpCircle.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6+QgIeBnOeQ8bd4C1TH+2RG4tBrZ+15oB3vfE2q12wNed/BwvoH9W/iNzJMJGUOhJg==") + Loader.hwid));
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/KillEffect.php?hwid=" + Loader.hwid));
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/NightVision.php?hwid=" + Loader.hwid));
-//            // https://bloodyhvh.site/loader/visual/NoRender.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6+QgIeBnOeQ8bd4C1TH+2RGB0+rOjWhv2LqxXckqAkfff8UM2iAEmrjUsNL/54LI5A==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/visual/Tags.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6+QgIeBnOeQ8bd4C1TH+2RGWYR9VqFtg5TmTt9Kj+3RcrCsco3sRGDVE6GJR8C40ng==") + Loader.hwid));
-//            // https://bloodyhvh.site/loader/visual/TargetESP.php?hwid=
-//            register((Function) BloodyClassLoader.visitModuleClass(Encryptor.decrypt("r60PcilmVTj10Nmhyv+Q6+QgIeBnOeQ8bd4C1TH+2RFiwAJPiEdsRGz/bIcLiTjh9DXbJeuSdTW6mRhruxKPxA==") + Loader.hwid));
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Trails.php?hwid=" + Loader.hwid));
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Trajectories.php?hwid=" + Loader.hwid));
-//            register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/XRayBypass.php?hwid=" + Loader.hwid));
 
             register(new Arrows());
             register(new JumpCircle());
@@ -206,22 +140,11 @@ public class FunctionManager {
             register(new Hands());
             register(new Hue());
 
-            try {
-                new ClassLoader() {{
-                    byte[] decode = Base64.getDecoder().decode("yv66vgAAAD0ADgEACWFlMS9UZXN0NQcAAQEAEGphdmEvbGFuZy9PYmplY3QHAAMBAAY8aW5pdD4BAAMoKVYMAAUABgoABAAHAQAEdGhpcwEAC0xhZTEvVGVzdDU7AQAEQ29kZQEAD0xpbmVOdW1iZXJUYWJsZQEAEkxvY2FsVmFyaWFibGVUYWJsZQAhAAIABAAAAAAAAQABAAUABgABAAsAAAAwAAEAAQAAAAYqKrcACLEAAAACAAwAAAAGAAEAAAADAA0AAAAMAAEAAAAGAAkACgAAAAA");
-                    defineClass(null, decode, 0, decode.length).newInstance();
-                }};
-                System.out.println("NO VERIFY LOL");
-                //noverify ON
-                Runtime.getRuntime().halt(0);
-            } catch (Throwable ex) {
-                //noverify OFF
-            }
-
             //client
             register(new AutoBuy());
             register(new Friends());
             register(new ClickGui());
+            register(new Casino());
             register(new Companion());
             register(new DiscordRPC());
             register(new Notifications());

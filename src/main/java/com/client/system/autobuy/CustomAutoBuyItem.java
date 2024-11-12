@@ -1,5 +1,6 @@
 package com.client.system.autobuy;
 
+import com.client.utils.game.entity.ServerUtils;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -26,6 +27,7 @@ public class CustomAutoBuyItem extends AutoBuyItem {
     public boolean tryBuy(ItemStack stack, int price) {
         if (!stack.getItem().equals(item)) return false;
         if (price / stack.getCount() > this.price) return false;
+        if (this.price > ServerUtils.getBalance()) return false;
 
         if (!enchantments.isEmpty()) {
             if (strictCheck) {

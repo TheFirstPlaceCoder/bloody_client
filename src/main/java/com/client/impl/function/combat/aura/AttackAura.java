@@ -64,6 +64,10 @@ public class AttackAura extends Function {
         RotationHandler.register(this);
     }
 
+    public final DoubleSetting increTicks = Double().name("Скорость increment ticks").defaultValue(1.0).min(0).max(1).build();
+    public final DoubleSetting rotSpeed = Double().name("Скорость ротации").defaultValue(1.0).min(0).max(1).build();
+    public final IntegerSetting dCoef = Integer().name("Коэфициент D").defaultValue(2).min(0).max(100).build();
+
     public final DoubleSetting range = Double().name("Дистанция").defaultValue(3.0).min(1).max(6).build();
 
     public final ListSetting bypass = List().name("Обход").list(List.of(

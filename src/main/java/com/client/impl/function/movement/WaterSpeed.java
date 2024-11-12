@@ -3,7 +3,13 @@ package com.client.impl.function.movement;
 import com.client.event.events.TickEvent;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
+import com.client.system.setting.settings.DoubleSetting;
+import com.client.system.setting.settings.IntegerSetting;
 import com.client.system.setting.settings.ListSetting;
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 
 import java.util.List;
@@ -13,147 +19,44 @@ public class WaterSpeed extends Function {
         super("Water Speed", Category.MOVEMENT);
     }
 
-    private final ListSetting mode = List().name("Режим").list(List.of("FunTime")).defaultValue("FunTime").build();
+    private final ListSetting mode = List().name("Режим").list(List.of("Velocity", "Effect", "Attribute", "Dolphin", "Speed", "Test")).defaultValue("Velocity").build();
+    public final IntegerSetting speedVel = Integer().name("speedVel").max(100).min(0).defaultValue(3).visible(() -> mode.get().equals("Velocity")).build();
+    public final IntegerSetting effectLevel = Integer().name("effectLevel").max(6).min(0).defaultValue(1).visible(() -> mode.get().equals("Effect")).build();
+    public final DoubleSetting attributePower = Double().name("attributePower").defaultValue(0.55).min(0).max(1).visible(() -> mode.get().equals("Attribute")).build();
+    public final IntegerSetting dolphinLevel = Integer().name("dolphinLevel").max(2).min(0).defaultValue(1).visible(() -> mode.get().equals("Dolphin")).build();
+    public final IntegerSetting speedLvl = Integer().name("speedLvl").max(2).min(0).defaultValue(1).visible(() -> mode.get().equals("Speed")).build();
+    public final IntegerSetting slowFalling = Integer().name("slowFalling").max(2).min(0).defaultValue(1).visible(() -> mode.get().equals("Test")).build();
+
+    @Override
+    public void onEnable() {
+        if (mode.get().equals("Test"))
+            mc.player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 2000, slowFalling.get(), false, true));
+    }
+
+    @Override
+    public void onDisable() {
+        mc.player.removeStatusEffect(StatusEffects.SLOW_FALLING);
+    }
 
     @Override
     public void tick(TickEvent.Pre e) {
+        if (!mc.player.isSwimming() && !mc.player.isSubmergedInWater()) return;
         String selectedType = mode.get();
 
-        if (selectedType.equals("FunTime")) {
+        if (selectedType.equals("Velocity")) {
             WATER_FT();
+        } else if (selectedType.equals("Effect")) {
+            mc.player.addStatusEffect(new StatusEffectInstance(StatusEffects.WATER_BREATHING, 200, effectLevel.get(), false, true));
+        } else if (selectedType.equals("Attribute")) {
+            mc.player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(attributePower.get());
+        } else if (selectedType.equals("Dolphin")) {
+            mc.player.addStatusEffect(new StatusEffectInstance(StatusEffects.DOLPHINS_GRACE, 200, dolphinLevel.get(), false, true));
+        } else if (selectedType.equals("Speed")) {
+            mc.player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 200, speedLvl.get(), false, true));
         }
     }
 
     private void WATER_FT() {
-        PlayerEntity player = mc.player;
-        if (player != null && player.isSwimming()) {
-            if (player.isSubmergedInWater()) {
-                player.setVelocity(player.getVelocity().x * 1.0505, player.getVelocity().y, player.getVelocity().z * 1.0505);
-            }
-        }
+        mc.player.setVelocity(mc.player.getVelocity().x * (1 + speedVel.get() / 100), mc.player.getVelocity().y, mc.player.getVelocity().z * (1 + speedVel.get() / 100));
     }
-
-//    public float m = 0;
-//    boolean shouldenable = false;
-//
-//    @Override
-//    public void onEnable() {
-//        shouldenable = true;
-//    }
-//
-//    @Override
-//    public void onPlayerMoveEvent(PlayerMoveEvent event) {
-//        if (FunctionUtils.playerSpeed < 3.5) shouldenable = true;
-//
-//        if (mode.get().equals("HolyWorld")) {
-//            if (shouldenable && FunctionUtils.playerSpeed > 3.5) {
-//                m = 0.94F;
-//
-//                for (ItemStack armorItem : mc.player.getArmorItems()) {
-//                    if (armorItem.getTranslationKey().contains("boots")) {
-//                        m = 1.0F;
-//                    }
-//                }
-//
-//                shouldenable = false;
-//            }
-//
-//            if (MovementUtils.isMoving() && MovementUtils.isInLiquid() && !shouldenable) {
-//                if (pack.get()) mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookOnly(mc.player.yaw, mc.player.pitch, mc.player.isOnGround()));
-//
-//                if (FunctionUtils.playerSpeed <= getSpeed() && FunctionUtils.playerSpeed > 3.5) {
-//                    float const_ = 1.1009F * m;
-//
-//                    ((IVec3d) event.movement).set(
-//                            mc.player.getVelocity().getX() * const_,
-//                            mc.player.getVelocity().getY(),
-//                            mc.player.getVelocity().getZ() * const_
-//                    );
-//
-//                    m += 0.01;
-//                    event.cancel();
-//                } else m -= 0.02;
-//            }
-//        } else {
-//            if (MovementUtils.isMoving() && MovementUtils.isInLiquid()) {
-//                float m = 0.94F;
-//
-//                for (ItemStack armorItem : mc.player.getArmorItems()) {
-//                    if (armorItem.getTranslationKey().contains("boots")) {
-//                        m = 1.0F;
-//                    }
-//                }
-//
-//                float const_ = 1.03F * m;
-//
-//                ((IVec3d) event.movement).set(
-//                        mc.player.getVelocity().getX() * const_ * sp.get(),
-//                        mc.player.getVelocity().getY(),
-//                        mc.player.getVelocity().getZ() * const_ * sp.get()
-//                );
-//                event.cancel();
-//            }
-//        }
-//    }
-//
-//    public double getSpeed() {
-//        if (hasUnderWater()) {
-//            if (mc.player.hasStatusEffect(StatusEffects.SPEED)) {
-//                return switch (mc.player.getStatusEffect(StatusEffects.SPEED).getAmplifier()) {
-//                    case 0 -> 9.6;
-//                    case 1 -> 10.8;
-//                    default -> 12.5;
-//                };
-//
-//            } else return 8.1;
-//        } else {
-//            if (mc.player.hasStatusEffect(StatusEffects.SPEED)) {
-//                return switch (mc.player.getStatusEffect(StatusEffects.SPEED).getAmplifier()) {
-//                    case 0 -> 5.25;
-//                    case 1 -> 6.2;
-//                    default -> 6.75;
-//                };
-//
-//            } else return 4.5;
-//        }
-//    }
-//
-//    public boolean hasUnderWater() {
-//        List<String> enchantments = new ArrayList<>();
-//        for (ItemStack stack : mc.player.getArmorItems()) {
-//            if (!stack.getTranslationKey().contains("boots")) continue;
-//
-//            if (stack.hasEnchantments()) {
-//                for (NbtElement enchantment : stack.getEnchantments()) {
-//                    String tag = enchantment.toString().replace("{", "").replace("}", "");
-//                    StringBuilder lvl = new StringBuilder();
-//                    for (char c : tag.split(",")[0].toCharArray()) {
-//                        try {
-//                            lvl.append(Integer.parseInt(String.valueOf(c)));
-//                        } catch (Exception ignored) {
-//                        }
-//                    }
-//                    StringBuilder enchantName = new StringBuilder();
-//                    boolean targ = false;
-//                    for (char c : tag.split(",")[1].toCharArray()) {
-//                        if (c == '\"') {
-//                            if (!targ) {
-//                                targ = true;
-//                                continue;
-//                            } else {
-//                                break;
-//                            }
-//                        }
-//                        if (targ) {
-//                            enchantName.append(c);
-//                        }
-//                    }
-//
-//                    enchantments.add(enchantName.toString().split(":")[1] + ":" + lvl);
-//                }
-//            }
-//        }
-//
-//        return enchantments.contains("depth_strider:3");
-//    }
 }

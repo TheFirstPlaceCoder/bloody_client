@@ -33,7 +33,9 @@ public class Companion extends Function {
     public void onDisable() {
         if (this.entity != null) {
             entity.kill();
+            entity.remove();
             mc.world.removeEntity(entity.getEntityId());
+            this.entity = null;
         }
     }
 

@@ -95,6 +95,7 @@ public class RotationHandler {
                 set_time = 0;
             }
         } else {
+            if (handler instanceof FunTimeRotationsHandler p) p.incrementTicks = 0;
             if (System.currentTimeMillis() > set_time && set_time != 0) {
                 task = RotationTask.IDLE;
                 return;
@@ -159,6 +160,9 @@ public class RotationHandler {
 
         serverYaw = handler.getRotate().a;
         serverPitch = handler.getRotate().b;
+
+        mc.player.yaw = serverYaw;
+        mc.player.pitch = serverPitch;
     }
 
     public static Handler getHandler() {

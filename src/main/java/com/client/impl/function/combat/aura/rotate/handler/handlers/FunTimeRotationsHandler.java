@@ -4,6 +4,8 @@ import com.client.impl.function.combat.aura.AttackAura;
 import com.client.impl.function.combat.aura.rotate.AttackAuraUtils;
 import com.client.impl.function.combat.aura.rotate.RotationHandler;
 import com.client.impl.function.combat.aura.rotate.handler.Handler;
+import com.client.interfaces.IGameRenderer;
+import com.client.interfaces.IInGameHud;
 import com.client.system.function.FunctionManager;
 import com.client.utils.Utils;
 import com.client.utils.game.rotate.Rotations;
@@ -28,69 +30,51 @@ public class FunTimeRotationsHandler extends Handler {
     private int aimTicks = 0;
     private float rotationYaw = -9999, rotationPitch = -9999, assistAcceleration, pitchAcceleration;
     private MsTimer visibleTime = new MsTimer();
+    public float incrementTicks = 0;
+    public V2F currentRot = new V2F(0, 0);
 
     @Override
     public void tick(Entity target, double range) {
-        rotate.a = (float) Utils.lerp(rotate.a, rotationYaw == -9999 ? mc.player.yaw : rotationYaw, assistAcceleration);
-        rotate.b = (float) Utils.lerp(rotate.b, rotationPitch == -9999 ? mc.player.pitch : rotationPitch, pitchAcceleration);
+        rotate.a = currentRot.a;
+        rotate.b = currentRot.b;
     }
 
     public void tick1(Entity target, double range, boolean isEnabled) {
         AttackAura aura = FunctionManager.get(AttackAura.class);
+        V2F targetRotation = getBestPoint(target, range);
 
         if (target != null && isEnabled) {
-            if (target == mc.player) {
-                rotationYaw = mc.player.yaw;
-                rotationPitch = mc.player.pitch;
-                return;
-            }
+            if (((IGameRenderer) mc.gameRenderer).getTarget(rotate.a, rotate.b) == target || target == mc.player) incrementTicks = 0;
 
-            if ((AttackAuraUtils.checkTargetEntity(RotationHandler.serverYaw, RotationHandler.serverPitch, range, target)))
-                aimTicks++;
-            else
-                aimTicks = 0;
-
-            if (aimTicks >= 1) {
-                assistAcceleration = 0;
-                pitchAcceleration = 0;
-                return;
-            }
-
-            assistAcceleration += (mc.player.age % 50 == 0 ? Utils.random(28, 30) : 30) / 10000f;
-            pitchAcceleration += 18 / 10000f;
-
-            if (!mc.player.canSee(target)) {
-                if (!aura.wallsAttack.get())
-                    visibleTime.reset();
-            }
-
-            if (!visibleTime.passedMs(40)) {
-                rotationYaw = -9999;
-                rotationPitch = -9999;
-                return;
-            }
-
-            if (rotationYaw == -9999)
-                rotationYaw = mc.player.yaw;
-
-            if (rotationPitch == -9999)
-                rotationPitch = mc.player.pitch;
-
-            float delta_yaw = wrapDegrees((float) wrapDegrees(Math.toDegrees(Math.atan2(target.getPos().add(0, target.getEyeHeight(target.getPose()), 0).z - mc.player.getZ(), (target.getPos().add(0, target.getEyeHeight(target.getPose()), 0).x - mc.player.getX()))) - 90) - rotationYaw);
-            if (delta_yaw > 180)
-                delta_yaw = delta_yaw - 180;
-            float deltaYaw = MathHelper.clamp(MathHelper.abs(delta_yaw), -180, 180);
-            float newYaw = rotationYaw + (delta_yaw > 0 ? deltaYaw : -deltaYaw);
-            double gcdFix = (Math.pow(mc.options.mouseSensitivity * 0.6 + 0.2, 3.0)) * 1.2;
-            rotationYaw = (float) (newYaw - (newYaw - rotationYaw) % gcdFix);
-
-            rotationPitch = (float) Rotations.getPitch(target.getPos().add(0, oldY == -1 || mc.player.age % 20 == 0 ? oldY = (target.getY() > mc.player.getY() ? Utils.random(0, target.getHeight() / 2) : Utils.random(target.getHeight() / 2, target.getHeight())) : oldY, 0));
-        } else {
-            rotationYaw = mc.player.yaw;
-            rotationPitch = mc.player.pitch;
-            assistAcceleration = 90 / 10000f;
-            pitchAcceleration = 54 / 10000f;
+            incrementTicks += aura.increTicks.get().floatValue();
+            currentRot.a = circEaseOut(rotate.a, targetRotation.a, incrementTicks * aura.rotSpeed.get().floatValue());
+            currentRot.b = circEaseOut(rotate.b, targetRotation.b, incrementTicks * aura.rotSpeed.get().floatValue());
         }
+    }
+
+    private float cubicEaseInOut(float start, float end, float percent) {
+        percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
+        float change = (float) calculate(1, end, start);
+        if (percent < 0.5f) {
+            return start + change / 2 * percent * percent * percent;
+        } else {
+            percent -= 1;
+            return start + change / (1 - 2 * percent * percent * percent);
+        }
+    }
+
+    private float circEaseOut(float start, float end, float percent) {
+        percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
+        float change = (float) calculate(1, end, start);
+
+        return change * (float)Math.sqrt(1 - (percent=percent/FunctionManager.get(AttackAura.class).dCoef.get()-1)*percent) + start;
+    }
+
+    private double calculate(double m, double a, double b) {
+        double d, s;
+        d = MathHelper.wrapDegrees(a - b);
+        s = Math.abs(d / m);
+        return s * (d >= 0 ? 1 : -1);
     }
 
     @Override
