@@ -4,6 +4,7 @@ import com.client.impl.function.combat.aura.AttackAura;
 import com.client.impl.function.combat.aura.rotate.AttackAuraUtils;
 import com.client.impl.function.combat.aura.rotate.RotationHandler;
 import com.client.impl.function.combat.aura.rotate.handler.Handler;
+import com.client.impl.function.combat.aura.rotate.handler.Interpolates;
 import com.client.interfaces.IGameRenderer;
 import com.client.interfaces.IInGameHud;
 import com.client.system.function.FunctionManager;
@@ -26,12 +27,9 @@ public class FunTimeRotationsHandler extends Handler {
     }
 
     private static final V2F rotate = new V2F(0, 0);
-    public static double oldY = -1;
-    private int aimTicks = 0;
-    private float rotationYaw = -9999, rotationPitch = -9999, assistAcceleration, pitchAcceleration;
-    private MsTimer visibleTime = new MsTimer();
     public float incrementTicks = 0;
     public V2F currentRot = new V2F(0, 0);
+    public Interpolates interpolates = new Interpolates();
 
     @Override
     public void tick(Entity target, double range) {
@@ -46,35 +44,12 @@ public class FunTimeRotationsHandler extends Handler {
         if (target != null && isEnabled) {
             if (((IGameRenderer) mc.gameRenderer).getTarget(rotate.a, rotate.b) == target || target == mc.player) incrementTicks = 0;
 
-            incrementTicks += aura.increTicks.get().floatValue();
-            currentRot.a = circEaseOut(rotate.a, targetRotation.a, incrementTicks * aura.rotSpeed.get().floatValue());
-            currentRot.b = circEaseOut(rotate.b, targetRotation.b, incrementTicks * aura.rotSpeed.get().floatValue());
+            incrementTicks += 0.05;
+            currentRot.a = interpolates.calculateInterpolate(aura.boostMode.get(), rotate.a, targetRotation.a, incrementTicks);
+
+            if (((IGameRenderer) mc.gameRenderer).getTarget(rotate.a, rotate.b) != target)
+                currentRot.b = (float) Utils.lerp(rotate.b, targetRotation.b, 0.1);
         }
-    }
-
-    private float cubicEaseInOut(float start, float end, float percent) {
-        percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
-        float change = (float) calculate(1, end, start);
-        if (percent < 0.5f) {
-            return start + change / 2 * percent * percent * percent;
-        } else {
-            percent -= 1;
-            return start + change / (1 - 2 * percent * percent * percent);
-        }
-    }
-
-    private float circEaseOut(float start, float end, float percent) {
-        percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
-        float change = (float) calculate(1, end, start);
-
-        return change * (float)Math.sqrt(1 - (percent=percent/FunctionManager.get(AttackAura.class).dCoef.get()-1)*percent) + start;
-    }
-
-    private double calculate(double m, double a, double b) {
-        double d, s;
-        d = MathHelper.wrapDegrees(a - b);
-        s = Math.abs(d / m);
-        return s * (d >= 0 ? 1 : -1);
     }
 
     @Override
@@ -94,28 +69,8 @@ public class FunTimeRotationsHandler extends Handler {
             return new V2F(mc.player.yaw, mc.player.pitch);
         }
 
-        Vec3d vec = new Vec3d(target.getX(), target.getY() + target.getHeight() * 0.75F, target.getZ());
+        Vec3d vec = new Vec3d(target.getX(), target.getY() + target.getHeight() * (target.getY() > mc.player.getY() ? 0.25F : 0.75F), target.getZ());
         return new V2F((float) Rotations.getYaw(vec), (float) Rotations.getPitch(vec));
-    }
-
-    public double getBestPointDynamic(Entity target) {
-        if (target == null || target == mc.player) {
-            return 0;
-        }
-
-        if (target.getY() > mc.player.getY()) {
-            return target.getY() + (Utils.random(0, target.getHeight() / 2));
-        } else {
-            return target.getY() + target.getHeight() * 0.75 + (Utils.random(0, target.getHeight() * 0.25));
-        }
-    }
-
-    public double getBestPointStatic(Entity target) {
-        if (target == null || target == mc.player) {
-            return 0;
-        }
-
-        return target.getY() + target.getHeight() * 0.75F;
     }
 
     @Override

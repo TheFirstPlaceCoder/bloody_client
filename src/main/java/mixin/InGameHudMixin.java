@@ -7,7 +7,6 @@ import com.client.event.events.RenderOverlayEvent;
 import com.client.event.events.ScoreboardRenderEvent;
 import com.client.impl.function.client.Hud;
 import com.client.impl.function.visual.DamageTint;
-import com.client.impl.hud.ScoreboardHud;
 import com.client.interfaces.IInGameHud;
 import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudFunction;
@@ -459,16 +458,6 @@ public abstract class InGameHudMixin extends DrawableHelper implements IInGameHu
         int q = client.options.getTextBackgroundColor(0.3F);
         int r = client.options.getTextBackgroundColor(0.4F);
 
-        int counting = list2.size() + 1;
-
-        ScoreboardHud scoreboardHud = HudManager.get(ScoreboardHud.class);
-        if (!Loader.unHook && scoreboardHud.isEnabled()) {
-            scoreboardHud.rect.setW((float) ((this.scaledWidth - 3 + 2) - scoreboardHud.rect.getX()));
-            scoreboardHud.rect.setH((float) m - scoreboardHud.rect.getY());
-
-            scoreboardHud.drawNewClientRect(scoreboardHud.rect);
-        }
-
         for (Pair<ScoreboardPlayerScore, Text> scoreboardPlayerScoreTextPair : list2) {
             ++p;
             ScoreboardPlayerScore scoreboardPlayerScore2 = (ScoreboardPlayerScore) ((Pair<?, ?>) scoreboardPlayerScoreTextPair).getFirst();
@@ -511,19 +500,18 @@ public abstract class InGameHudMixin extends DrawableHelper implements IInGameHu
             }
             int t = m - p * 9;
             int u = this.scaledWidth - 3 + 2;
-            int var10001 = (Loader.unHook || !scoreboardHud.isEnabled()) ? o - 2 : scoreboardHud.rect.getX().intValue();
+            int var10001 = o - 2;
             if (!event.isCancelled()) {
-                if (Loader.unHook || !scoreboardHud.isEnabled()) fill(matrices, var10001, t, u, t + 9, q);
+                fill(matrices, var10001, t, u, t + 9, q);
 
                 this.getFontRenderer().draw(matrices, text3, (float) o, (float) t, -1);
                 this.getFontRenderer().draw(matrices, string, (float) (u - this.getFontRenderer().getWidth(string)), (float) t, -1);
             }
             if (p == collection.size()) {
                 if (!event.isCancelled()) {
-                    if (Loader.unHook || !scoreboardHud.isEnabled()) {
-                        fill(matrices, var10001, t - 9 - 1, u, t - 1, r);
-                        fill(matrices, var10001, t - 1, u, t, q);
-                    }
+                    fill(matrices, var10001, t - 9 - 1, u, t - 1, r);
+                    fill(matrices, var10001, t - 1, u, t, q);
+
                     float var10003 = (float) (o + j / 2 - i / 2);
                     this.getFontRenderer().draw(matrices, text, var10003, (float) (t - 9), -1);
                 }

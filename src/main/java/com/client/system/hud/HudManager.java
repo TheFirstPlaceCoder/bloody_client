@@ -27,7 +27,6 @@ public class HudManager {
         //register(new LeftAngle());
         register(new PingHud());
         register(new PotionHud());
-        register(new ScoreboardHud());
         register(new SpeedHud());
         register(new StaffHud());
         register(new TargetHud());

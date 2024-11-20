@@ -7,6 +7,8 @@ import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.setting.settings.BooleanSetting;
 import com.client.system.setting.settings.ColorSetting;
+import com.client.system.setting.settings.DoubleSetting;
+import com.client.system.setting.settings.IntegerSetting;
 
 import java.awt.*;
 
@@ -19,6 +21,12 @@ public class Companion extends Function {
     }
 
     public DumboOctopusEntity entity;
+    public int yaw = 50;
+    public int yawDelay = 30;
+    public int delayBetween = 20;
+    public int moveTicks = 30;
+    public float speed = 0.02f;
+    public double verSpeed = 0.05;
 
     @Override
     public void onEnable() {

@@ -43,12 +43,12 @@ public class AutoBuy extends Function {
             "FunTime", "HolyWorld"
     )).defaultValue("FunTime").build();
 
-    private final IntegerSetting clickCount = Integer().name("Клики перед\nпрыжками").min(1).max(20).defaultValue(10).visible(() -> server.get().equals("FunTime")).build();
-    private final IntegerSetting delay = Integer().name("Задержка\nобновления").min(100).max(5000).defaultValue(3040).build();
-    private final IntegerSetting delayAdd = Integer().name("Задержка действия").min(100).max(3000).defaultValue(1376).visible(() -> server.get().equals("FunTime")).build();
-    private final IntegerSetting delayAddPlus = Integer().name("Задержка после\nпокупки").min(100).max(3000).defaultValue(1202).visible(() -> server.get().equals("FunTime")).build();
-    private final IntegerSetting delayBeforeBuy = Integer().name("Задержка перед покупкой").min(100).max(5000).defaultValue(3138).visible(() -> server.get().equals("FunTime")).build();
-    private final IntegerSetting delayClick = Integer().name("Задержка между попытками").min(100).max(2000).defaultValue(1126).visible(() -> server.get().equals("FunTime")).build();
+    private final IntegerSetting clickCount = Integer().name("Клики перед прыжками").min(1).max(20).defaultValue(10).visible(() -> server.get().equals("FunTime")).build();
+    private final IntegerSetting delay = Integer().name("Задержка обновления").min(100).max(5000).defaultValue(3000).setPremium(true).build();
+    private final IntegerSetting delayAdd = Integer().name("Задержка действия").min(100).max(3000).defaultValue(1500).visible(() -> server.get().equals("FunTime")).setPremium(true).build();
+    private final IntegerSetting delayAddPlus = Integer().name("Задержка после клика").min(100).max(3000).defaultValue(1250).visible(() -> server.get().equals("FunTime")).setPremium(true).build();
+    private final IntegerSetting delayBeforeBuy = Integer().name("Задержка перед кликом").min(100).max(5000).defaultValue(3500).visible(() -> server.get().equals("FunTime")).setPremium(true).build();
+    private final IntegerSetting delayClick = Integer().name("Задержка между попытками").min(100).max(2000).defaultValue(1500).visible(() -> server.get().equals("FunTime")).setPremium(true).build();
     private final KeybindSetting bind = Keybind().name("Бинд").defaultValue(-1).build();
     private final Widget openScreen = Widget().name("Открыть меню").defaultValue(() -> {
         if (abGui == null) {

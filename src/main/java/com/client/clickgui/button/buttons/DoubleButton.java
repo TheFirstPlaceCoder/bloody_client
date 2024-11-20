@@ -23,7 +23,7 @@ public class DoubleButton extends SettingButton {
 
     public DoubleButton(AbstractSettings<?> settings, FloatRect rect) {
         super(settings, rect);
-        name = parse(settings.getName(), rect.getW() - 16, IFont.MONTSERRAT_MEDIUM, 7);
+        name = parse(settings.getName(), rect.getW() - 16 - IFont.getWidth(IFont.MONTSERRAT_MEDIUM, "9999", 7), IFont.MONTSERRAT_MEDIUM, 7);
         rect.addH(IFont.getHeight(IFont.MONTSERRAT_MEDIUM, name, 7) - IFont.getHeight(IFont.MONTSERRAT_MEDIUM, settings.getName(), 7));
     }
 

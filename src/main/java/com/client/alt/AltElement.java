@@ -96,10 +96,8 @@ public class AltElement implements Impl {
     @Override
     public void click(double mx, double my, int button) {
         if (new FloatRect(rect.getX2() - 48 + 5.25f, rect.getY().floatValue(), 16.5f, 16.5f).intersect(mx, my)) {
-            System.out.println("Loginned");
             this.account.login();
         } else if (new FloatRect(rect.getX2() - 48 + 5.25f + 16.5f + 5.25f, rect.getY().floatValue(), 16.5f, 16.5f).intersect(mx, my)) {
-            System.out.println("Removed");
             Accounts.remove(this.account);
         }
     }

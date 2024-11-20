@@ -17,7 +17,7 @@ import net.minecraft.util.UseAction;
 import java.util.List;
 
 public class NoSlow extends Function {
-    private final ListSetting mode = List().name("Режим").list(List.of("Grim", "Matrix", "Ванильный", "ReallyWorld", "FunTime Water")).defaultValue("Grim").build();
+    private final ListSetting mode = List().name("Режим").list(List.of("Grim", "Matrix", "Ванильный", "ReallyWorld")).defaultValue("Grim").build();
     private final BooleanSetting setSlot = Boolean().name("Свапать слот").defaultValue(true).visible(() -> mode.get().equals("Ванильный")).build();
 
     public NoSlow() {
@@ -89,10 +89,6 @@ public class NoSlow extends Function {
                 }
 
                 event.cancel();
-            }
-
-            case "FunTime Water" -> {
-                if (mc.player.isSwimming() && !FunctionManager.get("Water Speed").isEnabled()) event.cancel();
             }
 
             default -> {

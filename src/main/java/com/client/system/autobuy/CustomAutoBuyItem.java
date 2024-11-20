@@ -27,7 +27,7 @@ public class CustomAutoBuyItem extends AutoBuyItem {
     public boolean tryBuy(ItemStack stack, int price) {
         if (!stack.getItem().equals(item)) return false;
         if (price / stack.getCount() > this.price) return false;
-        if (this.price > ServerUtils.getBalance()) return false;
+        if (price > ServerUtils.getBalance()) return false;
 
         if (!enchantments.isEmpty()) {
             if (strictCheck) {

@@ -1,8 +1,8 @@
 {
 	"schemaVersion": 1,
-	"id": "bloody-client",
+	"id": "ias",
 	"version": "${version}",
-	"name": "Bloody Client",
+	"name": "In-Game Account Switcher",
 	"description": "кто это читает????",
 	"authors": [
 		"craaaazy",
@@ -23,7 +23,7 @@
 		]
 	},
 	"mixins": [
-		"bloody-client.mixins.json"
+		"ias.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.15.11",

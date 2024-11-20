@@ -113,8 +113,8 @@ public class AutoSwap extends Function {
 
     private Item getItem(String name) {
         return switch (name) {
-            case "Сфера" -> Items.PLAYER_HEAD;
-            case "Золотое яблоко" -> Items.GOLDEN_APPLE;
+            case "Сфера" -> Items.DIRT;
+            case "Золотое яблоко" -> Items.COBBLESTONE;
             case "Щит" -> Items.SHIELD;
             case "Чарка" -> Items.ENCHANTED_GOLDEN_APPLE;
             case "Тотем" -> Items.TOTEM_OF_UNDYING;

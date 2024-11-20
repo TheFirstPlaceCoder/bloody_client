@@ -1,14 +1,13 @@
 package com.client.system.autobuy;
 
+import com.client.alt.Account;
 import com.client.system.config.ConfigSystem;
 import lombok.Getter;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.util.registry.Registry;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -317,6 +316,43 @@ public class AutoBuyManager {
         }
     }
 
+    public static void load(File file) {
+        if (!file.exists()) return;
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                int id = Integer.parseInt(line.split(":")[0]);
+                if (id == 0) {
+                    Item item = null;
+                    for (Item i : Registry.ITEM) {
+                        if (i.getTranslationKey().equalsIgnoreCase(line.split(":")[1])) {
+                            item = i;
+                            break;
+                        }
+                    }
+                    items.add(new DefaultAutoBuyItem(item, Integer.parseInt(line.split(":")[2])));
+                }
+                if (id == 1) {
+                    CustomAutoBuyItem customAutoBuyItem = getCustomAutoBuyItemByName(line.split(":")[1]);
+                    CustomAutoBuyItem add = new CustomAutoBuyItem(customAutoBuyItem.item, Integer.parseInt(line.split(":")[2]));
+                    add.strings = customAutoBuyItem.strings;
+                    add.enchantments = customAutoBuyItem.enchantments;
+                    add.name = customAutoBuyItem.name;
+                    add.strictCheck = customAutoBuyItem.strictCheck;
+                    items.add(add);
+                }
+            }
+
+            br.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void save(Writer writer) {
         try {
             writer.write("autobuyitemcfg{\n");
@@ -329,6 +365,27 @@ public class AutoBuyManager {
                 }
             }
             writer.write("}\n");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void save(File file) {
+        if (file.exists()) file.delete();
+
+        try {
+            file.createNewFile();
+
+            BufferedWriter br = new BufferedWriter(new FileWriter(file));
+            for (AutoBuyItem item : items) {
+                if (item instanceof CustomAutoBuyItem) {
+                    br.write("1:" + ((CustomAutoBuyItem) item).name + ":" + item.price + "\n");
+                }
+                if (item instanceof DefaultAutoBuyItem) {
+                    br.write("0:" + item.item.getTranslationKey() + ":" + item.price + "\n");
+                }
+            }
+            br.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -12,8 +12,8 @@ public class Rotations {
         return mc.player.yaw + MathHelper.wrapDegrees((float) Math.toDegrees(Math.atan2(pos.getZ() - mc.player.getZ(), pos.getX() - mc.player.getX())) - 90f - mc.player.yaw);
     }
 
-    public static double getYawTest(Vec3d pos) {
-        return RotationHandler.serverYaw + MathHelper.wrapDegrees((float) Math.toDegrees(Math.atan2(pos.getZ() - mc.player.getZ(), pos.getX() - mc.player.getX())) - 90f - mc.player.yaw);
+    public static double getYawTest(float currentYaw, double currentX, double currentZ, Vec3d pos) {
+        return currentYaw + MathHelper.wrapDegrees((float) Math.toDegrees(Math.atan2(pos.getZ() - currentZ, pos.getX() - currentX)) - 90f - currentYaw);
     }
 
     public static double getPitch(Vec3d pos) {

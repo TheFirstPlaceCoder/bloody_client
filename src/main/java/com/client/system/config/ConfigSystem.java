@@ -63,6 +63,7 @@ public class ConfigSystem {
         if (name.equals("lastcfg")) {
             StaffCommand.load(new File(PATH + "/staff"));
             Accounts.load(new File(PATH + "/alts"));
+            AutoBuyManager.load(new File(PATH + "/a_buy"));
         }
 
         try {
@@ -244,7 +245,7 @@ public class ConfigSystem {
                 }
             }
 
-            AutoBuyManager.load(strings);
+            //AutoBuyManager.load(strings);
             ChestStealerManager.load(strings);
             FriendManager.load(strings);
 
@@ -288,6 +289,7 @@ public class ConfigSystem {
         try {
             StaffCommand.save(new File(PATH + "/staff"));
             Accounts.save(new File(PATH + "/alts"));
+            AutoBuyManager.save(new File(PATH + "/a_buy"));
 
             file.createNewFile();
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
@@ -311,7 +313,7 @@ public class ConfigSystem {
                 }
                 bufferedWriter.write("}\n");
             }
-            AutoBuyManager.save(bufferedWriter);
+            //AutoBuyManager.save(bufferedWriter);
             ChestStealerManager.save(bufferedWriter);
             FriendManager.save(bufferedWriter);
             bufferedWriter.flush();

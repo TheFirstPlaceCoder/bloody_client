@@ -11,7 +11,6 @@ public class DefaultAutoBuyItem extends AutoBuyItem {
     }
 
     public boolean tryBuy(ItemStack stack, int price) {
-        return stack.getItem().equals(item) && price / stack.getCount() <= this.price && this.price <= ServerUtils.getBalance();
+        return stack.getItem().equals(item) && price / stack.getCount() <= this.price && price <= ServerUtils.getBalance();
     }
 }
-

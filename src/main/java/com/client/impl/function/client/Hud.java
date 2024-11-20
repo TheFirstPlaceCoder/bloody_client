@@ -32,8 +32,7 @@ public class Hud extends Function {
             new MultiBooleanValue(false, "Модули"),
             new MultiBooleanValue(false, "Таргет"),
             new MultiBooleanValue(false, "Музыка"),
-            new MultiBooleanValue(false, "Хот-бар"),
-            new MultiBooleanValue(false, "Скорбоард")
+            new MultiBooleanValue(false, "Хот-бар")
     )).build();
 
     @Override
@@ -51,7 +50,6 @@ public class Hud extends Function {
         HudManager.get(FunctionListHud.class).setEnabled(listSetting.get(10));
         HudManager.get(TargetHud.class).setEnabled(listSetting.get(11));
         HudManager.get(MusicHud.class).setEnabled(listSetting.get(12));
-        HudManager.get(ScoreboardHud.class).setEnabled(listSetting.get(14));
     }
 
     public Hud() {

@@ -419,4 +419,10 @@ public class MovementUtils {
                 tweakedSpeed * (forward * Math.sin(yawRad) - strafe * Math.cos(yawRad))
         );
     }
+
+    public static void resetMotion(boolean y) {
+        ((IVec3d) mc.player.getVelocity()).setX(0);
+        ((IVec3d) mc.player.getVelocity()).setZ(0);
+        if (y) ((IVec3d) mc.player.getVelocity()).setY(0);
+    }
 }

@@ -7,6 +7,7 @@ import com.client.event.events.PlayerUpdateEvent;
 import com.client.impl.function.combat.aura.rotate.RotationHandler;
 import com.client.impl.function.combat.aura.rotate.handler.Handlers;
 import com.client.interfaces.IGameRenderer;
+import com.client.interfaces.IMinecraftClient;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.notification.Notification;
@@ -25,6 +26,7 @@ import com.client.utils.game.inventory.FindItemResult;
 import com.client.utils.game.inventory.InvUtils;
 import com.client.utils.misc.FunctionUtils;
 import com.sun.jna.Platform;
+import mixin.accessor.MinecraftClientAccessor;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
@@ -43,10 +45,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.Arrays;
-import java.util.ConcurrentModificationException;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,15 +63,15 @@ public class AttackAura extends Function {
         RotationHandler.register(this);
     }
 
-    public final DoubleSetting increTicks = Double().name("Скорость increment ticks").defaultValue(1.0).min(0).max(1).build();
-    public final DoubleSetting rotSpeed = Double().name("Скорость ротации").defaultValue(1.0).min(0).max(1).build();
-    public final IntegerSetting dCoef = Integer().name("Коэфициент D").defaultValue(2).min(0).max(100).build();
-
     public final DoubleSetting range = Double().name("Дистанция").defaultValue(3.0).min(1).max(6).build();
 
     public final ListSetting bypass = List().name("Обход").list(List.of(
             "FunTime", "HolyWorld", "ReallyWorld", "HvH"
     )).defaultValue("FunTime").build();
+
+    public final ListSetting boostMode = List().name("Ускорение ротации").list(List.of(
+            "Линейное", "Синусоидальное", "Экспоненциальное"
+    )).defaultValue("Линейное").visible(() -> bypass.get().equals("FunTime")).build();
 
     public final IntegerSetting tick = Integer().name("Тик ротации").max(5).min(1).defaultValue(3).visible(() -> bypass.get().equals("ReallyWorld")).build();
 
@@ -98,17 +97,22 @@ public class AttackAura extends Function {
 
     private final ListSetting shield = List().name("Щит").defaultValue("Ломать").list(List.of("Ломать", "Ждать", "Игнорировать")).build();
 
-    private final BooleanSetting weapon = Boolean().name("Только с оружием").defaultValue(true).build();
-    public final BooleanSetting wallsAttack = Boolean().name("Бить через стены").defaultValue(false).build();
-    private final BooleanSetting pressingShield = Boolean().name("Отжимать щит").defaultValue(true).build();
-    private final BooleanSetting pauseOnUse = Boolean().name("Ждать при использовании").defaultValue(false).build();
+    private final MultiBooleanSetting settings = MultiBoolean().name("Настройки").defaultValue(List.of(
+            new MultiBooleanValue(true, "Сброс спринта"),
+            new MultiBooleanValue(true, "Случайные удары"),
+            new MultiBooleanValue(true, "Случайная задержка"),
+            new MultiBooleanValue(true, "Только с оружием"),
+            new MultiBooleanValue(false, "Бить через стены"),
+            new MultiBooleanValue(true, "Отжимать щит"),
+            new MultiBooleanValue(false, "Ждать при использовании")
+    )).build();
 
     //public final BooleanSetting debug = Boolean().name("Debug").defaultValue(false).visible(Loader::isDev).build();
 
     private final Pattern ROTATION_PATTERN = Pattern.compile("[rotate-entity]=>log(sin(yaw))*log(cos(pitch))");
 
     public Entity target;
-    private long shieldWait, shieldMessWait, attackTime;
+    private long shieldWait, shieldMessWait, attackTime, lastMissAttack;
 
     @Override
     public void onEnable() {
@@ -124,13 +128,16 @@ public class AttackAura extends Function {
     private void onTickEvent(PlayerUpdateEvent event) {
         double radius = gerRadius();
         FunctionUtils.range = radius;
-        TargetHandler.handle(targets, radius, wallsAttack.get());
+        TargetHandler.handle(targets, radius, settings.get("Бить через стены"));
         target = TargetHandler.getTarget(radius);
 
         if (target == null || (!testHand() || shield())) return;
 
         if (canAttack() && System.currentTimeMillis() > attackTime) {
-            attack();
+            attack(false);
+        } else if (canMiss() && System.currentTimeMillis() > lastMissAttack) {
+            attack(true);
+            lastMissAttack = System.currentTimeMillis() + 5000;
         }
     }
 
@@ -142,14 +149,14 @@ public class AttackAura extends Function {
         return elytraPvp.get() && mc.player.isFallFlying() && mc.player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA;
     }
 
-    private void attack() {
-        boolean bl = mc.player.isSprinting();
+    private void attack(boolean isMiss) {
+        boolean bl = mc.player.isSprinting() && settings.get("Сброс спринта");
         boolean bl2 = false;
 
-//        if (bypass.get().equals("FunTime") && (checkPattern(target, RotationHandler.serverYaw, RotationHandler.serverPitch)))
-//            return;
+        if (bypass.get().equals("FunTime") && (checkPattern(target, RotationHandler.serverYaw, RotationHandler.serverPitch)))
+            return;
 
-        if (pressingShield.get() && SelfUtils.hasItem(Items.SHIELD) && mc.player.isUsingItem()) {
+        if (settings.get("Отжимать щит") && SelfUtils.hasItem(Items.SHIELD) && mc.player.isUsingItem()) {
             mc.interactionManager.stopUsingItem(mc.player);
         }
 
@@ -159,7 +166,8 @@ public class AttackAura extends Function {
             bl2 = true;
         }
 
-        mc.interactionManager.attackEntity(mc.player, target);
+        if (isMiss) ((IMinecraftClient) mc).attack();
+        else mc.interactionManager.attackEntity(mc.player, target);
         mc.player.swingHand(Hand.MAIN_HAND);
 
         if (!(mc.player.getMainHandStack().getItem() instanceof AxeItem || mc.player.getMainHandStack().getItem() instanceof SwordItem))
@@ -177,8 +185,8 @@ public class AttackAura extends Function {
 
     public boolean canAttack(boolean raytrace) {
         if (target == null || mc.player.isDead()) return false;
-        if (pauseOnUse.get() && mc.player.isUsingItem()) return false;
-        if ((((IGameRenderer) mc.gameRenderer).getTarget(RotationHandler.serverYaw, RotationHandler.serverPitch) != target && !bypass.get().equals("HvH")) && raytrace && !wallsAttack.get()) return false;
+        if (settings.get("Ждать при использовании") && mc.player.isUsingItem()) return false;
+        if ((((IGameRenderer) mc.gameRenderer).getTarget(RotationHandler.serverYaw, RotationHandler.serverPitch) != target && !bypass.get().equals("HvH")) && raytrace && !settings.get("Бить через стены")) return false;
         if (mc.player.distanceTo(target) > range.get()) return false;
         if (target instanceof PlayerEntity && ((PlayerEntity) target).isBlocking() && shield.get().equals("Ломать") && !raytrace) return true;
 
@@ -186,7 +194,7 @@ public class AttackAura extends Function {
                 || mc.player.isSubmergedInWater() && mc.world.getBlockState(mc.player.getBlockPos()).getBlock() instanceof FluidBlock || mc.player.isRiding()
                 || mc.player.abilities.flying || mc.player.isFallFlying();
 
-        if (mc.player.getAttackCooldownProgress(1.5F) < 0.92) return false;
+        if (mc.player.getAttackCooldownProgress(1.5F) < (settings.get("Случайная задержка") ? Utils.random(0.92, 1) : 0.92)) return false;
 
         boolean jump = !smartCriticals.get() || mc.options.keyJump.isPressed();
 
@@ -197,8 +205,14 @@ public class AttackAura extends Function {
         return true;
     }
 
+    public boolean canMiss() {
+        if (target == null || mc.player.isDead()) return false;
+        if (settings.get("Ждать при использовании") && mc.player.isUsingItem()) return false;
+        return settings.get("Случайные удары") && !(mc.player.getAttackCooldownProgress(1.5F) < 0.92);
+    }
+
     public boolean testHand() {
-        return !weapon.get() || mc.player.getMainHandStack().getItem() instanceof AxeItem || mc.player.getMainHandStack().getItem() instanceof SwordItem;
+        return !settings.get("Только с оружием") || mc.player.getMainHandStack().getItem() instanceof AxeItem || mc.player.getMainHandStack().getItem() instanceof SwordItem;
     }
 
     private boolean shield() {

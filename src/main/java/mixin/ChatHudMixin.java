@@ -60,6 +60,7 @@ public abstract class ChatHudMixin extends DrawableHelper implements IChatHud {
     @Overwrite
     private void addMessage(Text message, int messageId) {
         this.addMessage(message, messageId, this.client.inGameHud.getTicks(), false);
+        if (!message.getString().toLowerCase().contains("bloody"))
         LOGGER.info("[CHAT] {}", message.getString().replaceAll("\r", "\\\\r").replaceAll("\n", "\\\\n"));
     }
 

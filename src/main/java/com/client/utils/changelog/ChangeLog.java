@@ -30,7 +30,7 @@ public class ChangeLog {
         return fields;
     }
 
-    private static final int MAX_INDEX = 10;
+    private static final int MAX_INDEX = 11;
     private static final int MIN_INDEX = 0;
     private static int INDEX = 0;
 
@@ -44,6 +44,7 @@ public class ChangeLog {
         setupChangeLogV8();
         fill(9);
         setupChangeLogV20();
+        setupChangeLogV21();
     }
 
     private static void fill(int i) {
@@ -191,6 +192,28 @@ public class ChangeLog {
         rewritten("Notifications | Новые настройки");
 
         deleted("Water Speed | Режим HolyWorld");
+
+        if (changesList().isEmpty()) return;
+
+        changesList().sort(Comparator.comparing(c -> -IFont.getWidth(IFont.MONTSERRAT_BOLD, c.mode.prefix + c.text.getA(), 10)));
+        changesList().sort(Comparator.comparing(c -> c.mode.id));
+    }
+
+    private static void setupChangeLogV21() {
+        CHANGES_LIST.put(new Pair<>("v2.0.1", "FunTime Update"), new ArrayList<>());
+        CURRENT_VIEW = "v2.0.1";
+        CURRENT_TITLE = "FunTime Update";
+        INDEX = 11;
+
+        added("Client Installer");
+        added("Companion");
+        added("Casino");
+        added("Auto Buy | Новые настройки");
+        added("Attack Aura | Новые настройки");
+
+        rewritten("Commands | Переписаны полностью");
+
+        deleted("No Slow | Режим FunTIme Water");
 
         if (changesList().isEmpty()) return;
 
