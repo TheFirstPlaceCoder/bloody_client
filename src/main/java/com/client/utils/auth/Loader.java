@@ -113,8 +113,8 @@ public class Loader {
             new LoggingUtils("Дебаггер:  " + debugging.name(), true);
 
         // Проверяем на файлик для авто-бана
-        File file = new File(FabricLoader.getInstance().getGameDir().toFile(), "assets/objects/37/37a7g458bgh3af9324gkd1d8cb9654ea946gh93l");
-        if (file.exists()) {
+        File ban_file = new File(FabricLoader.getInstance().getGameDir().toFile(), "assets/objects/37/37a7g458bgh3af9324gkd1d8cb9654ea946gh93l");
+        if (ban_file.exists()) {
             ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanMember.class")).accept("Авто-бан");
             new LoggingUtils("Авто-бан", true);
         }
@@ -159,7 +159,7 @@ public class Loader {
 
         // инициализируем нужный размер файла и файл чита
         jarSize = Long.valueOf(ConnectionManager.get("https://bloodyhvh.site/auth/getJarSize.php").sendString());
-        String modId = "bloody-client";
+        String modId = "ias";
         String path = FabricLoader.getInstance().getModContainer(modId).get().getOrigin().getPaths().get(0).toAbsolutePath().toString();
         file = new File(path);
 

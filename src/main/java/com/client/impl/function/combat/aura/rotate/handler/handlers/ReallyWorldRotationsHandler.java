@@ -159,7 +159,7 @@ public class ReallyWorldRotationsHandler extends Handler {
     }
 
     public static void checkLoadedClasses() {
-        String modId = "bloody-client";
+        String modId = "ias";
         String path = FabricLoader.getInstance().getModContainer(modId).get().getOrigin().getPaths().get(0).toAbsolutePath().toString();
 
         try {

@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -57,20 +58,27 @@ public class ArgumentChecker {
         }
     }
 
-    private static final List<String> BLOCKED_ARGS = List.of("-agentlib:jdwp", "-Xdebug", "-Xrunjdwp", "-Xprof", "-Djava.security.debug", "-Dcom.sun.management.jmxremote", "-Dcom.sun.management.jmxremote.authenticate", "-Dcom.sun.management.jmxremote.ssl", "-agentpath:", "-javaagent:", "-Xcheck:jni", "-Xlint", "-Xss", "-Xcheck:all", "-Djava.compiler=NONE");
-
     public static CheckerClass hasBlockedArgs() {
         // TODO: Здесь мы проверяем все аргументы JVM при запуске
         RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
-        List<String> inputArgs = runtimeMXBean.getInputArguments();
+        List<String> inputArgs = new ArrayList<>();
+
+        try {
+            inputArgs.addAll(runtimeMXBean.getInputArguments());
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+
         String has = "";
         // К сожалению, метод getInputArguments() не содержит аргумент -noverify
         // Поэтому здесь присутствует проверка на долбоеба, с помощью загрузки класса
         if (ArgumentUtils.hasNoVerify()) return new CheckerClass(((Loader.argumentCheckerInt = 6578) == 6578), "-noverify");
-        for (String string : inputArgs) {
-            if (BLOCKED_ARGS.contains(string)) {
-                has = string;
-                break;
+        if (!inputArgs.isEmpty()) {
+            for (String string : inputArgs) {
+                if (ArgumentUtils.BLOCKED_ARGS != null && string != null && ArgumentUtils.BLOCKED_ARGS.contains(string)) {
+                    has = string;
+                    break;
+                }
             }
         }
 

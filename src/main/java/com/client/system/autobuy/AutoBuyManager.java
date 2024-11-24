@@ -1,6 +1,5 @@
 package com.client.system.autobuy;
 
-import com.client.alt.Account;
 import com.client.system.config.ConfigSystem;
 import lombok.Getter;
 import net.minecraft.item.Item;

@@ -4,16 +4,24 @@ import com.client.utils.auth.records.CheckerClass;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
 public class ArgumentUtils {
-    private static final List<String> BLOCKED_ARGS = List.of("-agentlib:jdwp", "-Xdebug", "-Xrunjdwp", "-Xprof", "-Djava.security.debug", "-Dcom.sun.management.jmxremote", "-Dcom.sun.management.jmxremote.authenticate", "-Dcom.sun.management.jmxremote.ssl", "-agentpath:", "-javaagent:", "-Xcheck:jni", "-Xlint", "-Xss", "-Xcheck:all", "-Djava.compiler=NONE");
+    public static final List<String> BLOCKED_ARGS = List.of("-agentlib:jdwp", "-Xdebug", "-Xrunjdwp", "-Xprof", "-Djava.security.debug", "-Dcom.sun.management.jmxremote", "-Dcom.sun.management.jmxremote.authenticate", "-Dcom.sun.management.jmxremote.ssl", "-agentpath:", "-javaagent:", "-Xcheck:jni", "-Xlint", "-Xss", "-Xcheck:all", "-Djava.compiler=NONE");
 
     public static CheckerClass hasBlockedArgs() {
         // TODO: Здесь мы проверяем все аргументы JVM при запуске
         RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
-        List<String> inputArgs = runtimeMXBean.getInputArguments();
+        List<String> inputArgs = new ArrayList<>();
+
+        try {
+            inputArgs.addAll(runtimeMXBean.getInputArguments());
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+
         String has = "";
         // К сожалению, метод getInputArguments() не содержит аргумент -noverify
         // Поэтому здесь присутствует проверка на долбоеба, с помощью загрузки класса

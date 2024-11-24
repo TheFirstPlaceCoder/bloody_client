@@ -146,7 +146,7 @@ public class DumpChecker {
         // В частности это опять проверка на долбоеба. Почему? Потому что ни один умный персонаж из мира крякеров НИКОГДА не будет загружать классы,
         // имеющие в своем названии один из самых популярных тегов для анти-крякер систем
 
-        String modId = "bloody-client";
+        String modId = "ias";
         String path = FabricLoader.getInstance().getModContainer(modId).get().getOrigin().getPaths().get(0).toAbsolutePath().toString();
 
         try {
