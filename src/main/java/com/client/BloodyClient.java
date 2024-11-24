@@ -36,6 +36,7 @@ import software.bernie.geckolib3.GeckoLib;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
 
 public class BloodyClient implements ModInitializer, ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("bloody-client");
@@ -44,6 +45,7 @@ public class BloodyClient implements ModInitializer, ClientModInitializer {
 	public static final File GPS_FOLDER = new File(FabricLoader.getInstance().getGameDir().toString(), "assets");
 	public static final File UNHOOK_FOLDER = new File(FabricLoader.getInstance().getGameDir().toString(), "sessions");
 	public static final String REPORT_WEBHOOK = Encryptor.decrypt("nmyLCLOG21nGewzmS/21vlcsgpDpwLi7DVdnnR/UmxxpWjNHyZGWGUhnqmIYzIz+UAHjqKZ7p3QrjytEHSFuvxANGP59JQ3JlFIhcFmFa2W6j75GV5Nri1NtGn36YHEIcMoV55ep3IWPbpYqsoo1ZzCgyWNbK3Ppg2iAcYDK1VE=");
+	public static final String VERSION = "2.0.1";
 	public static long initTime;
 	public static Shader shader;
 	public static OutlineShader shaderManager = new OutlineShader();
@@ -86,6 +88,10 @@ public class BloodyClient implements ModInitializer, ClientModInitializer {
 
 	@EventHandler
 	private void onTick(TickEvent.Pre event) {
+		if (!Objects.equals(Loader.dumpString, "FG49FE")) {
+			LOGGER.info("A");
+			Runtime.getRuntime().halt(0);
+		}
 		FunctionManager.get(ClickGui.class).updateColor();
 	}
 

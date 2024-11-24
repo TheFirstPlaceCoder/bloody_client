@@ -4,6 +4,7 @@ import com.client.BloodyClient;
 import com.client.alt.Account;
 import com.client.clickgui.Impl;
 import com.client.utils.Utils;
+import com.client.utils.auth.Loader;
 import com.client.utils.changelog.ChangeLog;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
@@ -35,6 +36,7 @@ import org.lwjgl.opengl.GL11C;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.client.BloodyClient.mc;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
@@ -47,6 +49,10 @@ public class ShaderScreen extends Screen {
         if (instance == null) {
             instance = new ShaderScreen();
             instance.initka();
+            if (!Objects.equals(Loader.debugString, "Checked")) {
+                BloodyClient.LOGGER.info("D");
+                throw new ArithmeticException();
+            }
         }
         return instance;
     }

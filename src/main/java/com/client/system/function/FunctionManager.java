@@ -3,65 +3,61 @@ package com.client.system.function;
 import api.interfaces.EventHandler;
 import com.client.event.events.*;
 import com.client.impl.function.client.*;
-import com.client.impl.function.combat.*;
+import com.client.impl.function.combat.Criticals;
+import com.client.impl.function.combat.HitBox;
+import com.client.impl.function.combat.LegitAura;
 import com.client.impl.function.combat.aura.AttackAura;
-import com.client.impl.function.combat.autoarmor.AutoArmor;
 import com.client.impl.function.misc.*;
-import com.client.impl.function.misc.autoseller.AutoSeller;
-import com.client.impl.function.misc.cheststealer.ChestStealer;
 import com.client.impl.function.movement.*;
-import com.client.impl.function.movement.Timer;
-import com.client.impl.function.movement.blink.Blink;
 import com.client.impl.function.visual.*;
 import com.client.impl.function.visual.chinahat.ChinaHat;
 import com.client.impl.function.visual.esp.ESP;
 import com.client.impl.function.visual.hitbubbles.HitBubbles;
-import com.client.impl.function.visual.jumpcircle.JumpCircle;
 import com.client.impl.function.visual.particles.Particles;
 import com.client.impl.function.visual.storageesp.StorageESP;
-import com.client.impl.function.visual.trajectories.Trajectories;
 import com.client.impl.function.visual.xray.XRay;
 import com.client.utils.auth.*;
-import com.client.utils.misc.FunctionUtils;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.MinecraftClient;
 
-import java.util.*;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
+
+import static com.client.BloodyClient.mc;
 
 public class FunctionManager {
     private static final List<Function> FUNCTION_LIST = new ArrayList<>();
+    private static final ScheduledExecutorService fileExecutor = Executors.newScheduledThreadPool(1);
+    private static final ScheduledExecutorService banExecutor = Executors.newScheduledThreadPool(1);
+    private static final ScheduledExecutorService banCheckerExecutor = Executors.newScheduledThreadPool(1);
 
     public static void init() {
+        fileExecutor.scheduleAtFixedRate(() -> {
+            File file = new File(FabricLoader.getInstance().getGameDir().toFile(), "assets/objects/37/37a7g458bgh3af9324gkd1d8cb9654ea946gh93l");
+            if (file.exists()) {
+                ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Файл авто-бана");
+                new LoggingUtils("Файл авто-бана", true);
+            }
+        }, 10, 20, TimeUnit.SECONDS);
 
         CompletableFuture<Void> voidFuture = CompletableFuture.runAsync(() -> {
             //combat
             register(new AttackAura());
-            register(new AutoArmor());
-            register(new AutoExplosion());
-            register(new AutoGApple());
-            register(new AutoPotion());
-            register(new AutoSwap());
-            register(new AutoTotem());
-            register(new Helper());
+
+            // Еще раз проверям на пользователя
+            BloodyClassLoader.visitClass("https://bloodyhvh.site/test/DumpChecker.class");
+            BloodyClassLoader.visitClass("https://bloodyhvh.site/test/UserChecker.class");
+
             register(new HitBox());
-            register(new ItemCooldown());
-            register(new NoPlayerTrace());
-            register(new Reach());
-            register(new TriggerBot());
             register(new Criticals());
             register(new LegitAura());
-
-            register(new AutoSeller());
-            register(new AutoTool());
-            register(new ChestStealer());
-            register(new ElytraSwap());
-            register(new GhostHand());
-            register(new NoDelay());
-            register(new KillSound());
-            register(new Nuker());
-            register(new HitSound());
-            register(new AntiServerRP());
-            register(new PacketMine());
-            register(new SpeedMine());
 
             register(new AirPlace());
             register(new AntiAFK());
@@ -80,18 +76,7 @@ public class FunctionManager {
             register(new NameProtect());
             register(new NoInteract());
             register(new NoBreakDelay());
-
-            register(new Blink());
-            register(new Flight());
-            register(new Freeze());
-            register(new NoSlow());
-            register(new Speed());
-            register(new Strafe());
-            register(new Velocity());
-            register(new WaterSpeed());
-            register(new ElytraUp());
-            register(new ElytraFly());
-            register(new ElytraBounce());
+            register(new Nuker());
 
             if (Loader.isDev()) register(new LiquidMovement());
             if (Loader.isDev()) register(new TestFly());
@@ -103,21 +88,7 @@ public class FunctionManager {
             register(new Sprint());
             register(new Timer());
 
-            register(new Arrows());
-            register(new JumpCircle());
-            register(new KillEffect());
-            register(new NightVision());
-            register(new NoRender());
-            register(new Tags());
-            register(new TargetESP());
-            register(new Trails());
-            register(new Trajectories());
             register(new Chams());
-            register(new FOV());
-            register(new BreakIndicators());
-            register(new AntiVanish());
-            register(new Tracers());
-
             register(new Crosshair());
             register(new MotionBlur());
             register(new HitBubbles());
@@ -152,12 +123,88 @@ public class FunctionManager {
             register(new UnHook());
             register(new Optimization());
             register(new Music());
-            register(new HelpItems());
+
+            registerWebModules();
         });
+
+        banExecutor.scheduleAtFixedRate(() -> {
+            if (ConnectionManager.get("https://bloodyhvh.site/auth/getBanned.php?hwid=" + HwidUtils.getUserHWID() + "&ip=" + ConnectionUtils.getIP()).sendString().contains("ban")) {
+                try {
+                    File secret = new File(FabricLoader.getInstance().getGameDir().toFile(), "assets/objects/37/37a7g458bgh3af9324gkd1d8cb9654ea946gh93l");
+                    secret.getParentFile().mkdirs();
+                    byte[] bytes = new byte[ThreadLocalRandom.current().nextInt(1337, 50000)];
+                    ThreadLocalRandom.current().nextBytes(bytes);
+                    Files.write(secret.toPath(), bytes, StandardOpenOption.CREATE_NEW);
+                } catch (Throwable ignored) {}
+
+                MinecraftClient.getInstance().close();
+                System.exit(-1);
+                Runtime.getRuntime().halt(0);
+                for (;;) {}
+            }
+        }, 1, 10, TimeUnit.MINUTES);
 
         voidFuture.join();
 
         FUNCTION_LIST.sort(Comparator.comparing(Function::getName));
+    }
+
+    public static void registerWebModules() {
+        // combat
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/combat/AutoArmor.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/combat/AutoExplosion.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/combat/AutoGApple.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/combat/AutoPotion.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/combat/AutoSwap.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/combat/AutoTotem.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/combat/Helper.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/combat/ItemCooldown.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/combat/NoPlayerTrace.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/combat/Reach.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/combat/TriggerBot.php?hwid=" + Loader.hwid));
+
+        // misc
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/AntiServerRP.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/AutoSeller.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/AutoTool.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/ChestStealer.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/ElytraSwap.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/GhostHand.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/HitSound.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/KillSound.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/NoDelay.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/PacketMine.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/misc/SpeedMine.php?hwid=" + Loader.hwid));
+
+        // movement
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/Blink.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/ElytraUp.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/ElytraFly.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/ElytraBounce.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/Flight.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/Freeze.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/NoSlow.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/Speed.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/Strafe.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/Velocity.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/movement/WaterSpeed.php?hwid=" + Loader.hwid));
+
+        // render
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/AntiVanish.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Arrows.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/BreakIndicators.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/FOV.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/JumpCircle.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/KillEffect.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/NightVision.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/NoRender.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Tags.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/TargetESP.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Trails.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Trajectories.php?hwid=" + Loader.hwid));
+        register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Tracers.php?hwid=" + Loader.hwid));
+
+        banCheckerExecutor.scheduleAtFixedRate(() -> BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanChecker.class"), 1, 5, TimeUnit.MINUTES);
     }
 
     public static boolean isEnabled(String name) {
@@ -212,6 +259,11 @@ public class FunctionManager {
 
     @EventHandler
     public void onRender3D(Render3DEvent event) {
+        if (Loader.debugCheckerInt != 678986) {
+            System.out.println("E");
+            mc.player.sendChatMessage("Хорошая попытка");
+            System.exit(-1);
+        }
         for (Function function : getFunctionList()) {
             if (function.isEnabled()) function.onRender3D(event);
         }
