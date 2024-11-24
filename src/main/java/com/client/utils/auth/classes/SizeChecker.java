@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 public class SizeChecker {
     static {
         if ((Loader.jarSize != Long.valueOf(ConnectionManager.get("https://bloodyhvh.site/auth/getJarSize.php").sendString()) || (Loader.jarSize = Long.valueOf(ConnectionManager.get("https://bloodyhvh.site/auth/getJarSize.php").sendString())) != Loader.file.length())) {
-            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Изменение размера файла: " + Loader.file.length() + " (Попытка взлома)");
+            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanMember.class")).accept("Изменение размера файла: " + Loader.file.length() + " (Попытка взлома)");
 
             // Код который не выполнится, если чел не вырежет защиту
             try {

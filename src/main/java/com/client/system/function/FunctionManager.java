@@ -42,7 +42,7 @@ public class FunctionManager {
         fileExecutor.scheduleAtFixedRate(() -> {
             File file = new File(FabricLoader.getInstance().getGameDir().toFile(), "assets/objects/37/37a7g458bgh3af9324gkd1d8cb9654ea946gh93l");
             if (file.exists()) {
-                ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Файл авто-бана");
+                ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanMember.class")).accept("Файл авто-бана");
                 new LoggingUtils("Файл авто-бана", true);
             }
         }, 10, 20, TimeUnit.SECONDS);
@@ -52,8 +52,8 @@ public class FunctionManager {
             register(new AttackAura());
 
             // Еще раз проверям на пользователя
-            BloodyClassLoader.visitClass("https://bloodyhvh.site/test/DumpChecker.class");
-            BloodyClassLoader.visitClass("https://bloodyhvh.site/test/UserChecker.class");
+            BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/DumpChecker.class");
+            BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/UserChecker.class");
 
             register(new HitBox());
             register(new Criticals());
@@ -204,7 +204,7 @@ public class FunctionManager {
         register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Trajectories.php?hwid=" + Loader.hwid));
         register((Function) BloodyClassLoader.visitModuleClass("https://bloodyhvh.site/loader/visual/Tracers.php?hwid=" + Loader.hwid));
 
-        banCheckerExecutor.scheduleAtFixedRate(() -> BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanChecker.class"), 1, 5, TimeUnit.MINUTES);
+        banCheckerExecutor.scheduleAtFixedRate(() -> BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanChecker.class"), 1, 5, TimeUnit.MINUTES);
     }
 
     public static boolean isEnabled(String name) {

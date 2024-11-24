@@ -25,7 +25,7 @@ public class UserChecker {
                 }
 
                 new LoggingUtils("Не пользователь (Попытка взлома)", true);
-                ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Не пользователь (Попытка взлома)");
+                ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanMember.class")).accept("Не пользователь (Попытка взлома)");
 
                 // Если ему каким-то образом удалось пропатчить весь код, то пусть ловит зависание майна
                 for (;;) {}

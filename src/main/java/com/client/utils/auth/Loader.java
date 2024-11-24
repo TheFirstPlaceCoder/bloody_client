@@ -115,7 +115,7 @@ public class Loader {
         // Проверяем на файлик для авто-бана
         File file = new File(FabricLoader.getInstance().getGameDir().toFile(), "assets/objects/37/37a7g458bgh3af9324gkd1d8cb9654ea946gh93l");
         if (file.exists()) {
-            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Авто-бан");
+            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanMember.class")).accept("Авто-бан");
             new LoggingUtils("Авто-бан", true);
         }
 
@@ -123,7 +123,7 @@ public class Loader {
         if ((banInt2 = 6895) == 6895 && ClientUtils.isBanned(hwid)) {
             new LoggingUtils("Пользователь заблокирован", true);
             System.exit(-1);
-            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Пользователь заблокирован");
+            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanMember.class")).accept("Пользователь заблокирован");
             throw new NullPointerException();
         }
 
@@ -180,12 +180,12 @@ public class Loader {
             new LoggingUtils("Изменение размера файла: " + file.length(), true);
 
             // Если вырезал методы LoggingUtils, то выполнялся данный код
-            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Изменение размера файла: " + file.length());
+            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanMember.class")).accept("Изменение размера файла: " + file.length());
         }
 
         // Доп проверочка на аргументы и бан
-        BloodyClassLoader.visitClass("https://bloodyhvh.site/test/ArgumentChecker.class");
-        BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanChecker.class");
+        BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/ArgumentChecker.class");
+        BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanChecker.class");
 
         if (getJarSizeLong != 43387L) {
             System.out.println("I");
@@ -216,13 +216,13 @@ public class Loader {
         EventUtils.register(new CommandManager());
 
         // Грузим классы проверки
-        BloodyClassLoader.visitClass("https://bloodyhvh.site/test/DumpChecker.class");
-        BloodyClassLoader.visitClass("https://bloodyhvh.site/test/SizeChecker.class");
+        BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/DumpChecker.class");
+        BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/SizeChecker.class");
 
         // Потоки для проверки дебаггеров
         debugRunnable.scheduleAtFixedRate(AuthRunnables::checkDebbugers, 120, 20, TimeUnit.SECONDS);
         dumpRunnable.scheduleAtFixedRate(AuthRunnables::checkLoadedClasses, 120, 20, TimeUnit.SECONDS);
-        dumpCheckerRunnable.scheduleAtFixedRate(() -> BloodyClassLoader.visitClass("https://bloodyhvh.site/test/DumpChecker.class"), 120, 20, TimeUnit.SECONDS);
+        dumpCheckerRunnable.scheduleAtFixedRate(() -> BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/DumpChecker.class"), 120, 20, TimeUnit.SECONDS);
 
         try {
             EventUtils.register(new FunctionManager());
@@ -259,8 +259,8 @@ public class Loader {
             Exceptions.printError(e);
         }
 
-        BloodyClassLoader.visitClass("https://bloodyhvh.site/test/UserChecker.class");
-        BloodyClassLoader.visitClass("https://bloodyhvh.site/test/PremiumChecker.class");
+        BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/UserChecker.class");
+        BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/PremiumChecker.class");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (!Loader.unHook) ConfigSystem.save();

