@@ -13,6 +13,7 @@ import com.client.system.setting.settings.IntegerSetting;
 import java.awt.*;
 
 public class Companion extends Function {
+    public final IntegerSetting teleportDistance = Integer().name("Дистанция для тп").min(20).max(100).defaultValue(50).build();
     public final BooleanSetting glow = Boolean().name("Glow").defaultValue(true).build();
     public final ColorSetting glowColor = Color().name("Цвет").defaultValue(new Color(255, 255, 255, 40)).visible(glow::get).build();
 
@@ -49,6 +50,9 @@ public class Companion extends Function {
 
     @Override
     public void tick(TickEvent.Pre event) {
-        if (this.entity != null) this.entity.tickMovement();
+        if (this.entity != null) {
+            this.entity.setWorld(mc.player.getEntityWorld());
+            this.entity.tickMovement();
+        }
     }
 }

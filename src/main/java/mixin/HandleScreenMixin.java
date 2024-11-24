@@ -4,6 +4,7 @@ import api.main.EventUtils;
 import com.client.event.events.RenderSlotEvent;
 import com.client.impl.command.DropCommand;
 import com.client.impl.function.client.AutoBuy;
+import com.client.impl.function.client.HelpItems;
 import com.client.impl.function.misc.ItemScroller;
 import com.client.impl.function.visual.ShulkerPreview;
 import com.client.system.command.CommandManager;
@@ -87,6 +88,8 @@ public abstract class HandleScreenMixin<T extends ScreenHandler> extends Screen 
 
     @Inject(method = "render", at = @At("TAIL"))
     private void onRender(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo info) {
+        HelpItems.x = this.x;
+        HelpItems.y = this.y;
         int cx = client.getWindow().getScaledWidth() / 2;
         int cy = client.getWindow().getScaledHeight() / 2;
         float w = IFont.getWidth(IFont.COMFORTAAB, "   Выбросить   ", 9);

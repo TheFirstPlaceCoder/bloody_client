@@ -145,6 +145,8 @@ public abstract class Function {
     public void onFog(CustomFogEvent event) {}
     public void onSky(CustomSkyEvent event) {}
     public void onFogDistance(CustomFogDistanceEvent event) {}
+    public void onSetBlockState(SetBlockStateEvent event) {}
+    public void onPlayerUpdate(PlayerUpdateEvent e) {}
 
     public BooleanSetting Boolean() {
         return new BooleanSetting(this);

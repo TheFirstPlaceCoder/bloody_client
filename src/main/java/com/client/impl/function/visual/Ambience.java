@@ -16,6 +16,7 @@ import java.util.List;
 public class Ambience extends Function {
     public final ListSetting fog = List().name("Туман").list(List.of("Оставить", "Убрать", "Изменить")).defaultValue("Убрать").build();
     public final ColorSetting colorSetting = Color().name("Цвет").defaultValue(Color.CYAN).visible(() -> fog.get().equals("Изменить")).build();
+    public final DoubleSetting fogStart = Double().name("Начало тумана").defaultValue(5.0).min(0).max(10).visible(() -> fog.get().equals("Изменить")).build();
     public final DoubleSetting end = Double().name("Размытие").defaultValue(5.0).min(0).max(10).visible(() -> fog.get().equals("Изменить")).build();
 
     public final BooleanSetting sky = Boolean().name("Изменить небо").defaultValue(true).build();
@@ -76,7 +77,7 @@ public class Ambience extends Function {
     public void onFogDistance(CustomFogDistanceEvent event) {
         if (!fog.get().equals("Изменить")) return;
 
-        RenderSystem.fogStart(1);
+        RenderSystem.fogStart(((fogStart.get().floatValue() / 4f) * 100f));
         RenderSystem.fogEnd(1 + ((end.get().floatValue() / 4f) * 100f));
         RenderSystem.fogMode(GlStateManager.FogMode.LINEAR);
         RenderSystem.setupNvFogDistance();

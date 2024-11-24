@@ -1,7 +1,9 @@
 package com.client.clickgui.autobuy;
 
+import com.client.impl.function.client.AutoBuy;
 import com.client.system.autobuy.AutoBuyManager;
 import com.client.system.autobuy.CustomAutoBuyItem;
+import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudFunction;
 import com.client.utils.math.animation.AnimationUtils;
 import com.client.utils.math.rect.FloatRect;
@@ -66,7 +68,7 @@ public class SelectWindow {
     }
 
     public double calcH() {
-        return selectWindowButtonList.stream().filter(f -> f.name.toLowerCase().contains(search.toLowerCase())).toList().size() * 20 + 4;
+        return selectWindowButtonList.stream().filter(f -> f.name.toLowerCase().contains(search.toLowerCase())).filter(f -> f.customAutoBuyItem == null || (!f.customAutoBuyItem.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("HolyWorld")) || (f.customAutoBuyItem.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("FunTime"))).toList().size() * 20 + 4;
     }
 
     public void render(int mx, int my) {
@@ -94,7 +96,7 @@ public class SelectWindow {
         double y2 = y + 26 + scroll;
         ScissorUtils.enableScissor(new FloatRect(x, y + 24, w, h - 27));
         for (SelectWindowButton autoBuyButton : selectWindowButtonList) {
-            if (!autoBuyButton.name.toLowerCase().contains(search.toLowerCase())) continue;
+            if (!autoBuyButton.name.toLowerCase().contains(search.toLowerCase()) || (autoBuyButton.customAutoBuyItem != null && autoBuyButton.customAutoBuyItem.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("HolyWorld")) || (autoBuyButton.customAutoBuyItem != null && !autoBuyButton.customAutoBuyItem.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("FunTime"))) continue;
             autoBuyButton.y = y2;
             y2 += 20;
             if (y2 > y + h + 100 || y2 < y) continue;
@@ -106,7 +108,7 @@ public class SelectWindow {
     public void click(double mx, double my, int b) {
         if (isHover(x, y + 24, w, h - 24, mx, my)) {
             for (SelectWindowButton autoBuyButton : selectWindowButtonList) {
-                if (!autoBuyButton.name.toLowerCase().contains(search.toLowerCase())) continue;
+                if (!autoBuyButton.name.toLowerCase().contains(search.toLowerCase()) || (autoBuyButton.customAutoBuyItem != null && autoBuyButton.customAutoBuyItem.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("HolyWorld")) || (autoBuyButton.customAutoBuyItem != null && !autoBuyButton.customAutoBuyItem.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("FunTime"))) continue;
                 autoBuyButton.click((int) mx, (int) my, b);
             }
         }

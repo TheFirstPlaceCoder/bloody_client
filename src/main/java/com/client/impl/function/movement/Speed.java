@@ -10,6 +10,9 @@ import com.client.system.function.Function;
 import com.client.system.notification.Notification;
 import com.client.system.notification.NotificationManager;
 import com.client.system.notification.NotificationType;
+import com.client.system.setting.settings.BooleanSetting;
+import com.client.system.setting.settings.DoubleSetting;
+import com.client.system.setting.settings.IntegerSetting;
 import com.client.system.setting.settings.ListSetting;
 import com.client.utils.game.movement.MovementUtils;
 import com.client.utils.math.MsTimer;
@@ -19,20 +22,25 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 
 import java.util.List;
 
 public class Speed extends Function {
     private final ListSetting mode = List().name("Режим").list(
-            List.of("HolyWorld", "ReallyWorld", "FunTime", "NCP", "FunTime 2")).defaultValue("HolyWorld").build();
+            List.of("FunTime", "NCP")).defaultValue("FunTime").build();
+
+    public final DoubleSetting expand = Double().name("Оффсет").defaultValue(1.0).min(0).max(1).visible(() -> mode.get().equals("FunTime")).build();
+    public final IntegerSetting speed = Integer().name("Скорость от игроков").defaultValue(7).min(0).max(15).visible(() -> mode.get().equals("FunTime")).build();
+    public final IntegerSetting speedAnimal = Integer().name("Скорость от других").defaultValue(14).min(0).max(20).visible(() -> mode.get().equals("FunTime")).build();
+    public final BooleanSetting armorStands = Boolean().name("Армор стенды").defaultValue(true).visible(() -> mode.get().equals("FunTime")).build();
+    public final BooleanSetting others = Boolean().name("Другие сущности").defaultValue(true).visible(() -> mode.get().equals("FunTime")).build();
 
     public Speed() {
         super("Speed", Category.MOVEMENT);
     }
 
-    MsTimer timer = new MsTimer();
-    boolean boosting;
     public float currentPlayerSpeed = 0;
     float prevForward = 0;
     int stage, ticks;
@@ -40,88 +48,42 @@ public class Speed extends Function {
 
     @Override
     public void onEnable() {
-        FunctionUtils.isHwSpeed = hw();
         Timer.setOverride(Timer.OFF);
-        timer.reset();
-        boosting = false;
         currentPlayerSpeed = 0;
         stage = 1;
         ticks = 0;
         baseSpeed = 0.2873D;
-        if (mode.get().equals("FunTime 2")) {
-            NotificationManager.add(new Notification(NotificationType.CLIENT, "Режим бустит только от полублоков!", 4000), NotificationManager.NotifType.Info);
-        }
     }
 
     @Override
     public void onDisable() {
-        FunctionUtils.isHwSpeed = false;
         Timer.setOverride(Timer.OFF);
     }
-
-    float prevPitch;
 
     @Override
     public void tick(TickEvent.Post e) {
         if (mode.get().equals("NCP")) currentPlayerSpeed = (float) Math.hypot(mc.player.getX() - mc.player.prevX, mc.player.getZ() - mc.player.prevZ);
     }
 
-    public boolean hw() {
-        return isEnabled() && mode.get().equals("HolyWorld");
-    }
-
     @Override
     public void onPlayerTravelEvent(PlayerTravelEvent e) {
-        if ((mode.get().equals("ReallyWorld")) && !e.pre && MovementUtils.isMoving()) {
+        if (mode.get().equals("FunTime") && !e.pre && MovementUtils.isMoving()) {
             int collisions = 0;
-
-            for (Entity ent : mc.world.getEntities()) {
-                if (ent != mc.player && (ent instanceof LivingEntity || ent instanceof ArmorStandEntity || ent instanceof BoatEntity) && mc.player.getBoundingBox().expand(1.1F).intersects(ent.getBoundingBox())) {
-                    collisions++;
+            int otherCollisions = 0;
+            for (Entity ent : mc.world.getEntities())
+                if (ent != mc.player && (ent instanceof PlayerEntity || (ent instanceof LivingEntity && !(ent instanceof ArmorStandEntity) && others.get()) || (ent instanceof ArmorStandEntity && armorStands.get())) && mc.player.getBoundingBox().expand(expand.get()).intersects(ent.getBoundingBox())) {
+                    if (ent instanceof PlayerEntity) collisions++;
+                    else otherCollisions++;
                 }
-            }
 
-            double[] addXZ = MovementUtils.forward(RotationHandler.serverYaw, (0.08F * collisions) * 1.18999F);
-            mc.player.addVelocity(addXZ[0], 0.0, addXZ[1]);
+            double[] motion = MovementUtils.forward((collisions > 0 ? speed.get() / 100d : speedAnimal.get() / 100d) * (collisions + otherCollisions));
+            mc.player.addVelocity(motion[0], 0.0, motion[1]);
         }
     }
 
     @Override
     public void onPlayerMoveEvent(PlayerMoveEvent event) {
         switch (mode.get()) {
-            case "FunTime" -> {
-                if (MovementUtils.isMoving() && mc.player.isOnGround() && mc.player.isTouchingWater()) {
-                    mc.player.jump();
-                }
-
-                if (mc.player.isOnGround()) {
-                    Timer.setOverride(0.821F);
-                }
-
-                if ((double) mc.player.fallDistance > 0.1D && mc.player.fallDistance < 1.0F) {
-                    Timer.setOverride(1.0F + (1.0F - (float) Math.floorMod(2L, 2L)));
-                }
-
-                if (mc.player.fallDistance >= 1.0F) {
-                    Timer.setOverride(0.91F);
-                }
-            }
-
-            case "HolyWorld" -> {
-                if (MovementUtils.isMoving() && !MovementUtils.isInLiquid() && FunctionUtils.playerSpeed < getMaxSpeed().getSpeed()) {
-
-                    float const_ = (float) ((!mc.player.isOnGround() || mc.options.keyJump.isPressed() ? 1.0003F : 1.1009F) * getMaxSpeed().getFactor());
-
-                    ((IVec3d) event.movement).set(
-                            mc.player.getVelocity().getX() * const_,
-                            mc.player.getVelocity().getY(),
-                            mc.player.getVelocity().getZ() * const_
-                    );
-
-                    event.cancel();
-                }
-            }
-
             case "NCP" -> {
                 if (MovementUtils.isMoving()) {
                     float currentSpeed = mc.player.input.movementForward <= 0 && prevForward > 0 ? currentPlayerSpeed * 0.66f : currentPlayerSpeed;
@@ -171,19 +133,7 @@ public class Speed extends Function {
                 event.cancel();
             }
 
-            case "FunTime 2" -> {
-                FtSlab();
-            }
-
             default -> {}
-        }
-    }
-
-    public void FtSlab() {
-        if (!mc.player.isTouchingWater() && mc.player.getPos().y % 1.0 == 0.5 && mc.player.isOnGround() && mc.options.keyJump.isPressed()) {
-            for(float i = 1; i <= 5; ++i) {
-                mc.player.jump();
-            }
         }
     }
 
@@ -204,15 +154,5 @@ public class Speed extends Function {
             d /= 1.0 + (0.2 * (n + 1));
         }
         return d;
-    }
-
-    public speedo getMaxSpeed() {
-        if (mc.player.hasStatusEffect(StatusEffects.SPEED)) {
-            return switch (mc.player.getStatusEffect(StatusEffects.SPEED).getAmplifier()) {
-                case 0 -> new speedo(9.0, 1.0);
-                default ->  new speedo(15.0, 1.02);
-                //default -> new spedo(15.0, 1.06);
-            };
-        } else return new speedo(6.9, 1.0);
     }
 }

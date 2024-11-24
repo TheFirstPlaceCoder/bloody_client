@@ -1,9 +1,11 @@
 package com.client.clickgui.autobuy;
 
+import com.client.impl.function.client.AutoBuy;
 import com.client.system.autobuy.AutoBuyItem;
 import com.client.system.autobuy.AutoBuyManager;
 import com.client.system.autobuy.CustomAutoBuyItem;
 import com.client.system.config.ConfigSystem;
+import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudFunction;
 import com.client.utils.Utils;
 import com.client.utils.math.animation.AnimationUtils;
@@ -74,7 +76,7 @@ public class AutoBuyGui extends Screen {
     }
 
     public double calcH() {
-        return autoBuyButtons.stream().filter(f -> f.name.toLowerCase().contains(search.toLowerCase())).toList().size() * 20 + 4;
+        return autoBuyButtons.stream().filter(f -> f.name.toLowerCase().contains(search.toLowerCase())).filter(f -> !(f.autoBuyItem instanceof CustomAutoBuyItem) || (!((CustomAutoBuyItem) f.autoBuyItem).isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("HolyWorld")) || (((CustomAutoBuyItem) f.autoBuyItem).isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("FunTime"))).toList().size() * 20 + 4;
     }
 
     @Override
@@ -107,7 +109,7 @@ public class AutoBuyGui extends Screen {
             double y2 = y + 26 + scroll;
             ScissorUtils.enableScissor(new FloatRect(x, y + 24, w, h - 27));
             for (AutoBuyButton autoBuyButton : autoBuyButtons) {
-                if (!autoBuyButton.name.toLowerCase().contains(search.toLowerCase())) continue;
+                if (!autoBuyButton.name.toLowerCase().contains(search.toLowerCase()) || (autoBuyButton.autoBuyItem instanceof CustomAutoBuyItem customAutoBuyItem && customAutoBuyItem.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("HolyWorld")) || (autoBuyButton.autoBuyItem instanceof CustomAutoBuyItem customAutoBuyItem1 && !customAutoBuyItem1.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("FunTime"))) continue;
                 autoBuyButton.y = y2;
                 y2 += 20;
                 if (autoBuyButton.y < y || autoBuyButton.y > y + h) continue;
@@ -128,7 +130,7 @@ public class AutoBuyGui extends Screen {
         selectWindow.click(mouseX, mouseY, button);
         if (isHover(x, y + 24, w, h - 24, mouseX, mouseY)) {
             for (AutoBuyButton autoBuyButton : autoBuyButtons) {
-                if (!autoBuyButton.name.toLowerCase().contains(search.toLowerCase())) continue;
+                if (!autoBuyButton.name.toLowerCase().contains(search.toLowerCase()) || (autoBuyButton.autoBuyItem instanceof CustomAutoBuyItem customAutoBuyItem && customAutoBuyItem.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("HolyWorld")) || (autoBuyButton.autoBuyItem instanceof CustomAutoBuyItem customAutoBuyItem1 && !customAutoBuyItem1.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("FunTime"))) continue;
                 autoBuyButton.click((int) mouseX, (int) mouseY, button);
             }
         }
@@ -147,7 +149,7 @@ public class AutoBuyGui extends Screen {
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         selectWindow.key(keyCode);
         for (AutoBuyButton autoBuyButton : autoBuyButtons) {
-            if (!autoBuyButton.name.toLowerCase().contains(search.toLowerCase())) continue;
+            if (!autoBuyButton.name.toLowerCase().contains(search.toLowerCase()) || (autoBuyButton.autoBuyItem instanceof CustomAutoBuyItem customAutoBuyItem && customAutoBuyItem.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("HolyWorld")) || (autoBuyButton.autoBuyItem instanceof CustomAutoBuyItem customAutoBuyItem1 && !customAutoBuyItem1.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("FunTime"))) continue;
             autoBuyButton.key(keyCode);
         }
         if (write) {
@@ -175,7 +177,7 @@ public class AutoBuyGui extends Screen {
     public boolean charTyped(char codePoint, int modifiers) {
         selectWindow.charTyped(codePoint);
         for (AutoBuyButton autoBuyButton : autoBuyButtons) {
-            if (!autoBuyButton.name.toLowerCase().contains(search.toLowerCase())) continue;
+            if (!autoBuyButton.name.toLowerCase().contains(search.toLowerCase()) || (autoBuyButton.autoBuyItem instanceof CustomAutoBuyItem customAutoBuyItem && customAutoBuyItem.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("HolyWorld")) || (autoBuyButton.autoBuyItem instanceof CustomAutoBuyItem customAutoBuyItem1 && !customAutoBuyItem1.isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("FunTime"))) continue;
             autoBuyButton.charTyped(codePoint);
         }
         if (write) {

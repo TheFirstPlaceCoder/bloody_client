@@ -84,7 +84,7 @@ public class AutoBuy extends Function {
 
     @EventHandler
     private void onKey(KeyEvent event) {
-        if (event.key == bind.get() && event.action == InputUtils.Action.PRESS) {
+        if (event.key == bind.get() && event.action == InputUtils.Action.PRESS && (mc.currentScreen instanceof GenericContainerScreen || mc.currentScreen == null)) {
             enabled = !enabled;
             ChatUtils.warning("Auto Buy", "Автобай " + (enabled ? "включен." : "выключен."));
             if (enabled) {
@@ -96,7 +96,7 @@ public class AutoBuy extends Function {
 
     @EventHandler
     private void onMouse(MouseEvent event) {
-        if (event.button == bind.get() - 90001 && event.action == InputUtils.Action.PRESS) {
+        if (event.button == bind.get() - 90001 && event.action == InputUtils.Action.PRESS && (mc.currentScreen instanceof GenericContainerScreen || mc.currentScreen == null)) {
             enabled = !enabled;
             ChatUtils.warning("Auto Buy", "Автобай " + (enabled ? "включен." : "выключен."));
             if (enabled) {
@@ -108,6 +108,8 @@ public class AutoBuy extends Function {
 
     @EventHandler
     private void onPacketEvent(PacketEvent.Send event) {
+        if (!enabled) return;
+
         if (server.get().equals("HolyWorld")) {
             if (idkTime > System.currentTimeMillis() && event.packet instanceof ClickSlotC2SPacket clickWindowPacket && ((IClickSlotC2SPacket) clickWindowPacket).getId() != 1337) {
                 event.cancel();
@@ -125,6 +127,8 @@ public class AutoBuy extends Function {
 
     @EventHandler
     private void onReceiveMessageEvent(ReceiveChatMessageEvent event) {
+        if (!enabled) return;
+
         if (server.get().equals("HolyWorld")) {
             if (lastItem != null && packetSend) {
                 if (event.message.equals("Не так быстро!")) {
@@ -192,44 +196,85 @@ public class AutoBuy extends Function {
         if (server.get().equals("FunTime")) {
             if (mc.currentScreen instanceof GenericContainerScreen chestScreen) {
                 boolean ah = screen.getTitle().getString().toLowerCase().contains("аукцион") || screen.getTitle().getString().toLowerCase().contains("поиск:");
+                boolean accept = chestScreen.getTitle().getString().toLowerCase().contains("покупки");
                 hashOfBlocked.entrySet().removeIf(a -> System.currentTimeMillis() > a.getKey());
 
-                if (ah) {
+                if (accept) {
+                    if (clickedBuy && System.currentTimeMillis() > clickUptime) {
+                        clickedBuy = false;
+                    }
                     for (int i = 0; i < chestScreen.getScreenHandler().getInventory().size(); i++) {
                         ItemStack stack = chestScreen.getScreenHandler().getInventory().getStack(i);
-                        if (hashOfBlocked.containsValue(i)) continue;
+                        if (stack.getItem().equals(Items.LIME_STAINED_GLASS_PANE) && !clickedBuy) {
+                            click(i, 0);
+                            clickedBuy = true;
+                            clickUptime = System.currentTimeMillis() + 3000;
+                        }
+                    }
+                } else {
+                    if (clickedBuy && lastItem != null) {
+                        lastItem.purchased = true;
+                        HistoryManager.add(lastItem);
+                        lastItem = null;
+                        addTime = System.currentTimeMillis() + delayAdd.get();
+                        clickedBuy = false;
+                        return;
+                    }
 
-                        String name = stack.getName().asString();
+                    clickedBuy = false;
 
-                        if (name.contains("Хранилище") || name.contains("Следующая") || name.contains("Категории"))
-                            continue;
+                    if (ah) {
+                        for (int i = 0; i < chestScreen.getScreenHandler().getInventory().size(); i++) {
+                            ItemStack stack = chestScreen.getScreenHandler().getInventory().getStack(i);
+                            if (hashOfBlocked.containsValue(i)) continue;
 
-                        Integer price = getCost(stack);
-                        if (price != null) {
-                            if (price <= 0) return;
-                            for (AutoBuyItem item : AutoBuyManager.getItems()) {
-                                if (item instanceof DefaultAutoBuyItem p) {
-                                    if (p.tryBuy(stack, price) && System.currentTimeMillis() > idkTime) {
-                                        clickRand(i, 1337);
-                                        currentId = i;
-                                        if (lastItem == null) {
-                                            lastItem = new HistoryItem(price, p.item, stack.hasCustomName() ? stack.getName().getString() : p.item.getDefaultStack().getName().getString());
-                                            lastItem.count = stack.getCount();
+                            String name = stack.getName().asString();
+
+                            if (name.contains("Хранилище") || name.contains("Следующая") || name.contains("Категории"))
+                                continue;
+
+                            Integer price = getCost(stack);
+                            if (price != null) {
+                                if (price <= 0) return;
+                                for (AutoBuyItem item : AutoBuyManager.getItems()) {
+                                    if (item instanceof CustomAutoBuyItem p) {
+                                        if (p.tryBuy(stack, price) && System.currentTimeMillis() > idkTime) {
+                                            clickRand(i, 1337);
+                                            currentId = i;
+                                            if (lastItem == null) {
+                                                lastItem = new HistoryItem(price, p.item, stack.hasCustomName() ? stack.getName().getString() : p.item.getDefaultStack().getName().getString());
+                                                lastItem.count = stack.getCount();
+                                            }
+
+                                            idkTime = System.currentTimeMillis() + delayClick.get();
+                                            addTime = System.currentTimeMillis() + delayAdd.get();
+                                            hashOfBlocked.put(System.currentTimeMillis() + 10000L, i);
+                                            return;
                                         }
+                                    }
+                                    if (item instanceof DefaultAutoBuyItem p) {
+                                        if (p.tryBuy(stack, price) && System.currentTimeMillis() > idkTime) {
+                                            clickRand(i, 1337);
+                                            currentId = i;
+                                            if (lastItem == null) {
+                                                lastItem = new HistoryItem(price, p.item, stack.hasCustomName() ? stack.getName().getString() : p.item.getDefaultStack().getName().getString());
+                                                lastItem.count = stack.getCount();
+                                            }
 
-                                        idkTime = System.currentTimeMillis() + delayClick.get();
-                                        addTime = System.currentTimeMillis() + delayAdd.get();
-                                        hashOfBlocked.put(System.currentTimeMillis() + 10000L, i);
-                                        return;
+                                            idkTime = System.currentTimeMillis() + delayClick.get();
+                                            addTime = System.currentTimeMillis() + delayAdd.get();
+                                            hashOfBlocked.put(System.currentTimeMillis() + 10000L, i);
+                                            return;
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        if (i == 49 && System.currentTimeMillis() > update && System.currentTimeMillis() > idkTime) {
-                            click(i, 0);
-                            update = System.currentTimeMillis() + delay.get();
-                            addTime = System.currentTimeMillis() + delayBeforeBuy.get();
+                            if (i == 49 && System.currentTimeMillis() > update && System.currentTimeMillis() > idkTime) {
+                                click(i, 0);
+                                update = System.currentTimeMillis() + delay.get();
+                                addTime = System.currentTimeMillis() + delayBeforeBuy.get();
+                            }
                         }
                     }
                 }

@@ -160,9 +160,6 @@ public class RotationHandler {
 
         serverYaw = handler.getRotate().a;
         serverPitch = handler.getRotate().b;
-
-        mc.player.yaw = serverYaw;
-        mc.player.pitch = serverPitch;
     }
 
     public static Handler getHandler() {

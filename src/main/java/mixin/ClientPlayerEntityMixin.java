@@ -28,7 +28,10 @@ import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.client.BloodyClient.mc;
 
@@ -101,14 +104,14 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
      */
     @Overwrite
     private void sendMovementPackets() {
-        boolean bl = this.isSprinting();
+        boolean bl = (FunctionManager.get("Water Speed").isEnabled() && this.isSwimming()) || this.isSprinting();
         if (bl != this.lastSprinting) {
             ClientCommandC2SPacket.Mode mode = bl ? ClientCommandC2SPacket.Mode.START_SPRINTING : ClientCommandC2SPacket.Mode.STOP_SPRINTING;
             this.networkHandler.sendPacket(new ClientCommandC2SPacket(this, mode));
             this.lastSprinting = bl;
         }
 
-        boolean bl2 = this.isSneaking();
+        boolean bl2 = (FunctionManager.get("Water Speed").isEnabled() && this.isSwimming()) || this.isSneaking();
         if (bl2 != this.lastSneaking) {
             ClientCommandC2SPacket.Mode mode2 = bl2 ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY;
             this.networkHandler.sendPacket(new ClientCommandC2SPacket(this, mode2));
@@ -133,7 +136,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 
             ++this.ticksSinceLastPositionPacketSent;
 
-            boolean bl3 = d * d + e * e + f * f > 9.0E-4 || this.ticksSinceLastPositionPacketSent >= 20;
+            boolean bl3 = event.moving || d * d + e * e + f * f > 9.0E-4 || this.ticksSinceLastPositionPacketSent >= 20;
             boolean bl4 = g != 0.0 || h != 0.0;
 
             if (this.hasVehicle()) {
@@ -181,6 +184,11 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
         MiddleClick.sendPacket = false;
     }
 
+//    @Inject(method = "isSneaking", at = @At(value = "HEAD"), cancellable = true)
+//    public void injectMine(CallbackInfoReturnable<Boolean> cir) {
+//        if (FunctionManager.get(TestFly.class).isEnabled() && this.isSwimming()) cir.setReturnValue(true);
+//    }
+
     /**
      * @author Artik
      * @reason DEFOLT
@@ -194,9 +202,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 
         this.updateNausea();
         boolean bl = this.input.jumping;
-        boolean bl2 = this.input.sneaking;
+        boolean bl2 = (FunctionManager.get("Water Speed").isEnabled() && this.isSwimming()) || this.input.sneaking;
         boolean bl3 = this.isWalking();
-        this.inSneakingPose = !this.abilities.flying && !this.isSwimming() && this.wouldPoseNotCollide(EntityPose.CROUCHING) && (this.isSneaking() || !this.isSleeping() && !this.wouldPoseNotCollide(EntityPose.STANDING));
+        this.inSneakingPose = !this.abilities.flying && !this.isSwimming() && this.wouldPoseNotCollide(EntityPose.CROUCHING) && (((FunctionManager.get("Water Speed").isEnabled() && this.isSwimming()) || this.isSneaking()) || !this.isSleeping() && !this.wouldPoseNotCollide(EntityPose.STANDING));
 
         this.input.tick(this.shouldSlowDown());
         this.client.getTutorialManager().onMovement(this.input);

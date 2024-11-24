@@ -15,34 +15,9 @@ public class Criticals extends Function {
         super("Criticals", Category.COMBAT);
     }
 
-    private final BooleanSetting funtime = Boolean().name("funtime").defaultValue(true).build();
-    private final BooleanSetting cancelRecevie = Boolean().name("cancelRecevie").defaultValue(true).build();
-
-    private int attacked = 3;
-
-    @Override
-    public void onEnable() {
-        attacked = 3;
-    }
-
     @Override
     public void onPacket(PacketEvent.Send event) {
-        if (funtime.get()) {
-            if (event.packet instanceof PlayerInteractEntityC2SPacket && ((PlayerInteractEntityC2SPacket) event.packet).getType() == PlayerInteractEntityC2SPacket.InteractionType.ATTACK) {
-                if (skipCrit()) return;
-
-                Entity entity =  ((PlayerInteractEntityC2SPacket) event.packet).getEntity(mc.world);
-
-                if (!(entity instanceof LivingEntity)) return;
-
-                attacked++;
-                if (attacked >= 3) {
-                    sendPacket(0.0001,true);
-                    sendPacket(0.0,false);
-                    attacked = 0;
-                }
-            }
-        } else if (event.packet instanceof PlayerInteractEntityC2SPacket && ((PlayerInteractEntityC2SPacket) event.packet).getType() == PlayerInteractEntityC2SPacket.InteractionType.ATTACK) {
+        if (event.packet instanceof PlayerInteractEntityC2SPacket && ((PlayerInteractEntityC2SPacket) event.packet).getType() == PlayerInteractEntityC2SPacket.InteractionType.ATTACK) {
             if (skipCrit()) return;
 
             Entity entity =  ((PlayerInteractEntityC2SPacket) event.packet).getEntity(mc.world);
@@ -54,11 +29,6 @@ public class Criticals extends Function {
             sendPacket(0.01, false);
             sendPacket(0, false);
         }
-    }
-
-    @Override
-    public void onPacket(PacketEvent.Receive receive) {
-        if (receive.packet instanceof PlayerPositionLookS2CPacket p && cancelRecevie.get()) receive.setCancelled(true);
     }
 
     private void sendPacket(double height, boolean onGround) {

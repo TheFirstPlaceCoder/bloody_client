@@ -20,6 +20,10 @@ public class MovementUtils {
     private static final Vec3d horizontalVelocity = new Vec3d(0, 0, 0);
     private static final double diagonal = 1 / Math.sqrt(2);
 
+    public static int getSpeedEffect() {
+        return ! mc.player.hasStatusEffect(StatusEffects.SPEED) ? 0 : mc.player.getStatusEffect(StatusEffects.SPEED).getAmplifier() + 1;
+    }
+
     public static double getBaseMoveSpeed() {
         if (mc.player.hasStatusEffect(StatusEffects.SPEED)) {
             return (WALK_SPEED) * ((Objects.requireNonNull(mc.player.getStatusEffect(StatusEffects.SPEED)).getAmplifier() + 1) * 0.2 + 1.0);

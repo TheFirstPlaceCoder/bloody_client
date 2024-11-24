@@ -5,6 +5,8 @@ import com.client.system.function.Function;
 import com.client.utils.misc.FunctionUtils;
 import com.mojang.datafixers.types.Func;
 import mixin.accessor.LivingEntityAccessor;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.client.render.Camera;
 import net.minecraft.entity.Entity;
@@ -16,9 +18,15 @@ import net.minecraft.item.Items;
 import net.minecraft.item.PotionItem;
 import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.scoreboard.ScoreboardPlayerScore;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.BlockView;
+import net.minecraft.world.RaycastContext;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -143,5 +151,49 @@ public class PlayerUtils {
 
     public static float getAttackCooldown() {
         return MathHelper.clamp(((float) ((LivingEntityAccessor) mc.player).getLastAttackedTicks() + 0.5f) / getAttackCooldownProgressPerTick(), 0.0F, 1.0F);
+    }
+
+    public static Vec3d getEyesPos(Entity entity) {
+        return entity.getPos().add(0, entity.getEyeHeight(entity.getPose()), 0);
+    }
+
+    public static float[] calculateAngle(Vec3d to) {
+        return calculateAngle(getEyesPos(mc.player), to);
+    }
+
+    public static float[] calculateAngle(Vec3d from, Vec3d to) {
+        double difX = to.x - from.x;
+        double difY = (to.y - from.y) * -1.0;
+        double difZ = to.z - from.z;
+        double dist = MathHelper.sqrt((float) (difX * difX + difZ * difZ));
+
+        float yD = (float) MathHelper.wrapDegrees(Math.toDegrees(Math.atan2(difZ, difX)) - 90.0);
+        float pD = (float) MathHelper.clamp(MathHelper.wrapDegrees(Math.toDegrees(Math.atan2(difY, dist))), -90f, 90f);
+
+        return new float[]{yD, pD};
+    }
+
+    public static BlockHitResult rayCastBlock(RaycastContext context, BlockPos block) {
+        return BlockView.raycast(context, (raycastContext, blockPos) -> {
+            BlockState blockState;
+
+            if (!blockPos.equals(block)) blockState = Blocks.AIR.getDefaultState();
+            else blockState = Blocks.OBSIDIAN.getDefaultState();
+
+            Vec3d vec3d = raycastContext.getStart();
+            Vec3d vec3d2 = raycastContext.getEnd();
+            VoxelShape voxelShape = raycastContext.getBlockShape(blockState, mc.world, blockPos);
+            BlockHitResult blockHitResult = mc.world.raycastBlock(vec3d, vec3d2, blockPos, voxelShape, blockState);
+            VoxelShape voxelShape2 = VoxelShapes.empty();
+            BlockHitResult blockHitResult2 = voxelShape2.raycast(vec3d, vec3d2, blockPos);
+
+            double d = blockHitResult == null ? Double.MAX_VALUE : raycastContext.getStart().squaredDistanceTo(blockHitResult.getPos());
+            double e = blockHitResult2 == null ? Double.MAX_VALUE : raycastContext.getStart().squaredDistanceTo(blockHitResult2.getPos());
+
+            return d <= e ? blockHitResult : blockHitResult2;
+        }, (raycastContext) -> {
+            Vec3d vec3d = raycastContext.getStart().subtract(raycastContext.getEnd());
+            return BlockHitResult.createMissed(raycastContext.getEnd(), Direction.getFacing(vec3d.x, vec3d.y, vec3d.z), new BlockPos(raycastContext.getEnd()));
+        });
     }
 }

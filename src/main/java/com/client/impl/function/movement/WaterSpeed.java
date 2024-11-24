@@ -1,16 +1,28 @@
 package com.client.impl.function.movement;
 
+import api.interfaces.EventHandler;
+import com.client.event.events.PlayerMoveEvent;
+import com.client.event.events.PlayerTravelEvent;
 import com.client.event.events.TickEvent;
+import com.client.interfaces.IVec3d;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
+import com.client.system.setting.settings.BooleanSetting;
 import com.client.system.setting.settings.DoubleSetting;
 import com.client.system.setting.settings.IntegerSetting;
 import com.client.system.setting.settings.ListSetting;
+import com.client.utils.Utils;
+import com.client.utils.game.movement.MovementUtils;
+import mixin.accessor.EntityAccessor;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.vehicle.BoatEntity;
 
 import java.util.List;
 
@@ -19,44 +31,24 @@ public class WaterSpeed extends Function {
         super("Water Speed", Category.MOVEMENT);
     }
 
-    private final ListSetting mode = List().name("Режим").list(List.of("Velocity", "Effect", "Attribute", "Dolphin", "Speed", "Test")).defaultValue("Velocity").build();
-    public final IntegerSetting speedVel = Integer().name("speedVel").max(100).min(0).defaultValue(3).visible(() -> mode.get().equals("Velocity")).build();
-    public final IntegerSetting effectLevel = Integer().name("effectLevel").max(6).min(0).defaultValue(1).visible(() -> mode.get().equals("Effect")).build();
-    public final DoubleSetting attributePower = Double().name("attributePower").defaultValue(0.55).min(0).max(1).visible(() -> mode.get().equals("Attribute")).build();
-    public final IntegerSetting dolphinLevel = Integer().name("dolphinLevel").max(2).min(0).defaultValue(1).visible(() -> mode.get().equals("Dolphin")).build();
-    public final IntegerSetting speedLvl = Integer().name("speedLvl").max(2).min(0).defaultValue(1).visible(() -> mode.get().equals("Speed")).build();
-    public final IntegerSetting slowFalling = Integer().name("slowFalling").max(2).min(0).defaultValue(1).visible(() -> mode.get().equals("Test")).build();
+    private final ListSetting mode = List().name("Режим").list(List.of("FunTime")).defaultValue("FunTime").build();
 
-    @Override
-    public void onEnable() {
-        if (mode.get().equals("Test"))
-            mc.player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOW_FALLING, 2000, slowFalling.get(), false, true));
-    }
+    private float acceleration = 0f;
 
-    @Override
-    public void onDisable() {
-        mc.player.removeStatusEffect(StatusEffects.SLOW_FALLING);
-    }
+    @EventHandler
+    private void EventMove(PlayerMoveEvent e) {
+        if (mc.player.isSwimming()) {
+            mc.player.input.movementSideways = 0;
+            double[] dirSpeed = MovementUtils.forward(acceleration / 6.3447f);
+            ((IVec3d) e.movement).setX(e.movement.getX() + dirSpeed[0] * 0.11);
+            ((IVec3d) e.movement).setZ(e.movement.getZ() + dirSpeed[1] * 0.11);
+            e.cancel();
 
-    @Override
-    public void tick(TickEvent.Pre e) {
-        if (!mc.player.isSwimming() && !mc.player.isSubmergedInWater()) return;
-        String selectedType = mode.get();
+            if(Math.abs(mc.player.yaw - mc.player.prevYaw) > 3) acceleration -= 0.1f;
+            else acceleration += 0.1;
 
-        if (selectedType.equals("Velocity")) {
-            WATER_FT();
-        } else if (selectedType.equals("Effect")) {
-            mc.player.addStatusEffect(new StatusEffectInstance(StatusEffects.WATER_BREATHING, 200, effectLevel.get(), false, true));
-        } else if (selectedType.equals("Attribute")) {
-            mc.player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(attributePower.get());
-        } else if (selectedType.equals("Dolphin")) {
-            mc.player.addStatusEffect(new StatusEffectInstance(StatusEffects.DOLPHINS_GRACE, 200, dolphinLevel.get(), false, true));
-        } else if (selectedType.equals("Speed")) {
-            mc.player.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 200, speedLvl.get(), false, true));
-        }
-    }
-
-    private void WATER_FT() {
-        mc.player.setVelocity(mc.player.getVelocity().x * (1 + speedVel.get() / 100), mc.player.getVelocity().y, mc.player.getVelocity().z * (1 + speedVel.get() / 100));
+            acceleration = (float) Utils.clamp(acceleration, 0f, 1f);
+        } else acceleration = 0f;
+        if (!MovementUtils.isMoving() || mc.player.horizontalCollision || mc.player.verticalCollision) acceleration = 0f;
     }
 }

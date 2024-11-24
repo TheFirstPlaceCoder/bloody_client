@@ -6,7 +6,7 @@ public class SendMovementPacketsEvent extends IEvent {
     public double x, y, z;
     public float yaw, pitch;
     public boolean onGround;
-    public boolean both = false;
+    public boolean both = false, moving = false;
     public Runnable post;
 
     public SendMovementPacketsEvent(double x, double y, double z, float yaw, float pitch, boolean onGround) {

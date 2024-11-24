@@ -5,11 +5,12 @@ import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.setting.settings.BooleanSetting;
 import com.client.system.setting.settings.DoubleSetting;
+import com.client.utils.game.movement.MovementUtils;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.math.Vec3d;
 
 public class VelBoost extends Function {
-    public final DoubleSetting speed = Double().name("Speed").defaultValue(3.0).min(1).max(6).build();
+    public final DoubleSetting speed = Double().name("Speed").defaultValue(3.0).min(1).max(1.2).build();
     public final DoubleSetting jump = Double().name("Jump").defaultValue(3.0).min(1).max(6).build();
     public final BooleanSetting groundPacket = Boolean().name("groundPacket").defaultValue(true).build();
     public final BooleanSetting bypassPacket = Boolean().name("bypassPacket").defaultValue(true).build();

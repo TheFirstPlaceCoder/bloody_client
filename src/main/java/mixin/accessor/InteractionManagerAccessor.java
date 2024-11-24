@@ -14,6 +14,9 @@ public interface InteractionManagerAccessor {
     @Accessor("currentBreakingProgress")
     float getCurrentBreakingProgress();
 
+    @Accessor("currentBreakingProgress")
+    void setCurrentBreakingProgress(float f);
+
     @Accessor("currentBreakingPos")
     BlockPos getCurrentBreakingPos();
 }

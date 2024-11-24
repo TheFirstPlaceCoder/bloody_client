@@ -1,5 +1,7 @@
 package com.client.system.autobuy;
 
+import com.client.impl.function.client.AutoBuy;
+import com.client.system.function.FunctionManager;
 import com.client.utils.game.entity.ServerUtils;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.item.Item;
@@ -17,17 +19,19 @@ public class CustomAutoBuyItem extends AutoBuyItem {
     public String name;
     public List<String> enchantments = new ArrayList<>();
     public List<String> strings = new ArrayList<>();
-    public boolean strictCheck = false;
+    public boolean strictCheck = false, isFTItem;
 
-    public CustomAutoBuyItem(Item item, int price) {
+    public CustomAutoBuyItem(Item item, int price, boolean isFTItem) {
         this.item = item;
         this.price = price;
+        this.isFTItem = isFTItem;
     }
 
     public boolean tryBuy(ItemStack stack, int price) {
         if (!stack.getItem().equals(item)) return false;
         if (price / stack.getCount() > this.price) return false;
-        if (price > ServerUtils.getBalance()) return false;
+        if (price > ServerUtils.getBalance() || this.price > ServerUtils.getBalance()) return false;
+        if ((isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("HolyWorld")) || (!isFTItem && FunctionManager.get(AutoBuy.class).server.get().equals("FunTime"))) return false;
 
         if (!enchantments.isEmpty()) {
             if (strictCheck) {
@@ -81,7 +85,22 @@ public class CustomAutoBuyItem extends AutoBuyItem {
     }
 
     private boolean checkString(String stringFromPlayer, String stringToCheck) {
-        return Pattern.compile("\\b" + stringFromPlayer + "\\b", Pattern.CASE_INSENSITIVE).matcher(stringToCheck).find();
+        return Pattern.compile("\\b" + removeAndNextChar(stringFromPlayer) + "\\b", Pattern.CASE_INSENSITIVE).matcher(removeAndNextChar(stringToCheck)).find();
+    }
+
+    public static String removeAndNextChar(String input) {
+        StringBuilder output = new StringBuilder();
+        for (int i = 0; i < input.length(); i++) {
+            char currentChar = input.charAt(i);
+            // Если символ не §, добавляем его в результат
+            if (currentChar != '§') {
+                output.append(currentChar);
+            } else {
+                // Если символ $, пропускаем следующий символ
+                i++;
+            }
+        }
+        return output.toString();
     }
 
     private List<String> getEnchantments(ItemStack stack) {

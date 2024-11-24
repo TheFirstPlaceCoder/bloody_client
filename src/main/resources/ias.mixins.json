@@ -5,6 +5,7 @@
   "mixins": [
     "AbstractBlockMixin",
     "BiomeEffectsMixin",
+    "BlockCollisionSpliteratorMixin",
     "BlockEntityRenderDispatcherMixin",
     "BlockItemMixin",
     "BlockMixin",
@@ -30,6 +31,7 @@
     "TitleScreenMixin",
     "TotemParticleMixin",
     "Vec3dMixin",
+    "WorldChunkMixin",
     "accessor.HorseScreenHandlerAccessor",
     "accessor.InteractionManagerAccessor",
     "accessor.ItemStackAccessor",
@@ -86,6 +88,7 @@
     "accessor.BossBarHudAccessor",
     "accessor.ChatHudAccessor",
     "accessor.CreativeInventoryScreenAccessor",
+    "accessor.EntityAccessor",
     "accessor.FramebufferAccessor",
     "accessor.GameRendererAccessor",
     "accessor.SessionAccessor",

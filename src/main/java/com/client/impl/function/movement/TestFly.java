@@ -1,130 +1,65 @@
 package com.client.impl.function.movement;
 
-import com.client.event.events.Render3DEvent;
+import api.interfaces.EventHandler;
+import com.client.event.events.BlockCollisionEvent;
+import com.client.event.events.PlayerMoveEvent;
+import com.client.event.events.SendMovementPacketsEvent;
 import com.client.event.events.TickEvent;
+import com.client.interfaces.IVec3d;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.setting.settings.BooleanSetting;
-import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
+import com.client.system.setting.settings.DoubleSetting;
+import com.client.system.setting.settings.IntegerSetting;
+import com.client.system.setting.settings.ListSetting;
+import com.client.utils.Utils;
+import com.client.utils.game.entity.PlayerUtils;
+import com.client.utils.game.movement.MovementUtils;
+import com.client.utils.misc.FunctionUtils;
+import mixin.accessor.EntityAccessor;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.projectile.FireworkRocketEntity;
+import net.minecraft.item.PickaxeItem;
+import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.shape.VoxelShape;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Stream;
 
 public class TestFly extends Function {
-    public final BooleanSetting renderEvent = Boolean().name("renderEvent").defaultValue(true).build();
-    public final BooleanSetting interact = Boolean().name("interact").defaultValue(true).build();
-    public final BooleanSetting swing = Boolean().name("Swing").defaultValue(true).build();
-    public final BooleanSetting doubleH = Boolean().name("doubleH").defaultValue(true).build();
+    public final IntegerSetting delay = Integer().name("Delay").min(1).max(20).defaultValue(1).build();
+    public final DoubleSetting acceler = Double().name("acceler").defaultValue(0.5).min(0.15).max(1).build();
 
     public TestFly() {
         super("Test Fly", Category.MOVEMENT);
     }
 
-    public boolean isSecBlock = false;
+    private float acceleration = 0f;
 
     @Override
-    public void onEnable() {
-        isSecBlock = false;
+    public void onDisable() {
+        Timer.setOverride(Timer.OFF);
     }
 
-    @Override
-    public void tick(TickEvent.Pre event) {
-        if (renderEvent.get()) return;
+    @EventHandler
+    private void EventMove(PlayerMoveEvent e) {
+        if (mc.player.isSwimming()) {
+            mc.player.input.movementSideways = 0;
+            double[] dirSpeed = MovementUtils.forward(acceleration / 6.3447f);
+            ((IVec3d) e.movement).setX(e.movement.getX() + dirSpeed[0] * 0.11);
+            ((IVec3d) e.movement).setZ(e.movement.getZ() + dirSpeed[1] * 0.11);
+            e.cancel();
 
-        if (!isSecBlock) {
-            if (interact.get())
-                mc.interactionManager.interactBlock(mc.player, mc.world, Hand.MAIN_HAND, new BlockHitResult(
-                        new Vec3d(mc.player.getPos().x, 89, mc.player.getPos().z),
-                        Direction.UP,
-                        new BlockPos(mc.player.getBlockPos().getX(), 88, mc.player.getBlockPos().getZ()),
-                        //mc.player.getBlockPos().down(2),
-                        false
-                ));
-            else mc.player.networkHandler.sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND,
-                    new BlockHitResult(
-                            new Vec3d(mc.player.getPos().x, 89, mc.player.getPos().z),
-                            Direction.UP,
-                            new BlockPos(mc.player.getBlockPos().getX(), 88, mc.player.getBlockPos().getZ()),
-                            //mc.player.getBlockPos().down(2),
-                            false
-                    )));
+            if(Math.abs(mc.player.yaw - mc.player.prevYaw) > 3) acceleration -= 0.1f;
+            else acceleration += acceler.get() / 10;
 
-            if (swing.get()) mc.player.networkHandler.sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
-
-            isSecBlock = true;
-        } else {
-            if (doubleH.get()) {
-                if (interact.get())
-                    mc.interactionManager.interactBlock(mc.player, mc.world, Hand.MAIN_HAND, new BlockHitResult(
-                            new Vec3d(mc.player.getPos().x, 90, mc.player.getPos().z),
-                            Direction.UP,
-                            new BlockPos(mc.player.getBlockPos().getX(), 89, mc.player.getBlockPos().getZ()),
-                            false
-                    ));
-                else mc.player.networkHandler.sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND,
-                        new BlockHitResult(
-                                new Vec3d(mc.player.getPos().x, 90, mc.player.getPos().z),
-                                Direction.UP,
-                                new BlockPos(mc.player.getBlockPos().getX(), 89, mc.player.getBlockPos().getZ()),
-                                false
-                        )));
-
-                if (swing.get()) mc.player.networkHandler.sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
-            }
-
-            isSecBlock = false;
-        }
-    }
-
-    @Override
-    public void onRender3D(Render3DEvent event) {
-        if (!renderEvent.get()) return;
-
-        if (!isSecBlock) {
-            if (interact.get())
-                mc.interactionManager.interactBlock(mc.player, mc.world, Hand.MAIN_HAND, new BlockHitResult(
-                        new Vec3d(mc.player.getPos().x, 89, mc.player.getPos().z),
-                        Direction.UP,
-                        new BlockPos(mc.player.getBlockPos().getX(), 88, mc.player.getBlockPos().getZ()),
-                        //mc.player.getBlockPos().down(2),
-                        false
-                ));
-            else mc.player.networkHandler.sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND,
-                    new BlockHitResult(
-                            new Vec3d(mc.player.getPos().x, 89, mc.player.getPos().z),
-                            Direction.UP,
-                            new BlockPos(mc.player.getBlockPos().getX(), 88, mc.player.getBlockPos().getZ()),
-                            //mc.player.getBlockPos().down(2),
-                            false
-                    )));
-
-            if (swing.get()) mc.player.networkHandler.sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
-
-            isSecBlock = true;
-        } else {
-            if (doubleH.get()) {
-                if (interact.get())
-                    mc.interactionManager.interactBlock(mc.player, mc.world, Hand.MAIN_HAND, new BlockHitResult(
-                            new Vec3d(mc.player.getPos().x, 90, mc.player.getPos().z),
-                            Direction.UP,
-                            new BlockPos(mc.player.getBlockPos().getX(), 89, mc.player.getBlockPos().getZ()),
-                            false
-                    ));
-                else mc.player.networkHandler.sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND,
-                        new BlockHitResult(
-                                new Vec3d(mc.player.getPos().x, 90, mc.player.getPos().z),
-                                Direction.UP,
-                                new BlockPos(mc.player.getBlockPos().getX(), 89, mc.player.getBlockPos().getZ()),
-                                false
-                        )));
-
-                if (swing.get()) mc.player.networkHandler.sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
-            }
-
-            isSecBlock = false;
-        }
+            acceleration = (float) Utils.clamp(acceleration, 0f, 1f);
+        } else acceleration = 0f;
+        if (!MovementUtils.isMoving() || mc.player.horizontalCollision || mc.player.verticalCollision) acceleration = 0f;
     }
 }

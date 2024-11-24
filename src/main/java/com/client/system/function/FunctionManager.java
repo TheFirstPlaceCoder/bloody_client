@@ -57,9 +57,11 @@ public class FunctionManager {
             register(new GhostHand());
             register(new NoDelay());
             register(new KillSound());
+            register(new Nuker());
             register(new HitSound());
             register(new AntiServerRP());
             register(new PacketMine());
+            register(new SpeedMine());
 
             register(new AirPlace());
             register(new AntiAFK());
@@ -79,7 +81,6 @@ public class FunctionManager {
             register(new NoInteract());
             register(new NoBreakDelay());
 
-            register(new NoHunger());
             register(new Blink());
             register(new Flight());
             register(new Freeze());
@@ -88,14 +89,12 @@ public class FunctionManager {
             register(new Strafe());
             register(new Velocity());
             register(new WaterSpeed());
-            register(new Jesus());
             register(new ElytraUp());
-
+            register(new ElytraFly());
             register(new ElytraBounce());
 
             if (Loader.isDev()) register(new LiquidMovement());
             if (Loader.isDev()) register(new TestFly());
-            if (Loader.isDev()) register(new ElytraFly());
             if (Loader.isDev()) register(new ElytaBoost());
             if (Loader.isDev()) register(new VelBoost());
             register(new InvWalk());
@@ -153,6 +152,7 @@ public class FunctionManager {
             register(new UnHook());
             register(new Optimization());
             register(new Music());
+            register(new HelpItems());
         });
 
         voidFuture.join();
@@ -466,6 +466,20 @@ public class FunctionManager {
     public void onReach(CustomFogDistanceEvent event) {
         for (Function function : getFunctionList()) {
             if (function.isEnabled()) function.onFogDistance(event);
+        }
+    }
+
+    @EventHandler
+    public void onReach(PlayerUpdateEvent event) {
+        for (Function function : getFunctionList()) {
+            if (function.isEnabled()) function.onPlayerUpdate(event);
+        }
+    }
+
+    @EventHandler
+    public void onReach(SetBlockStateEvent event) {
+        for (Function function : getFunctionList()) {
+            if (function.isEnabled()) function.onSetBlockState(event);
         }
     }
 

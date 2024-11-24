@@ -54,7 +54,7 @@ public class SelectWindowButton {
             AutoBuyItem newItem;
             boolean shouldAdd = false;
             if (customAutoBuyItem != null) {
-                newItem = new CustomAutoBuyItem(item, 1000);
+                newItem = new CustomAutoBuyItem(item, 1000, customAutoBuyItem.isFTItem);
                 ((CustomAutoBuyItem) newItem).name = customAutoBuyItem.name;
                 ((CustomAutoBuyItem) newItem).strings = customAutoBuyItem.strings;
                 ((CustomAutoBuyItem) newItem).enchantments = customAutoBuyItem.enchantments;

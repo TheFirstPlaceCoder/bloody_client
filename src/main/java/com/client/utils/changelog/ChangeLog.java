@@ -208,12 +208,25 @@ public class ChangeLog {
         added("Client Installer");
         added("Companion");
         added("Casino");
+        added("Speed Mine");
+        added("Nuker");
         added("Auto Buy | Новые настройки");
         added("Attack Aura | Новые настройки");
+        added("Ambience | Начало тумана");
 
+        rewritten("Attack Aura | Режим FunTime");
+        rewritten("Auto Swap | Логика работы");
+        rewritten("Auto Totem | Свапы на FunTime");
         rewritten("Commands | Переписаны полностью");
+        rewritten("Ambience | Исправлен баг с туманом");
+        rewritten("Water Speed | FunTime");
+        rewritten("Speed | FunTime");
+        rewritten("Elytra Fly | FunTime");
 
-        deleted("No Slow | Режим FunTIme Water");
+        deleted("No Hunger");
+        deleted("Jesus");
+        deleted("No Slow | Режим FunTime Water");
+        deleted("Speed | Режимы HolyWorld, ReallyWorld");
 
         if (changesList().isEmpty()) return;
 

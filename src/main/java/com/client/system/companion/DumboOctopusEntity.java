@@ -145,11 +145,11 @@ public class DumboOctopusEntity extends WaterCreatureEntity implements IAnimatab
     }
 
     public void changeYaw(double horS) {
-        this.yaw = (mc.player.distanceTo(this) > 1.5 || shouldReturn) ? (float) Rotations.getYawTest(this.yaw, this.getX(), this.getZ(), mc.player.getPos()) : (float) (MathHelper.wrapDegrees(this.yaw) + MathHelper.wrapDegrees(horS));
-        this.headYaw = (mc.player.distanceTo(this) > 1.5 || shouldReturn) ? (float) Rotations.getYawTest(this.yaw, this.getX(), this.getZ(), mc.player.getPos()) : (float) (MathHelper.wrapDegrees(this.yaw) + MathHelper.wrapDegrees(horS));
-        this.prevHeadYaw = (mc.player.distanceTo(this) > 1.5 || shouldReturn) ? (float) Rotations.getYawTest(this.yaw, this.getX(), this.getZ(), mc.player.getPos()) : (float) (MathHelper.wrapDegrees(this.yaw) + MathHelper.wrapDegrees(horS));
-        this.serverHeadYaw = (mc.player.distanceTo(this) > 1.5 || shouldReturn) ? (float) Rotations.getYawTest(this.yaw, this.getX(), this.getZ(), mc.player.getPos()) : (float) (MathHelper.wrapDegrees(this.yaw) + MathHelper.wrapDegrees(horS));
-        this.serverYaw = (mc.player.distanceTo(this) > 1.5 || shouldReturn) ? (float) Rotations.getYawTest(this.yaw, this.getX(), this.getZ(), mc.player.getPos()) : (float) (MathHelper.wrapDegrees(this.yaw) + MathHelper.wrapDegrees(horS));
+        this.yaw = (mc.player.distanceTo(this) > 2 || shouldReturn) ? (float) Rotations.getYawTest(this.yaw, this.getX(), this.getZ(), mc.player.getPos()) : (float) (MathHelper.wrapDegrees(this.yaw) + MathHelper.wrapDegrees(horS));
+        this.headYaw = (mc.player.distanceTo(this) > 2 || shouldReturn) ? (float) Rotations.getYawTest(this.yaw, this.getX(), this.getZ(), mc.player.getPos()) : (float) (MathHelper.wrapDegrees(this.yaw) + MathHelper.wrapDegrees(horS));
+        this.prevHeadYaw = (mc.player.distanceTo(this) > 2 || shouldReturn) ? (float) Rotations.getYawTest(this.yaw, this.getX(), this.getZ(), mc.player.getPos()) : (float) (MathHelper.wrapDegrees(this.yaw) + MathHelper.wrapDegrees(horS));
+        this.serverHeadYaw = (mc.player.distanceTo(this) > 2 || shouldReturn) ? (float) Rotations.getYawTest(this.yaw, this.getX(), this.getZ(), mc.player.getPos()) : (float) (MathHelper.wrapDegrees(this.yaw) + MathHelper.wrapDegrees(horS));
+        this.serverYaw = (mc.player.distanceTo(this) > 2 || shouldReturn) ? (float) Rotations.getYawTest(this.yaw, this.getX(), this.getZ(), mc.player.getPos()) : (float) (MathHelper.wrapDegrees(this.yaw) + MathHelper.wrapDegrees(horS));
     }
 
     private void updatePosition(float MOVE_SPEED) {
@@ -178,7 +178,8 @@ public class DumboOctopusEntity extends WaterCreatureEntity implements IAnimatab
 
         // Проверяем, находится ли компаньон внутри шара
         //setPosition(player.getX(), player.getY() + 0.5, player.getZ());
-        shouldReturn = Math.sqrt(distanceSquared) > RADIUS;
+        if (Math.sqrt(distanceSquared) > companion.teleportDistance.get()) setPosition(player.getX(), player.getY() + 0.5, player.getZ());
+        else shouldReturn = Math.sqrt(distanceSquared) > RADIUS;
     }
 
     protected float changeAngle(float from, float to, float max) {
