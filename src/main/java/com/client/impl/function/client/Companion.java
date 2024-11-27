@@ -5,14 +5,13 @@ import com.client.system.companion.CompanionRegistry;
 import com.client.system.companion.DumboOctopusEntity;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
-import com.client.system.setting.settings.BooleanSetting;
-import com.client.system.setting.settings.ColorSetting;
-import com.client.system.setting.settings.DoubleSetting;
-import com.client.system.setting.settings.IntegerSetting;
+import com.client.system.setting.settings.*;
 
 import java.awt.*;
+import java.util.List;
 
 public class Companion extends Function {
+    private final ListSetting color = List().name("Цвет").list(List.of("Желтый", "Оранжевый", "Светлый", "Фиолетовый")).defaultValue("Желтый").build();
     public final IntegerSetting teleportDistance = Integer().name("Дистанция для тп").min(20).max(100).defaultValue(50).build();
     public final BooleanSetting glow = Boolean().name("Glow").defaultValue(true).build();
     public final ColorSetting glowColor = Color().name("Цвет").defaultValue(new Color(255, 255, 255, 40)).visible(glow::get).build();
@@ -51,8 +50,18 @@ public class Companion extends Function {
     @Override
     public void tick(TickEvent.Pre event) {
         if (this.entity != null) {
+            this.entity.setVariant(getVariant());
             this.entity.setWorld(mc.player.getEntityWorld());
             this.entity.tickMovement();
         }
+    }
+
+    public int getVariant() {
+        return switch (color.get()) {
+            case "Желтый" -> 0;
+            case "Оранжевый" -> 1;
+            case "Светлый" -> 2;
+            default -> 3;
+        };
     }
 }

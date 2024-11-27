@@ -136,7 +136,7 @@ public class FunctionButton implements Impl {
         float f = defaultHeight;
 
         for (SettingButton settingButton : settingButtons) {
-            if (!settingButton.setting.isVisible().visible() || (settingButton.setting.isPremium && !Loader.isPremium())) continue;
+            if (!settingButton.setting.isVisible().visible()) continue;
             f += settingButton.getAdd();
         }
 

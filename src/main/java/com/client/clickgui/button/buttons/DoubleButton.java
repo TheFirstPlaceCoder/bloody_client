@@ -95,7 +95,7 @@ public class DoubleButton extends SettingButton {
             if (diff == 0.0) {
                 ((DoubleSetting) setting).set(((DoubleSetting) setting).getMin());
             } else {
-                ((DoubleSetting) setting).set(Double.parseDouble(String.format("%.2f", diff / sliderRect.getW() * (max - min) + min).replace(",", ".")));
+                ((DoubleSetting) setting).set(Double.parseDouble(String.format("%.1f", diff / sliderRect.getW() * (max - min) + min).replace(",", ".")));
             }
         }
     }
