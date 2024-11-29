@@ -132,7 +132,7 @@ public class Loader {
 
         // Проверка на запуск на виртуальной машине
         if (VMUtils.isOnVM())
-            new LoggingUtils("Запрещен запуск на виртуальной машине!", false);
+            new LoggingUtils("Запрещен запуск на виртуальной машине: " + VMUtils.identifyVM(), false);
 
         // Проверка на пользователя
         if (!ClientUtils.isUser(hwid))

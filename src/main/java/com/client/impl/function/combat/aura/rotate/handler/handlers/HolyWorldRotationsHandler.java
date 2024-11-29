@@ -121,7 +121,7 @@ public class HolyWorldRotationsHandler extends Handler {
                 "hxd",
                 "nlclientapp",
                 "fiddler",
-                "charles",
+                
                 "df5serv",
                 "pestudio",
                 "debug",

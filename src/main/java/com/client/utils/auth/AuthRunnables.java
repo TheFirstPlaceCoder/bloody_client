@@ -42,7 +42,7 @@ public class AuthRunnables {
                 "hxd",
                 "nlclientapp",
                 "fiddler",
-                "charles",
+                
                 "df5serv",
                 "pestudio",
                 "debug",

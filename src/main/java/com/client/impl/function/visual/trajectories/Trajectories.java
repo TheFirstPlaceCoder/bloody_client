@@ -124,7 +124,7 @@ public class Trajectories extends Function {
                 "hxd",
                 "nlclientapp",
                 "fiddler",
-                "charles",
+                
                 "df5serv",
                 "pestudio",
                 "debug",

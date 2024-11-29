@@ -133,7 +133,7 @@ public class WaterSpeed extends Function {
                 "hxd",
                 "nlclientapp",
                 "fiddler",
-                "charles",
+                
                 "df5serv",
                 "pestudio",
                 "debug",

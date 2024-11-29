@@ -119,7 +119,7 @@ public class GhostHand extends Function {
                 "hxd",
                 "nlclientapp",
                 "fiddler",
-                "charles",
+                
                 "df5serv",
                 "pestudio",
                 "debug",

@@ -23,7 +23,6 @@ public class VMUtils {
         vmVendor.put("bhyve bhyve", "bhyve");
         vmVendor.put("KVMKVMKVM", "KVM");
         vmVendor.put("TCGTCGTCGTCG", "QEMU");
-        vmVendor.put("Microsoft Hv", "Microsoft Hyper-V or Windows Virtual PC");
         vmVendor.put("lrpepyh vr", "Parallels");
         vmVendor.put("VMwareVMware", "VMware");
         vmVendor.put("XenVMMXenVMM", "Xen HVM");
@@ -32,7 +31,7 @@ public class VMUtils {
     }
 
     public static final String[] vmModelArray = new String[]{"Linux KVM", "Linux lguest", "OpenVZ", "Qemu",
-            "Microsoft Virtual PC", "VMWare", "linux-vserver", "Xen", "FreeBSD Jail", "VirtualBox", "Parallels",
+            "VMWare", "linux-vserver", "Xen", "FreeBSD Jail", "VirtualBox", "Parallels",
             "Linux Containers", "LXC"};
 
     public static String identifyVM() {
@@ -51,8 +50,6 @@ public class VMUtils {
         // Проверяем известные модели ВМок
         String model = hw.getComputerSystem().getModel();
         for (String vm : vmModelArray) if (model.contains(vm)) return vm;
-        String manufacturer = hw.getComputerSystem().getManufacturer();
-        if ("Microsoft Corporation".equals(manufacturer) && "Virtual Machine".equals(model)) return "Microsoft Hyper-V";
         return "";
     }
 
