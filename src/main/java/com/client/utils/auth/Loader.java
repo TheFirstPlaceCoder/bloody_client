@@ -34,7 +34,7 @@ public class Loader {
     public static boolean PREMIUM, YT, MODER, DEV, HELPER;
     public static boolean unHook = false;
     public static String accountName, UID;
-    public static String VERSION = "203";
+    public static String VERSION = "204";
 
     // Переменные для защиты
     public static String hwid;
