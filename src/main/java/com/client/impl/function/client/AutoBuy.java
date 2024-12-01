@@ -44,11 +44,11 @@ public class AutoBuy extends Function {
     )).defaultValue("FunTime").build();
 
     private final IntegerSetting clickCount = Integer().name("Клики перед прыжками").min(1).max(20).defaultValue(10).visible(() -> server.get().equals("FunTime")).build();
-    private final IntegerSetting delay = Integer().name("Задержка обновления").min(100).max(5000).defaultValue(3000).setPremium(true).build();
-    private final IntegerSetting delayAdd = Integer().name("Задержка действия").min(100).max(3000).defaultValue(1500).visible(() -> server.get().equals("FunTime")).setPremium(true).build();
-    private final IntegerSetting delayAddPlus = Integer().name("Задержка после клика").min(100).max(3000).defaultValue(1250).visible(() -> server.get().equals("FunTime")).setPremium(true).build();
-    private final IntegerSetting delayBeforeBuy = Integer().name("Задержка перед кликом").min(100).max(5000).defaultValue(3500).visible(() -> server.get().equals("FunTime")).setPremium(true).build();
-    private final IntegerSetting delayClick = Integer().name("Задержка между попытками").min(100).max(2000).defaultValue(1500).visible(() -> server.get().equals("FunTime")).setPremium(true).build();
+    private final IntegerSetting delay = Integer().name("Задержка обновления").min(100).max(5000).defaultValue(3000).build();
+    private final IntegerSetting delayAdd = Integer().name("Задержка действия").min(100).max(3000).defaultValue(1500).visible(() -> server.get().equals("FunTime")).build();
+    private final IntegerSetting delayAddPlus = Integer().name("Задержка после клика").min(100).max(3000).defaultValue(1250).visible(() -> server.get().equals("FunTime")).build();
+    private final IntegerSetting delayBeforeBuy = Integer().name("Задержка перед кликом").min(100).max(5000).defaultValue(3500).visible(() -> server.get().equals("FunTime")).build();
+    private final IntegerSetting delayClick = Integer().name("Задержка между попытками").min(100).max(2000).defaultValue(1500).visible(() -> server.get().equals("FunTime")).build();
     private final KeybindSetting bind = Keybind().name("Бинд").defaultValue(-1).build();
     private final Widget openScreen = Widget().name("Открыть меню").defaultValue(() -> {
         if (abGui == null) {

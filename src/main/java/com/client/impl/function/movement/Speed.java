@@ -5,6 +5,7 @@ import com.client.event.events.PlayerTravelEvent;
 import com.client.event.events.TickEvent;
 import com.client.impl.function.combat.aura.rotate.RotationHandler;
 import com.client.interfaces.IVec3d;
+import com.client.system.companion.DumboOctopusEntity;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.notification.Notification;
@@ -71,7 +72,7 @@ public class Speed extends Function {
             int collisions = 0;
             int otherCollisions = 0;
             for (Entity ent : mc.world.getEntities())
-                if (ent != mc.player && (ent instanceof PlayerEntity || (ent instanceof LivingEntity && !(ent instanceof ArmorStandEntity) && others.get()) || (ent instanceof ArmorStandEntity && armorStands.get())) && mc.player.getBoundingBox().expand(expand.get()).intersects(ent.getBoundingBox())) {
+                if (ent != mc.player && !(ent instanceof DumboOctopusEntity) && (ent instanceof PlayerEntity || (ent instanceof LivingEntity && !(ent instanceof ArmorStandEntity) && others.get()) || (ent instanceof ArmorStandEntity && armorStands.get())) && mc.player.getBoundingBox().expand(expand.get()).intersects(ent.getBoundingBox())) {
                     if (ent instanceof PlayerEntity) collisions++;
                     else otherCollisions++;
                 }
