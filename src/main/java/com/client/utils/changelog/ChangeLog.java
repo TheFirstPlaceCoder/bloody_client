@@ -30,7 +30,7 @@ public class ChangeLog {
         return fields;
     }
 
-    private static final int MAX_INDEX = 11;
+    private static final int MAX_INDEX = 12;
     private static final int MIN_INDEX = 0;
     private static int INDEX = 0;
 
@@ -45,6 +45,7 @@ public class ChangeLog {
         fill(9);
         setupChangeLogV20();
         setupChangeLogV21();
+        setupChangeLogV22();
     }
 
     private static void fill(int i) {
@@ -227,6 +228,25 @@ public class ChangeLog {
         deleted("Jesus");
         deleted("No Slow | Режим FunTime Water");
         deleted("Speed | Режимы HolyWorld, ReallyWorld");
+
+        if (changesList().isEmpty()) return;
+
+        changesList().sort(Comparator.comparing(c -> -IFont.getWidth(IFont.MONTSERRAT_BOLD, c.mode.prefix + c.text.getA(), 10)));
+        changesList().sort(Comparator.comparing(c -> c.mode.id));
+    }
+
+    private static void setupChangeLogV22() {
+        CHANGES_LIST.put(new Pair<>("v2.0.2", "FunTime Update"), new ArrayList<>());
+        CURRENT_VIEW = "v2.0.2";
+        CURRENT_TITLE = "FunTime Update";
+        INDEX = 12;
+
+        added("Inv Walk | Режим FunTime");
+
+        rewritten(  "Music Hud | Позиция кнопки Stop");
+
+        deleted("Shaders | Premium настройки");
+        deleted("Hands | Premium настройки");
 
         if (changesList().isEmpty()) return;
 
