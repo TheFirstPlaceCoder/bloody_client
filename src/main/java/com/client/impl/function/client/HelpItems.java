@@ -21,7 +21,7 @@ import java.util.List;
 import static com.client.BloodyClient.mc;
 
 public class HelpItems extends Function {
-    private final KeybindSetting bind = Keybind().name("enable").defaultValue(-1).build();
+    private final KeybindSetting bind = Keybind().name("enablea").defaultValue(-1).build();
 
     public HelpItems() {
         super("Help Items", Category.CLIENT);
