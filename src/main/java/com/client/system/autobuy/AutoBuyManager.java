@@ -1,6 +1,5 @@
 package com.client.system.autobuy;
 
-import com.client.alt.Account;
 import com.client.system.config.ConfigSystem;
 import lombok.Getter;
 import net.minecraft.item.Item;
@@ -8,13 +7,11 @@ import net.minecraft.item.Items;
 import net.minecraft.util.registry.Registry;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class AutoBuyManager {
     @Getter
-    private static final List<AutoBuyItem> items = new ArrayList<>();
+    private static final Set<AutoBuyItem> items = new LinkedHashSet<>();
 
     @Getter
     private static final List<CustomAutoBuyItem> customAutoBuyItemList = new ArrayList<>();
@@ -829,7 +826,10 @@ public class AutoBuyManager {
                             break;
                         }
                     }
-                    items.add(new DefaultAutoBuyItem(item, Integer.parseInt(line.split(":")[2])));
+
+                    DefaultAutoBuyItem autoBuyItem = new DefaultAutoBuyItem(item, Integer.parseInt(line.split(":")[2]));
+
+                    if (!items.contains(autoBuyItem)) items.add(autoBuyItem);
                 }
                 if (id == 1) {
                     CustomAutoBuyItem customAutoBuyItem = getCustomAutoBuyItemByName(line.split(":")[1]);
@@ -838,7 +838,8 @@ public class AutoBuyManager {
                     add.enchantments = customAutoBuyItem.enchantments;
                     add.name = customAutoBuyItem.name;
                     add.strictCheck = customAutoBuyItem.strictCheck;
-                    items.add(add);
+
+                    if (!items.contains(add)) items.add(add);
                 }
             }
 
