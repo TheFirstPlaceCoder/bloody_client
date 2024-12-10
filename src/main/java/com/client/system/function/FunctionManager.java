@@ -84,6 +84,7 @@ public class FunctionManager {
             if (Loader.isDev()) register(new VelBoost());
             register(new InvWalk());
             register(new NoPush());
+            register(new SafeWalk());
             register(new Spider());
             register(new Sprint());
             register(new Timer());

@@ -35,9 +35,9 @@ public class BackgroundRendererMixin {
             event.color = null;
             event.post();
             if (event.color != null) {
-                red = event.color.getRed();
-                green = event.color.getGreen();
-                blue = event.color.getBlue();
+                red = event.color.getRed() / 255f;
+                green = event.color.getGreen() / 255f;
+                blue = event.color.getBlue() / 255f;
             }
     }
 

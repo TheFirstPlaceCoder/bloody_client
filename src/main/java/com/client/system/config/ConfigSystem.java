@@ -13,6 +13,7 @@ import com.client.system.hud.HudManager;
 import com.client.system.hud.setting.HudValue;
 import com.client.system.setting.api.AbstractSettings;
 import com.client.system.setting.api.ConfigManual;
+import com.client.system.setting.api.SettingsType;
 import com.client.system.setting.manager.SettingManager;
 import com.client.system.setting.settings.*;
 import com.client.system.setting.settings.multiboolean.MultiBooleanSetting;
@@ -125,7 +126,7 @@ public class ConfigSystem {
                     try {
                         cfgName = s.split(":")[0];
                         value = s.split(":")[1];
-                    } catch (Exception ignore) {
+                    } catch (Exception ignored) {
                     }
 
                     if (cfgName.isEmpty() || value.isEmpty()) continue;
@@ -136,13 +137,10 @@ public class ConfigSystem {
                             continue;
                         }
 
-                        if (Boolean.parseBoolean(value)) {
+                        if ((!function.isEnabled() && value.contains("true")) || (function.isEnabled() && !value.contains("true"))) {
                             function.toggle(false);
                         }
 
-                        if (function.isEnabled() && !Boolean.parseBoolean(value)) {
-                            function.toggle(false);
-                        }
                         continue;
                     }
 
@@ -263,14 +261,24 @@ public class ConfigSystem {
 
     public static List<String> getBlock(List<String> strings, String target) {
         List<String> l = new ArrayList<>();
-
         boolean flag = false;
 
-        for (String string : strings) {
+        for (int i = 0; i < strings.size(); i++) {
+            String string = strings.get(i);
+
             if (flag) {
-                if (string.endsWith("}")) {
+                if (string.contains("}")) {
                     break;
                 } else {
+                    // Проверяем следующую строку
+                    if (i + 1 < strings.size()) {
+                        String nextString = strings.get(i + 1);
+                        // Проверяем наличие символа ':' в текущей строке
+                        if (!string.contains(":")) {
+                            string += nextString; // Добавляем следующую строку
+                            i++; // Пропускаем следующую строку
+                        }
+                    }
                     l.add(string);
                 }
             } else {
@@ -305,7 +313,7 @@ public class ConfigSystem {
                 bufferedWriter.write("keybind:" + function.getKeyCode() + "\n");
 
                 for (AbstractSettings<?> abstractSettings : SettingManager.getSettingsList(function)) {
-                    bufferedWriter.write(abstractSettings.toConfig() + "\n");
+                    if (abstractSettings.getType() != SettingsType.EMPTY && abstractSettings.getType() != SettingsType.Widget) bufferedWriter.write(abstractSettings.toConfig().replace("\n", "") + "\n");
                 }
 
                 bufferedWriter.write("}\n");
@@ -315,7 +323,7 @@ public class ConfigSystem {
                 bufferedWriter.write("enable:" + hudFunction.isEnabled() + "\n");
                 bufferedWriter.write(hudFunction + "\n");
                 for (HudValue value : hudFunction.values) {
-                    bufferedWriter.write(value.toCfg() + "\n");
+                    bufferedWriter.write(value.toCfg().replace("\n", "") + "\n");
                 }
                 bufferedWriter.write("}\n");
             }

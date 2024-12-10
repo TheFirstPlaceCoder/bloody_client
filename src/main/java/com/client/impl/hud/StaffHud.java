@@ -81,7 +81,7 @@ public class StaffHud extends HudFunction {
 
         IFont.drawCenteredXY(IFont.MONTSERRAT_BOLD, "Staff Statistic", rect.getCenteredX(), rect.getY() + 8, Color.WHITE, 9);
 
-        if (!staffList.isEmpty()) drawNewClientRect(staffRect);
+        if (staffRect.getH() > 0) drawNewClientRect(staffRect);
 
         ScissorUtils.enableScissor(staffRect);
         float y = staffRect.getY() + 1;

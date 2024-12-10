@@ -42,7 +42,7 @@ public class MusicHud extends HudFunction {
         GL.drawRoundedRect(rect.getCenteredX() - 7, rect.getCenteredY(), 14, 14, 3, button2 ? new Color(82, 82, 82) : new Color(42, 42, 42));
         GL11.glPushMatrix();
         GL11.glScalef(1f, 1f, 1f);
-        GL11.glTranslatef(rect.getCenteredX() - 5.5f, rect.getCenteredY() + 1, 0);
+        GL11.glTranslatef(rect.getCenteredX() - (FunctionManager.get(Music.class).player == null ? 5.5f : 6f), rect.getCenteredY() + 1, 0);
         GL.drawRoundedTexture(FunctionManager.get(Music.class).player == null ? play : stop, 0, 0, 12, 12, 0);
         GL11.glPopMatrix();
 

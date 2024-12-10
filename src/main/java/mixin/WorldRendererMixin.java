@@ -3,6 +3,7 @@ package mixin;
 import com.client.BloodyClient;
 import com.client.event.events.ParticleRenderEvent;
 import com.client.event.events.WeatherWorldRenderEvent;
+import com.client.impl.function.client.Companion;
 import com.client.impl.function.client.Optimization;
 import com.client.impl.function.visual.BlockOutline;
 import com.client.impl.function.visual.Shaders;
@@ -141,7 +142,7 @@ public abstract class WorldRendererMixin {
             Color c0 = shaders.getColore(entity);
 
             Framebuffer prevBuffer = this.entityOutlinesFramebuffer;
-            if (entity instanceof DumboOctopusEntity) {
+            if (FunctionManager.get(Companion.class).isEnabled() && Companion.entity != null && entity instanceof DumboOctopusEntity) {
                 this.entityOutlinesFramebuffer = OutlinesCompanion.outlinesFbo;
 
                 OutlinesCompanion.setUniform("resolution", (float) mc.getWindow().getScaledWidth(), (float) mc.getWindow().getScaledHeight());

@@ -34,7 +34,7 @@ public class Shaders extends Function {
         super("Shaders", Category.VISUAL);
     }
 
-    private final ListSetting mode = List().name("Режим").list(List.of("Нормальный", "Градиент")).defaultValue("Нормальный").setPremium(true).build();
+    private final ListSetting mode = List().name("Режим").list(List.of("Нормальный", "Градиент")).defaultValue("Нормальный").build();
     public final BooleanSetting glowMode = Boolean().name("Режим свечения").defaultValue(false).build();
     public final IntegerSetting lineWidth = Integer().name("Ширина обводки").defaultValue(5).min(1).max(10).build();
     public final IntegerSetting glowPower = Integer().name("Сила").defaultValue(4).min(1).max(10).visible(glowMode::get).build();

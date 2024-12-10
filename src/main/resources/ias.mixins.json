@@ -32,6 +32,7 @@
     "TotemParticleMixin",
     "Vec3dMixin",
     "WorldChunkMixin",
+    "accessor.AbstractBlockAccessor",
     "accessor.HorseScreenHandlerAccessor",
     "accessor.InteractionManagerAccessor",
     "accessor.ItemStackAccessor",

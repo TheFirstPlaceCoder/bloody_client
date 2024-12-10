@@ -15,6 +15,10 @@ public class MsTimer {
         return getMs(System.nanoTime() - time) >= ms;
     }
 
+    public boolean passedTicks(long ticks) {
+        return getMs(System.nanoTime() - time) >= (long) (ticks * 50.0);
+    }
+
     public boolean every(long ms) {
         boolean passed = getMs(System.nanoTime() - time) >= ms;
         if (passed)

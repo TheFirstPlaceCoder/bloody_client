@@ -34,7 +34,7 @@ public class Loader {
     public static boolean PREMIUM, YT, MODER, DEV, HELPER;
     public static boolean unHook = false;
     public static String accountName, UID;
-    public static String VERSION = "205";
+    public static String VERSION = "202";
 
     // Переменные для защиты
     public static String hwid;
@@ -107,6 +107,22 @@ public class Loader {
         if (args.has())
             new LoggingUtils("Запрещенный аргумент: " + args.name(), false);
 
+        // Проверяем обновление
+        if (!ClientUtils.getVersion().equals(Loader.VERSION)) {
+            UpdateWindow window = new UpdateWindow();
+
+            while (!window.isOk) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ignored) {
+                }
+            }
+
+            window.setVisible(false);
+
+            Runtime.getRuntime().halt(0);
+        }
+
         // Проверяем на открытые дебаггеры
         CheckerClass debugging = DumpUtils.isBeingDebugged();
         if (debugging.has())
@@ -137,22 +153,6 @@ public class Loader {
         // Проверка на пользователя
         if (!ClientUtils.isUser(hwid))
             new LoggingUtils("HWID не найден!", false);
-
-        // Проверяем обновление
-        if (!ClientUtils.getVersion().equals(Loader.VERSION)) {
-            UpdateWindow window = new UpdateWindow();
-
-            while (!window.isOk) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ignored) {
-                }
-            }
-
-            window.setVisible(false);
-
-            Runtime.getRuntime().halt(0);
-        }
 
         // Если человек как-то попытается обойти обновление, то майн зависнет
         if (!ClientUtils.getVersion().equals(Loader.VERSION)) for (;;) {}

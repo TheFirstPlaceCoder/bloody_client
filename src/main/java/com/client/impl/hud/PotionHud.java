@@ -65,7 +65,7 @@ public class PotionHud extends HudFunction {
 
         IFont.drawCenteredXY(IFont.MONTSERRAT_BOLD, "Potions", rect.getCenteredX(), rect.getY() + 8, Color.WHITE, 9);
 
-        if (!potionList.isEmpty()) drawNewClientRect(potionRect);
+        if (potionRect.getH() > 0) drawNewClientRect(potionRect);
 
         ScissorUtils.enableScissor(potionRect);
         float y = potionRect.getY() + 1;

@@ -1,6 +1,5 @@
 package com.client.impl.function.misc;
 
-import api.interfaces.EventHandler;
 import com.client.event.events.*;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
@@ -43,7 +42,8 @@ public class Nuker extends Function {
     private final MultiBooleanSetting settings = MultiBoolean().name("Настройки").defaultValue(List.of(
             new MultiBooleanValue(true, "Игнорировать стены"),
             new MultiBooleanValue(false, "Избегать лаву"),
-            new MultiBooleanValue(true, "На одном уровне")
+            new MultiBooleanValue(true, "На одном уровне"),
+            new MultiBooleanValue(true, "Зачар Бульдозер/Бур")
     )).build();
 
     public final ListSetting color = List().name("Режим цвета").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
@@ -63,7 +63,7 @@ public class Nuker extends Function {
     @Override
     public void onEnable() {
         nukerThread = new NukerThread();
-        nukerThread.setName("ThunderHack-NukerThread");
+        nukerThread.setName("NukerThread");
         nukerThread.setDaemon(true);
         nukerThread.start();
     }
@@ -77,7 +77,7 @@ public class Nuker extends Function {
     public void tick(TickEvent.Pre event) {
         if (!nukerThread.isAlive()) {
             nukerThread = new NukerThread();
-            nukerThread.setName("ThunderHack-NukerThread");
+            nukerThread.setName("NukerThread");
             nukerThread.setDaemon(true);
             nukerThread.start();
         }
@@ -157,7 +157,7 @@ public class Nuker extends Function {
         List<BlockPos> blocks_ = getCubePoses();
 
         for (BlockPos b : blocks_) {
-            if (settings.get("На одном уровне") && b.getY() < mc.player.getY())
+            if (settings.get("На одном уровне") && ((b.getY() < mc.player.getY()) || (settings.get("Зачар Бульдозер") && b.getY() <= mc.player.getY())))
                 continue;
             if (PlayerUtils.distanceTo(b) <= radius_mine.get()) {
                 if (settings.get("Избегать лаву") && checkLava(b))
