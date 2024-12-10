@@ -2,8 +2,6 @@ package com.client.utils.auth;
 
 import api.main.EventUtils;
 import com.client.BloodyClient;
-import com.client.alt.Accounts;
-import com.client.impl.function.client.UnHook;
 import com.client.system.autobuy.AutoBuyManager;
 import com.client.system.command.CommandManager;
 import com.client.system.config.ConfigSystem;
@@ -18,31 +16,6 @@ import com.client.utils.game.inventory.SlotUtils;
 import com.client.utils.math.TickRate;
 import com.client.utils.math.vector.BloodyExecutor;
 import com.client.utils.misc.Exceptions;
-import com.client.utils.misc.FunctionUtils;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldNode;
-import sun.misc.Unsafe;
-
-import java.io.*;
-import java.lang.reflect.Field;
-import java.net.URL;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
-import java.util.jar.JarOutputStream;
-import java.util.stream.Stream;
-
-import static com.client.BloodyClient.mc;
 
 public class Loader {
     public static boolean PREMIUM, YT, MODER, DEV, HELPER;

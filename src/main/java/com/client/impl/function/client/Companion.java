@@ -9,6 +9,7 @@ import com.client.system.setting.settings.*;
 
 import java.awt.Color;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class Companion extends Function {
     private final ListSetting color = List().name("Цвет").list(List.of("Желтый", "Оранжевый", "Светлый", "Фиолетовый")).defaultValue("Желтый").build();
@@ -20,7 +21,7 @@ public class Companion extends Function {
         super("Companion", Category.CLIENT);
     }
 
-    public DumboOctopusEntity entity;
+    public static DumboOctopusEntity entity;
     public int yaw = 50;
     public int yawDelay = 30;
     public int delayBetween = 20;
@@ -30,29 +31,30 @@ public class Companion extends Function {
 
     @Override
     public void onEnable() {
-        this.entity = new DumboOctopusEntity(CompanionRegistry.DUMBO_OCTOPUS.get(), mc.world);
-        this.entity.setPosition(mc.player.getX(), mc.player.getY() + 1, mc.player.getZ());
-        this.entity.setAiDisabled(false);
+        entity = new DumboOctopusEntity(CompanionRegistry.DUMBO_OCTOPUS.get(), mc.world);
+        entity.setPosition(mc.player.getX(), mc.player.getY() + 1, mc.player.getZ());
+        entity.setAiDisabled(false);
 
         mc.world.addEntity(999, entity);
     }
 
     @Override
     public void onDisable() {
-        if (this.entity != null) {
+        if (entity != null) {
             entity.kill();
             entity.remove();
             mc.world.removeEntity(entity.getEntityId());
-            this.entity = null;
+            entity = null;
         }
     }
 
     @Override
     public void tick(TickEvent.Pre event) {
-        if (this.entity != null) {
-            this.entity.setVariant(getVariant());
-            this.entity.setWorld(mc.player.getEntityWorld());
-            this.entity.tickMovement();
+        if (entity != null) {
+            entity.setVariant(getVariant());
+            entity.setWorld(mc.player.getEntityWorld());
+            CompletableFuture<Void> a = CompletableFuture.runAsync(entity::tickMovement);
+            a.join();
         }
     }
 

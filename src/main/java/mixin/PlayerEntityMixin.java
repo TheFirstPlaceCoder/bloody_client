@@ -1,5 +1,7 @@
 package mixin;
 
+import api.main.EventUtils;
+import com.client.event.events.ClipAtLedgeEvent;
 import com.client.event.events.PlayerTravelEvent;
 import com.client.impl.function.movement.Sprint;
 import com.client.system.function.FunctionManager;
@@ -13,11 +15,21 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.client.BloodyClient.mc;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin {
+    @Inject(method = "clipAtLedge", at = @At("HEAD"), cancellable = true)
+    protected void clipAtLedge(CallbackInfoReturnable<Boolean> info) {
+        ClipAtLedgeEvent event = ClipAtLedgeEvent.get();
+
+        EventUtils.post(event);
+
+        if (event.isSet()) info.setReturnValue(event.isClip());
+    }
+
     @Inject(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;setSprinting(Z)V", shift = At.Shift.AFTER))
     public void attackAHook(CallbackInfo callbackInfo) {
         if (FunctionManager.get(Sprint.class).keepSprint()) {

@@ -97,7 +97,9 @@ public class FunctionManager {
             if (Loader.isDev()) register(new TestFly());
             if (Loader.isDev()) register(new ElytaBoost());
             if (Loader.isDev()) register(new VelBoost());
+            if (Loader.isDev()) register(new Scaffold());
             register(new InvWalk());
+            register(new SafeWalk());
             register(new NoPush());
             register(new Spider());
             register(new Sprint());

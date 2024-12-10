@@ -46,7 +46,7 @@ public class KeybindHud extends HudFunction {
 
         IFont.drawCenteredXY(IFont.MONTSERRAT_BOLD, "KeyBinds", rect.getCenteredX(), rect.getY() + 8, Color.WHITE, 9);
 
-        if (!bindList.isEmpty()) drawNewClientRect(bindRect);
+        if (bindRect.getH() > 0) drawNewClientRect(bindRect);
 
         ScissorUtils.enableScissor(bindRect);
         float y = bindRect.getY() + 1;
