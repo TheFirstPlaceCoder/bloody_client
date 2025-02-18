@@ -19,14 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Chams extends Function {
-    public final MultiBooleanSetting filter = MultiBoolean().name("Применять на").defaultValue(List.of(
+    public final MultiBooleanSetting filter = MultiBoolean().name("Применять на").enName("Draw at").defaultValue(List.of(
             new MultiBooleanValue(true, "Игроков"),
             new MultiBooleanValue(true, "Себя"),
             new MultiBooleanValue(true, "Друзей"),
             new MultiBooleanValue(true, "Инвизов")
     )).build();
 
-    public final ColorSetting colorSetting = Color().name("Цвет игроков").defaultValue(Color.CYAN).build();
+    public final ColorSetting colorSetting = Color().name("Цвет игроков").enName("Players Color").defaultValue(Color.CYAN).build();
 
     public Chams() {
         super("Chams", Category.VISUAL);

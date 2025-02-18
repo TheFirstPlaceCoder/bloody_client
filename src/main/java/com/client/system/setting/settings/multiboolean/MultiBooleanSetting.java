@@ -104,6 +104,15 @@ public class MultiBooleanSetting extends AbstractSettings<List<MultiBooleanValue
         return this;
     }
 
+    public String getEnName() {
+        return enName;
+    }
+
+    public MultiBooleanSetting enName(String name) {
+        this.enName = name;
+        return this;
+    }
+
     public boolean isPremium() {
         return isPremium;
     }

@@ -24,7 +24,7 @@ public class KillEffect extends Function {
         super("Kill Effect", Category.VISUAL);
     }
 
-    private final ListSetting mode = List().name("Режим").list(List.of("Молния", "Клиентский", "Огненные частицы")).defaultValue("Молния").build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Молния", "Клиентский", "Огненные частицы")).defaultValue("Молния").build();
 
     private final MsTimer timerHelper = new MsTimer();
 

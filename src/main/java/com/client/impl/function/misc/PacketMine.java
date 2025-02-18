@@ -20,11 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PacketMine extends Function {
-    private final IntegerSetting delay = Integer().name("Задержка перед ломанием").min(0).max(10).defaultValue(0).build();
+    private final IntegerSetting delay = Integer().name("Задержка перед ломанием").enName("Break Delay").min(0).max(10).defaultValue(0).build();
 
-    public final ListSetting color = List().name("Режим цвета").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
-    public final ColorSetting colorSetting = Color().name("Цвет").defaultValue(Color.CYAN).visible(() -> color.get().equals("Статичный")).build();
-    private final IntegerSetting alpha = Integer().name("Яркость").defaultValue(128).min(16).max(255).build();
+    public final ListSetting color = List().name("Режим цвета").enName("Color Mode").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
+    public final ColorSetting colorSetting = Color().name("Цвет").enName("Color").defaultValue(Color.CYAN).visible(() -> color.get().equals("Статичный")).build();
+    private final IntegerSetting alpha = Integer().name("Яркость").enName("Brightness").defaultValue(128).min(16).max(255).build();
 
     public PacketMine() {
         super("Packet Mine", Category.MISC);
@@ -81,5 +81,10 @@ public class PacketMine extends Function {
     public void onRender3D(Render3DEvent event) {
         if (blocks.isEmpty()) return;
         for (MyBlock block : blocks) block.render(color.get().equals("Статичный"), colorSetting.get(), alpha.get());
+    }
+
+    @Override
+    public String getHudPrefix() {
+        return blocks.isEmpty() ? "" : blocks.size() + "";
     }
 }

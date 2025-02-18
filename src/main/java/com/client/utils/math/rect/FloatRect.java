@@ -26,6 +26,16 @@ public class FloatRect extends Rect<Float> {
     }
 
     @Override
+    public FloatRect expand(Float x) {
+        this.x -= x;
+        this.y -= x;
+        this.w += x * 2;
+        this.h += x * 2;
+        setup();
+        return this;
+    }
+
+    @Override
     public FloatRect setX(Float x) {
         this.x = x;
         setup();

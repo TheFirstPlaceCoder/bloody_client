@@ -2,6 +2,7 @@ package com.client.impl.function.visual.particles;
 
 import com.client.interfaces.IBox;
 import com.client.system.function.FunctionManager;
+import com.client.system.textures.DownloadImage;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
 import com.client.utils.math.animation.AnimationUtils;
@@ -23,7 +24,7 @@ import static com.client.utils.math.MathUtils.offset;
 public class Particle {
     private final float size = 0.2f;
     private float angel;
-    private final Identifier texture;
+    private final int texture;
     private V3D position;
     private long initTime;
 
@@ -41,6 +42,8 @@ public class Particle {
 
     private boolean revers = true, revY;
     private int alpha = 0;
+
+    private static Particles particles = FunctionManager.get(Particles.class);
 
     public Particle(double x, double y, double z) {
         this(x, y, z, 10F);
@@ -68,23 +71,25 @@ public class Particle {
         this.animType = false /*new Random().nextBoolean()*/;
         this.gravity = gravity;
 
-        List<String> id = new ArrayList<>();
+        List<Integer> id = new ArrayList<>();
 
-        if (FunctionManager.get(Particles.class).type.get(0)) id.add("star.png");
-        if (FunctionManager.get(Particles.class).type.get(2)) id.add("snow.png");
-        if (FunctionManager.get(Particles.class).type.get(1)) id.add("heart.png");
+        if (particles.type.get(0)) id.add(DownloadImage.getGlId(DownloadImage.STAR));
+        if (particles.type.get(1)) id.add(DownloadImage.getGlId(DownloadImage.HEART));
+        if (particles.type.get(2)) id.add(DownloadImage.getGlId(DownloadImage.SNOW));
+        if (particles.type.get(3)) id.add(DownloadImage.getGlId(DownloadImage.TRIANGLE_GLOW));
+        if (particles.type.get(4)) id.add(DownloadImage.getGlId(DownloadImage.CIRCLE));
 
         if (id.isEmpty()) {
-            texture = null;
+            texture = -1;
             return;
         }
 
-        this.texture = new Identifier("bloody-client", "/client/" + id.get(new Random().nextInt(id.size())));
+        this.texture = id.get(new Random().nextInt(id.size()));
         this.initTime = System.currentTimeMillis();
     }
 
     public void draw(MatrixStack matrix) {
-        if (texture == null) return;
+        if (texture == -1) return;
         tick();
 
         Vec3d fix = Renderer3D.getRenderPosition(new Vec3d(position.x, position.y, position.z));
@@ -187,6 +192,6 @@ public class Particle {
             alpha -= 12;
         }
         alpha = MathHelper.clamp(alpha, 0, 255);
-        return (animType ? scale < 0.1F && alpha <= 0 : !revers && alpha <= 0) || texture == null;
+        return (animType ? scale < 0.1F && alpha <= 0 : !revers && alpha <= 0) || texture == -1;
     }
 }

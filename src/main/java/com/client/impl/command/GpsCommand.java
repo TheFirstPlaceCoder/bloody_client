@@ -4,6 +4,7 @@ import com.client.system.command.Command;
 import com.client.system.friend.FriendManager;
 import com.client.system.gps.GpsManager;
 import com.client.system.gps.GpsPoint;
+import com.client.utils.Utils;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -19,24 +20,24 @@ public class GpsCommand extends Command {
         switch (args[0]) {
             case "clear":
                 GpsManager.clear();
-                warning("Список GPS был очищен.");
+                warning(Utils.isRussianLanguage ? "Список GPS был очищен!" : "GPS list was cleared!");
                 break;
             case "remove":
                 String gps_name = args[1];
 
                 if (GpsManager.remove(gps_name)) {
-                    info(Formatting.WHITE + gps_name + Formatting.YELLOW + " был(а) удален(а).");
+                    info(Formatting.WHITE + gps_name + Formatting.YELLOW + (Utils.isRussianLanguage ? " был(а) удален(а)." : " was deleted."));
                 } else {
-                    info(Formatting.WHITE + gps_name + Formatting.RED + " не находится в списке.");
+                    info(Formatting.WHITE + gps_name + Formatting.RED + (Utils.isRussianLanguage ? " не находится в списке." : " doesn't exist."));
                 }
                 break;
             case "list":
                 if (GpsManager.get().isEmpty()) {
-                    error(Text.of("Список GPS пуст."));
+                    error(Text.of(Utils.isRussianLanguage ? "Список GPS пуст." : "GPS list is empty."));
                 } else {
-                    info(Text.of(Formatting.AQUA + "Список GPS:"));
+                    info(Text.of(Formatting.AQUA + (Utils.isRussianLanguage ? "Список GPS:" : "GPS list:")));
                     for (GpsPoint gps : GpsManager.get()) {
-                        info(Text.of(Formatting.GRAY + "Имя: " + Formatting.WHITE + gps.name + (Formatting.GRAY + " Координаты: " + "(" + Formatting.WHITE + (gps.x + " " + gps.y + " " + gps.z) + Formatting.GRAY + ")")));
+                        info(Text.of(Formatting.GRAY + (Utils.isRussianLanguage ? "Имя: " : "Name:") + Formatting.WHITE + gps.name + (Formatting.GRAY + (Utils.isRussianLanguage ? " Координаты: " : " Coords: ") + "(" + Formatting.WHITE + (gps.x + " " + gps.y + " " + gps.z) + Formatting.GRAY + ")")));
                     }
                 }
                 break;
@@ -52,15 +53,15 @@ public class GpsCommand extends Command {
                     name = args[4];
 
                     if (GpsManager.add(new GpsPoint(x, y, z, name))) {
-                        info(Formatting.AQUA + "Новый GPS (" + Formatting.WHITE + name + Formatting.AQUA + ") был добавлен.");
+                        info(Formatting.AQUA + (Utils.isRussianLanguage ? "Новый GPS (" : "New GPS (") + Formatting.WHITE + name + Formatting.AQUA + (Utils.isRussianLanguage ? ") был добавлен!" : ") added to GPS list!"));
                     } else {
-                        error(Formatting.RED + "GPS (" + Formatting.WHITE + name + Formatting.RED + ") уже существует.");
+                        error(Formatting.RED + "GPS (" + Formatting.WHITE + name + Formatting.RED + (Utils.isRussianLanguage ? ") уже существует!" : " already exists!"));
                     }
                 } else if (args.length == 4) {
                     try {
                         y = args[2].equals("~") ? (int) mc.player.getY() : Integer.parseInt(args[2]);
                         z = Integer.parseInt(args[3]);
-                        name = "Новая точка " + (GpsManager.get().size() + 1);
+                        name = (Utils.isRussianLanguage ? "Новая точка " : "New GPS ") + (GpsManager.get().size() + 1);
                     } catch (Exception e) {
                         y = 100;
                         z = Integer.parseInt(args[2]);
@@ -68,17 +69,17 @@ public class GpsCommand extends Command {
                     }
 
                     if (GpsManager.add(new GpsPoint(x, y, z, name))) {
-                        info(Formatting.AQUA + "Новый gps (" + Formatting.WHITE + name + Formatting.AQUA + ") был добавлен.");
+                        info(Formatting.AQUA + (Utils.isRussianLanguage ? "Новый GPS (" : "New GPS (") + Formatting.WHITE + name + Formatting.AQUA + (Utils.isRussianLanguage ? ") был добавлен!" : ") added to GPS list!"));
                     } else {
-                        info(Formatting.RED + "GPS (" + Formatting.WHITE + name + Formatting.RED + ") уже существует.");
+                        info(Formatting.RED + "GPS (" + Formatting.WHITE + name + Formatting.RED + (Utils.isRussianLanguage ? ") уже существует!" : " already exists!"));
                     }
                 } else if (args.length == 3) {
                     z = Integer.parseInt(args[2]);
 
-                    if (GpsManager.add(new GpsPoint(x, 100, z, "Новая точка " + (GpsManager.get().size() + 1)))) {
-                        info(Formatting.AQUA + "Новый GPS был добавлен.");
+                    if (GpsManager.add(new GpsPoint(x, 100, z, (Utils.isRussianLanguage ? "Новая точка " : "New GPS ") + (GpsManager.get().size() + 1)))) {
+                        info(Formatting.AQUA + (Utils.isRussianLanguage ? "Новый GPS был добавлен." : "New GPS added!"));
                     } else {
-                        error("GPS уже существует.");
+                        error(Utils.isRussianLanguage ? "GPS уже существует!" : "GPS is already exist!");
                     }
                 }
                 break;
@@ -90,7 +91,7 @@ public class GpsCommand extends Command {
 
     @Override
     public void error() {
-        warning("Некорректное использование команды!");
+        warning(Utils.isRussianLanguage ? "Некорректное использование команды!" : "Incorrect use of command!");
         info(".gps add <x, y / ~, z> <название>");
         info(".gps add <x, z> <название>");
         info(".gps add <x, y / ~, z>");

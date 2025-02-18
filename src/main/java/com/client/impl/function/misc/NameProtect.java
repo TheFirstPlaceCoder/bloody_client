@@ -19,9 +19,9 @@ public class NameProtect extends Function {
         super("Name Protect", Category.MISC);
     }
 
-    private final StringSetting namer = String().name("Имя").defaultValue("bloody-client").build();
-    private final BooleanSetting friends = Boolean().name("Применять на друзей").defaultValue(true).build();
-    private final BooleanSetting all = Boolean().name("Применять на всех").defaultValue(false).build();
+    private final StringSetting namer = String().name("Имя").enName("Name").defaultValue("bloody-client").build();
+    private final BooleanSetting friends = Boolean().name("Применять на друзей").enName("Friends").defaultValue(true).build();
+    private final BooleanSetting all = Boolean().name("Применять на всех").enName("Other").defaultValue(false).build();
 
     public String replace(String string) {
         if (!isEnabled() || string == null) return string;

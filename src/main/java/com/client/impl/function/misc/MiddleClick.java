@@ -2,6 +2,7 @@ package com.client.impl.function.misc;
 
 import api.interfaces.EventHandler;
 import com.client.event.events.MouseEvent;
+import com.client.event.events.PacketEvent;
 import com.client.event.events.TickEvent;
 import com.client.impl.function.combat.aura.AttackAura;
 import com.client.impl.function.combat.aura.rotate.RotationHandler;
@@ -9,6 +10,7 @@ import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.function.FunctionManager;
 import com.client.system.setting.settings.BooleanSetting;
+import com.client.system.setting.settings.IntegerSetting;
 import com.client.system.setting.settings.ListSetting;
 import com.client.utils.game.entity.SelfUtils;
 import com.client.utils.game.inventory.FindItemResult;
@@ -39,18 +41,19 @@ public class MiddleClick extends Function {
         super("Middle Click", Category.MISC);
     }
 
-    private final ListSetting item = List().name("Использовать").list(List.of("Жемчуг", "Фейерверк", "Оба")).defaultValue("Оба").build();
-    private final BooleanSetting bypass = Boolean().name("Обход ротации").defaultValue(true).build();
+    private final ListSetting item = List().name("Использовать").enName("Item").list(List.of("Жемчуг", "Фейерверк", "Оба")).defaultValue("Оба").build();
+    public final IntegerSetting delay = Integer().name("Задержка").enName("Swap Delay").defaultValue(2).min(0).max(6).build();
+    private final BooleanSetting excludeHotbar = Boolean().name("Не оставлять в хотбаре").enName("Exclude Hotbar").defaultValue(true).build();
+    private final BooleanSetting bypass = Boolean().name("Обход ротации ауры").enName("Aura Rotation Bypass").defaultValue(true).build();
 
-    private Runnable task;
-    private long time;
     private final TaskTransfer taskTransfer = new TaskTransfer();
     public int prev;
+    private boolean shouldSwap = false, afterSwap = false;
 
     @Override
     public void onEnable() {
-        time = 0;
-        task = null;
+        shouldSwap = false;
+        afterSwap = false;
     }
 
     public static boolean sendPacket = false;
@@ -80,47 +83,76 @@ public class MiddleClick extends Function {
                 sendPacket = false;
             }
 
-            if (i.isHotbar()) {
-                InvUtils.swap(i.slot());
-                mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
-                mc.player.swingHand(Hand.MAIN_HAND);
-                task = InvUtils::swapBack;
-            } else {
-                swap(i.slot());
-            }
-            time = System.currentTimeMillis() + 50L;
+            use(i.slot());
         }
     }
 
-    @EventHandler
-    private void onTickEvent(TickEvent.Post event) {
+    @Override
+    public void tick(TickEvent.Post event) {
         taskTransfer.handle();
-        if (task != null && System.currentTimeMillis() > time) {
-            task.run();
-            task = null;
+
+        if (shouldSwap) {
+            mc.player.inventory.selectedSlot = prev;
+            shouldSwap = false;
         }
     }
 
-
-    private void swap(int slot) {
-        boolean air = false;
-        for (int i = 0; i < SlotUtils.MAIN_START; i++) {
-            if (mc.player.inventory.getStack(i).getItem() == Items.AIR) {
-                air = true;
-                break;
+    private void use(int slot) {
+        if (slot == 45) {
+            mc.interactionManager.interactItem(mc.player, mc.world, Hand.OFF_HAND);
+            mc.player.swingHand(Hand.OFF_HAND);
+        } else if (slot == mc.player.inventory.selectedSlot) {
+            mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
+            mc.player.swingHand(Hand.MAIN_HAND);
+        } else if (SlotUtils.isHotbar(slot)) {
+            prev = mc.player.inventory.selectedSlot;
+            mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+            mc.interactionManager.pickFromInventory(slot);
+            mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
+            mc.player.swingHand(Hand.MAIN_HAND);
+            taskTransfer.bind(() -> {
+                mc.player.inventory.selectedSlot = prev;
+                afterSwap = true;
+            }, delay.get() * 50L);
+        } else {
+            boolean air = false;
+            for (int i = 0; i < SlotUtils.MAIN_START; i++) {
+                if (mc.player.inventory.getStack(i).getItem() == Items.AIR) {
+                    air = true;
+                    break;
+                }
             }
-        }
-        if (air) {
+
             prev = mc.player.inventory.selectedSlot;
             mc.interactionManager.pickFromInventory(slot);
             mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
             mc.player.swingHand(Hand.MAIN_HAND);
-            taskTransfer.bind(() -> mc.player.inventory.selectedSlot = prev, 100L);
-        } else {
-            mc.interactionManager.pickFromInventory(slot);
-            mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
-            mc.player.swingHand(Hand.MAIN_HAND);
-            mc.interactionManager.pickFromInventory(slot);
+
+            if (air) {
+                if (excludeHotbar.get()) mc.interactionManager.pickFromInventory(slot);
+                taskTransfer.bind(() -> {
+                    mc.player.inventory.selectedSlot = prev;
+                    afterSwap = true;
+                }, delay.get() * 50L);
+            } else {
+                taskTransfer.bind(() -> {
+                    mc.interactionManager.pickFromInventory(slot);
+                    afterSwap = true;
+                }, delay.get() * 50L);
+            }
+        }
+    }
+
+    @Override
+    public void onPacket(PacketEvent.Receive event) {
+        if (afterSwap && event.packet instanceof UpdateSelectedSlotS2CPacket) {
+            shouldSwap = true;
+
+            taskTransfer.bind(() -> {
+                mc.player.inventory.selectedSlot = prev;
+            }, delay.get() * 50L);
+
+            afterSwap = false;
         }
     }
 

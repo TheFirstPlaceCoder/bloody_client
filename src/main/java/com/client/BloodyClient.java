@@ -2,15 +2,13 @@ package com.client;
 
 import api.interfaces.EventHandler;
 import com.client.event.events.TickEvent;
-import com.client.impl.function.client.ClickGui;
 import com.client.impl.function.visual.MotionBlur;
 import com.client.interfaces.IClientConnection;
 import com.client.system.companion.CompanionRegistry;
 import com.client.system.function.FunctionManager;
 import com.client.system.gps.GpsManager;
-import com.client.utils.auth.Encryptor;
+import com.client.system.textures.DownloadImage;
 import com.client.utils.auth.Loader;
-import com.client.utils.changelog.ChangeLog;
 import com.client.utils.math.vector.BloodyExecutor;
 import com.client.utils.optimization.EntityCullingBase;
 import com.client.utils.render.Fonts;
@@ -36,6 +34,7 @@ import software.bernie.geckolib3.GeckoLib;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
 
 public class BloodyClient implements ModInitializer, ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("bloody-client");
@@ -43,7 +42,7 @@ public class BloodyClient implements ModInitializer, ClientModInitializer {
 	public static final File FOLDER = new File(FabricLoader.getInstance().getGameDir().toString(), "bloody-client");
 	public static final File GPS_FOLDER = new File(FabricLoader.getInstance().getGameDir().toString(), "assets");
 	public static final File UNHOOK_FOLDER = new File(FabricLoader.getInstance().getGameDir().toString(), "sessions");
-	public static final String REPORT_WEBHOOK = Encryptor.decrypt("nmyLCLOG21nGewzmS/21vlcsgpDpwLi7DVdnnR/UmxxpWjNHyZGWGUhnqmIYzIz+UAHjqKZ7p3QrjytEHSFuvxANGP59JQ3JlFIhcFmFa2W6j75GV5Nri1NtGn36YHEIcMoV55ep3IWPbpYqsoo1ZzCgyWNbK3Ppg2iAcYDK1VE=");
+	public static final String VERSION = "3.0";
 	public static long initTime;
 	public static Shader shader;
 	public static OutlineShader shaderManager = new OutlineShader();
@@ -77,16 +76,19 @@ public class BloodyClient implements ModInitializer, ClientModInitializer {
 		});
 	}
 
+	@EventHandler
+	public void onTIck(TickEvent.Pre event) {
+		if (!Objects.equals(Loader.dumpString, "FG49FE")) {
+			LOGGER.info("A");
+			Runtime.getRuntime().halt(0);
+		}
+	}
+
 	public float getBlur() {
 		MotionBlur motionBlur = FunctionManager.get(MotionBlur.class);
 		if (motionBlur == null || !motionBlur.isEnabled()) return 0;
 
 		return (float)Math.min(motionBlur.smoothness.get(), 99) / 100.0F;
-	}
-
-	@EventHandler
-	private void onTick(TickEvent.Pre event) {
-		FunctionManager.get(ClickGui.class).updateColor();
 	}
 
 	public static void onPostWindowInitialize() {
@@ -95,7 +97,7 @@ public class BloodyClient implements ModInitializer, ClientModInitializer {
 		PostProcessRenderer.init();
 		Fonts.init();
 		GpsManager.init();
-		ChangeLog.init();
+		DownloadImage.init();
 		initTime = System.currentTimeMillis();
 		shader = new Shader(Shader.mainMenuShader);
 	}

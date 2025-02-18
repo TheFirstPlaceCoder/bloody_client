@@ -11,7 +11,7 @@ import net.minecraft.client.render.VertexFormats;
 import java.awt.*;
 
 public class Hue extends Function {
-    public final ColorSetting color = Color().name("Цвет").defaultValue(new Color(255, 255, 255, 40)).build();
+    public final ColorSetting color = Color().name("Цвет").enName("Color").defaultValue(new Color(255, 255, 255, 40)).build();
 
     public Hue() {
         super("HUE", Category.VISUAL);

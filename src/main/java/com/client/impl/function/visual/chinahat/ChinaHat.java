@@ -36,14 +36,14 @@ public class ChinaHat extends Function {
         super("China Hat", Category.VISUAL);
     }
 
-    public final MultiBooleanSetting filter = MultiBoolean().name("Отображать на").defaultValue(List.of(
+    public final MultiBooleanSetting filter = MultiBoolean().name("Отображать на").enName("Draw at").defaultValue(List.of(
             new MultiBooleanValue(true, "Игроков"),
             new MultiBooleanValue(true, "Себя"),
             new MultiBooleanValue(true, "Друзей"),
             new MultiBooleanValue(false, "Инвизов")
     )).build();
 
-    private final IntegerSetting fillOpacity = Integer().name("Нерозрачность").defaultValue(60).min(30).max(100).build();
+    private final IntegerSetting fillOpacity = Integer().name("Нерозрачность").enName("Opacity").defaultValue(60).min(30).max(100).build();
 
     public boolean getEntity(Entity entity) {
         if (entity == null || !entity.isAlive()) return false;

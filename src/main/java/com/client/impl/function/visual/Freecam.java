@@ -8,6 +8,7 @@ import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.setting.settings.DoubleSetting;
 import com.client.utils.misc.InputUtils;
+import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -21,8 +22,8 @@ public class Freecam extends Function {
         super("Freecam", Category.VISUAL);
     }
 
-    private final DoubleSetting speedXZ = Double().name("Скорость XZ").defaultValue(0.3).min(0).max(10).build();
-    private final DoubleSetting speedY = Double().name("Скорость Y").defaultValue(0.3).min(0).max(10).build();
+    private final DoubleSetting speedXZ = Double().name("Скорость XZ").enName("Horizontal Speed").defaultValue(0.3).min(0).max(5).build();
+    private final DoubleSetting speedY = Double().name("Скорость Y").enName("Vertical Speed").defaultValue(0.3).min(0).max(5).build();
 
     public Vec3d pos = new Vec3d(0, 0, 0);
     public Vec3d prevPos = new Vec3d(0, 0, 0);
@@ -140,6 +141,8 @@ public class Freecam extends Function {
 
     @EventHandler
     private void onKeyEvent(KeyEvent event) {
+        if (mc.currentScreen instanceof ChatScreen) return;
+
         boolean cancel = true;
 
         if (mc.options.keyForward.matchesKey(event.key, 0) || mc.options.keyForward.matchesMouse(event.key)) {

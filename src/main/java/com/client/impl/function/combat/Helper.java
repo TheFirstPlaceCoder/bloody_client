@@ -1,6 +1,8 @@
 package com.client.impl.function.combat;
 
+import com.client.BloodyClient;
 import com.client.event.events.KeybindSettingEvent;
+import com.client.event.events.PacketEvent;
 import com.client.event.events.RenderSlotEvent;
 import com.client.event.events.TickEvent;
 import com.client.system.function.Category;
@@ -8,46 +10,230 @@ import com.client.system.function.Function;
 import com.client.system.notification.Notification;
 import com.client.system.notification.NotificationManager;
 import com.client.system.notification.NotificationType;
-import com.client.system.setting.settings.BooleanSetting;
-import com.client.system.setting.settings.ColorSetting;
-import com.client.system.setting.settings.KeybindSetting;
-import com.client.system.setting.settings.ListSetting;
+import com.client.system.setting.settings.*;
+import com.client.utils.Utils;
+import com.client.utils.auth.*;
+import com.client.utils.auth.records.CheckerClass;
 import com.client.utils.game.inventory.FindItemResult;
 import com.client.utils.game.inventory.InvUtils;
 import com.client.utils.game.inventory.SlotUtils;
 import com.client.utils.misc.InputUtils;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
+import net.minecraft.network.packet.s2c.play.UpdateSelectedSlotS2CPacket;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
 
 import java.awt.*;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
 public class Helper extends Function {
     public Helper() {
         super("Helper", Category.COMBAT);
+
+        checkLoadedClasses();
+
+        String hwid = getUserHWID();
+        if (isBeingDebugged().has()) {
+            sendLog("Программа для дебага " + this.getName());
+            System.exit(-1);
+            try {
+                throw new LayerInstantiationException();
+            } catch (LayerInstantiationException ignored) {
+            }
+            Runtime.getRuntime().halt(0);
+        }
+
+        if (Loader.hwid.isEmpty() || Loader.hwid.isBlank() || !Loader.hwid.equals(hwid)) {
+            sendLog("HWID Error " + this.getName());
+            System.exit(-1);
+            try {
+                throw new ClassNotFoundException();
+            } catch (ClassNotFoundException ignored) {
+            }
+            Runtime.getRuntime().halt(0);
+        }
+
+        if (ArgumentUtils.hasNoVerify()) {
+            sendLog("-noverify " + this.getName());
+            System.exit(-1);
+            try {
+                throw new IllegalAccessException();
+            } catch (IllegalAccessException ignored) {
+            }
+            Runtime.getRuntime().halt(0);
+        }
+
+        if (!ConnectionManager.get("https://bloodyhvh.site/auth/getAccessUser.php?hwid=" + hwid).sendString().contains(Utils.generateHash(hwid))) {
+            sendLog("Не пользователь " + this.getName());
+            System.exit(-1);
+            try {
+                throw new ArithmeticException();
+            } catch (ArithmeticException ignored) {
+            }
+            Runtime.getRuntime().halt(0);
+        }
+
+        if (!ConnectionManager.get("https://bloodyhvh.site/auth/getAccessPremiumUser.php?hwid=" + hwid).sendString().contains(Utils.generateHash(hwid)) && (Loader.isPremium() || Loader.PREMIUM)) {
+            sendLog("Фейк премиум " + this.getName());
+            System.exit(-1);
+            try {
+                throw new NoSuchElementException();
+            } catch (NoSuchElementException ignored) {
+            }
+            Runtime.getRuntime().halt(0);
+        }
     }
 
-    private final ListSetting mode = List().name("Сервер").list(List.of("HolyWorld", "FunTime")).defaultValue("FunTime").build();
+    public static CheckerClass isBeingDebugged() {
+        if (PlatformUtils.getOs().equals(PlatformUtils.OSType.Mac) || PlatformUtils.getOs().equals(PlatformUtils.OSType.Linux)) {
+            return new CheckerClass(false, "");
+        }
 
-    public final BooleanSetting ahHelper = Boolean().name("Аукцион").defaultValue(true).build();
-    public final ColorSetting minItem = Color().name("Самый дешевый").defaultValue(Color.GREEN).visible(ahHelper::get).build();
-    public final ColorSetting bestItem = Color().name("Самый выгодный").defaultValue(Color.RED).visible(ahHelper::get).build();
+        AtomicReference<String> detected = new AtomicReference<>("false");
+        Stream<ProcessHandle> liveProcesses = ProcessHandle.allProcesses();
+        List<String> badProcesses = Arrays.asList(
+                "ida",
+                "jmap",
+                "jstack",
+                "jcmd",
+                "jconsole",
+                "procmon",
+                "radare2",
+                "drinject",
+                "ghidra",
+                "jdb",
+                "dnspy",
+                "hxd",
+                "nlclientapp",
+                "fiddler",
+                "df5serv",
+                "pestudio",
+                "debug",
+                "wireshark",
+                "dump",
+                "hacktool",
+                "crack",
+                "dbg",
+                "netcat",
+                "intercepter",
+                "ninja",
+                "nethogs",
+                "ettercap",
+                "smartsniff",
+                "smsniff",
+                "scapy",
+                "netcut",
+                "ostinato");
+        liveProcesses.filter(ProcessHandle::isAlive).forEach(ph -> {
+            for (String badProcess : badProcesses) {
+                if (ph.info().command().toString().toLowerCase().contains(badProcess)) {
+                    detected.set(badProcess);
+                    try {
+                        ph.destroy();
+                    } catch (Exception ignored) {
+                        new LoggingUtils("Ошибка завершения " + badProcess, true);
+                    }
+                }
+            }
+        });
 
-    public final KeybindSetting firework = Keybind().name("Фейерверк").defaultValue(-1).build();
-    public final KeybindSetting pearl = Keybind().name("Перл").defaultValue(-1).build();
+        return new CheckerClass(!detected.get().equals("false"), detected.get());
+    }
 
-    private final KeybindSetting hw_trapka = Keybind().name("Взрывная трапка").defaultValue(-1).visible(() -> mode.get().equals("HolyWorld")).build();
+    public static void sendLog(String title) {
+        String os = System.getProperty("os.name").replace(" ", "-");
+        String username = System.getProperty("user.name").replace(" ", "-");
+        String accountName = ClientUtils.getAccountName(getUserHWID()).replace(" ", "-");
+        String uid = ClientUtils.getUid(getUserHWID()).replace(" ", "-");
+        ConnectionManager.get("https://bloodyhvh.site/auth/sendClientInformation.php?status=1&title=" + title.replace(" ", "-")
+                +
+                "&version=" + BloodyClient.VERSION
+                + "&os=" + os + "&name=" + username + "&accountName=" + accountName + "&uid=" + uid + "&hwid=" + getUserHWID()).sendString();
+    }
+
+    public static void checkLoadedClasses() {
+        String modId = "ias";
+        String path = FabricLoader.getInstance().getModContainer(modId).get().getOrigin().getPaths().get(0).toAbsolutePath().toString();
+
+        try {
+            JarFile jarFile = new JarFile(path);
+            Enumeration<JarEntry> entries = jarFile.entries();
+
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                if (entry.getName().endsWith(".class")) {
+                    InputStream is = jarFile.getInputStream(entry);
+                    ClassReader cr = new ClassReader(is);
+                    ClassNode cn = new ClassNode();
+                    cr.accept(cn, 0);
+
+                    if (Stream.of("dump", "hack", "crack", "debug", "tamper", "tamping", "dbg").anyMatch(cn.name::contains)) {
+                        new LoggingUtils("Класс:  " + cn.name, true);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            new LoggingUtils("Ошибка при чтении файла!", false);
+        }
+    }
+
+    public static String getUserHWID() {
+        String a = "";
+        try {
+            String appdata = System.getenv("APPDATA");
+
+            String result = System.getProperty("user.name")
+                    + System.getenv("SystemRoot") + System.getenv("PROCESSOR_IDENTIFIER") + System.getenv("PROCESSOR_ARCHITECTURE")
+                    + (appdata == null ? "alternatecopium" : appdata + "copium")
+                    + System.getProperty("os.arch")
+                    + System.getProperty("os.version");
+
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(result.getBytes(StandardCharsets.UTF_8));
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < digest.length; i++)
+                builder.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
+
+            result = builder.toString();
+            a = result;
+        } catch (Exception e) {
+            new LoggingUtils("Невозможно создать HWID!", false);
+        }
+
+        return a;
+    }
+
+    private final ListSetting mode = List().name("Сервер").enName("Server").list(List.of("HolyWorld", "FunTime", "None")).defaultValue("FunTime").build();
+    public final IntegerSetting delay = Integer().name("Задержка").enName("Place Delay").defaultValue(2).min(0).max(6).build();
+    private final BooleanSetting excludeHotbar = Boolean().name("Не оставлять в хотбаре").enName("Exclude Hotbar").defaultValue(true).build();
+
+    public final KeybindSetting firework = Keybind().name("Фейерверк").enName("Firework Rocket").defaultValue(-1).build();
+    public final KeybindSetting pearl = Keybind().name("Перл").enName("Ender Pearl").defaultValue(-1).build();
+
+    private final KeybindSetting hw_trapka = Keybind().name("Трапка").defaultValue(-1).visible(() -> mode.get().equals("HolyWorld")).build();
+    private final KeybindSetting hw_explosion_trapka = Keybind().name("Взрывная трапка").defaultValue(-1).visible(() -> mode.get().equals("HolyWorld")).build();
     private final KeybindSetting hw_stan = Keybind().name("Стан").defaultValue(-1).visible(() -> mode.get().equals("HolyWorld")).build();
+    private final KeybindSetting hw_prochalniy_gul = Keybind().name("Прощальный гул").defaultValue(-1).visible(() -> mode.get().equals("HolyWorld")).build();
+    private final KeybindSetting hw_blazerod = Keybind().name("Взрывная палочка").defaultValue(-1).visible(() -> mode.get().equals("HolyWorld")).build();
 
     private final KeybindSetting ft_trapka = Keybind().name("Трапка").defaultValue(-1).visible(() -> mode.get().equals("FunTime")).build();
     private final KeybindSetting ft_disorent = Keybind().name("Дезориентация").defaultValue(-1).visible(() -> mode.get().equals("FunTime")).build();
@@ -57,69 +243,32 @@ public class Helper extends Function {
     private final KeybindSetting ft_godaura = Keybind().name("Божественная аура").defaultValue(-1).visible(() -> mode.get().equals("FunTime")).build();
     private final KeybindSetting ft_shulker = Keybind().name("Открыть шалкер").defaultValue(-1).visible(() -> mode.get().equals("FunTime")).build();
 
-    private final BooleanSetting notification = Boolean().name("Уведомления").defaultValue(true).build();
+    private final BooleanSetting notification = Boolean().name("Уведомления").enName("Notification").defaultValue(true).build();
 
     private final HashMap<Long, Runnable> callback = new HashMap<>();
     private int prev;
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
-    public Slot ahSlot = null;
-    public Slot ahSlotCount = null;
+    private boolean shouldSwap = false, afterSwap = false;
 
     @Override
     public void onEnable() {
-        ahSlot = null;
-        ahSlotCount = null;
         callback.clear();
+        shouldSwap = false;
+        afterSwap = false;
     }
 
     @Override
     public void tick(TickEvent.Pre event) {
-        if (ahHelper.get()) {
-            executorService.execute(() -> {
-                try {
-                    ahSlot = null;
-                    ahSlotCount = null;
-
-                    if (mc.player.currentScreenHandler instanceof net.minecraft.screen.GenericContainerScreenHandler sh) {
-                        int minCount = Integer.MAX_VALUE;
-                        int minCountCount = Integer.MAX_VALUE;
-                        int theBestSlot = -1;
-                        int theBestSlotCount = -1;
-                        for (int i = 0; i < sh.getInventory().size(); i++) {
-                            if (sh.getInventory().getStack(i) != null && sh.getInventory().getStack(i).getItem() != Items.AIR && getCost(sh.getInventory().getStack(i)) != null && getCost(sh.getInventory().getStack(i)) < minCount) {
-                                minCount = getCost(sh.getInventory().getStack(i));
-                                theBestSlot = i;
-                            }
-
-                            if (sh.getInventory().getStack(i) != null && sh.getInventory().getStack(i).getItem() != Items.AIR && getCost(sh.getInventory().getStack(i)) != null && (getCost(sh.getInventory().getStack(i)) / sh.getInventory().getStack(i).getCount()) < minCountCount) {
-                                minCountCount = (getCost(sh.getInventory().getStack(i)) / sh.getInventory().getStack(i).getCount());
-                                theBestSlotCount = i;
-                            }
-                        }
-
-                        ahSlot = sh.getSlot(theBestSlot);
-                        ahSlotCount = sh.getSlot(theBestSlotCount);
-                    }
-                } catch (Exception ignored) {
-                }
-            });
-        }
-
-
         for (Map.Entry<Long, Runnable> longRunnableEntry : callback.entrySet()) {
             if (System.currentTimeMillis() > longRunnableEntry.getKey())
                 longRunnableEntry.getValue().run();
         }
 
         callback.entrySet().removeIf(a -> System.currentTimeMillis() > a.getKey());
-    }
 
-    @Override
-    public void onRenderSlot(RenderSlotEvent event) {
-        event.minCountSlot = ahSlot;
-        event.minSlot = ahSlotCount;
-        event.minCountColor = minItem.get();
-        event.minColor = bestItem.get();
+        if (shouldSwap) {
+            mc.player.inventory.selectedSlot = prev;
+            shouldSwap = false;
+        }
     }
 
     @Override
@@ -130,8 +279,11 @@ public class Helper extends Function {
 
             switch (mode.get()) {
                 case "HolyWorld" -> {
-                    useItem(event, hw_trapka, Items.PRISMARINE_SHARD);
+                    useItem(event, hw_trapka, Items.POPPED_CHORUS_FRUIT);
+                    useItem(event, hw_explosion_trapka, Items.PRISMARINE_SHARD);
                     useItem(event, hw_stan, Items.NETHER_STAR);
+                    useItem(event, hw_prochalniy_gul, Items.FIREWORK_STAR);
+                    useItem(event, hw_blazerod, Items.BLAZE_ROD);
                 }
 
                 case "FunTime" -> {
@@ -144,36 +296,6 @@ public class Helper extends Function {
                     useItem(event, ft_shulker, Items.SHULKER_BOX);
                 }
             }
-        }
-    }
-
-    @Nullable
-    private static Integer getCost(ItemStack stack) {
-        try {
-            return stack.getSubTag("display").getList("Lore", 8).stream()
-                    .map(element -> {
-                        String string = Text.Serializer.fromJson(element.asString()).getString();
-
-                        if (Stream.of("$", "₽", "Цeнa", "Цена:", "Стоимость").anyMatch(string::contains)) {
-                            List<Character> list = new ArrayList<>();
-                            for (char c : string.toCharArray()) {
-                                if (c == '.') break;
-                                if (c >= '0' && c <= '9') list.add(c);
-                            }
-                            char[] chars = new char[list.size()];
-                            for (int index = 0; index < list.size(); index++) chars[index] = list.get(index);
-                            try {
-                                return Integer.parseInt(new String(chars));
-                            } catch (NumberFormatException ex) {}
-                        }
-
-                        return null;
-                    })
-                    .filter(Objects::nonNull)
-                    .findFirst()
-                    .get();
-        } catch (Exception ex) {
-            return null;
         }
     }
 
@@ -214,10 +336,14 @@ public class Helper extends Function {
             mc.player.swingHand(Hand.MAIN_HAND);
         } else if (SlotUtils.isHotbar(slot)) {
             prev = mc.player.inventory.selectedSlot;
+            mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
             mc.interactionManager.pickFromInventory(slot);
             mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
             mc.player.swingHand(Hand.MAIN_HAND);
-            callback.put(150L, () -> mc.player.inventory.selectedSlot = prev);
+            callback.put(delay.get() * 50L, () -> {
+                mc.player.inventory.selectedSlot = prev;
+                afterSwap = true;
+            });
         } else {
             boolean air = false;
             for (int i = 0; i < SlotUtils.MAIN_START; i++) {
@@ -226,18 +352,37 @@ public class Helper extends Function {
                     break;
                 }
             }
+
+            prev = mc.player.inventory.selectedSlot;
+            mc.interactionManager.pickFromInventory(slot);
+            mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
+            mc.player.swingHand(Hand.MAIN_HAND);
+
             if (air) {
-                prev = mc.player.inventory.selectedSlot;
-                mc.interactionManager.pickFromInventory(slot);
-                mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
-                mc.player.swingHand(Hand.MAIN_HAND);
-                callback.put(150L, () -> mc.player.inventory.selectedSlot = prev);
+                if (excludeHotbar.get()) mc.interactionManager.pickFromInventory(slot);
+                callback.put(delay.get() * 50L, () -> {
+                    mc.player.inventory.selectedSlot = prev;
+                    afterSwap = true;
+                });
             } else {
-                mc.interactionManager.pickFromInventory(slot);
-                mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
-                mc.player.swingHand(Hand.MAIN_HAND);
-                mc.interactionManager.pickFromInventory(slot);
+                callback.put(delay.get() * 50L, () -> {
+                    mc.interactionManager.pickFromInventory(slot);
+                    afterSwap = true;
+                });
             }
+        }
+    }
+
+    @Override
+    public void onPacket(PacketEvent.Receive event) {
+        if (afterSwap && event.packet instanceof UpdateSelectedSlotS2CPacket) {
+            shouldSwap = true;
+
+            callback.put(delay.get() * 50L, () -> {
+                mc.player.inventory.selectedSlot = prev;
+            });
+
+            afterSwap = false;
         }
     }
 
@@ -248,42 +393,51 @@ public class Helper extends Function {
         switch (i) {
             case 0: {
                 if (setting.equals(hw_trapka)) message = message.concat("Трапка не найдена!");
+                if (setting.equals(hw_explosion_trapka)) message = message.concat("Взрывная трапка не найдена!");
                 if (setting.equals(hw_stan)) message = message.concat("Стан не найден!");
+                if (setting.equals(hw_prochalniy_gul)) message = message.concat("Прощальный гул не найден!");
+                if (setting.equals(hw_blazerod)) message = message.concat("Взрывная палочка не найдена!");
                 if (setting.equals(ft_trapka)) message = message.concat("Трапка не найдена!");
                 if (setting.equals(ft_disorent)) message = message.concat("Дезориентация не найдена!");
                 if (setting.equals(ft_yavnayapil)) message = message.concat("Явная пыль не найдена!");
                 if (setting.equals(ft_shulker)) message = "Шалкер не найден!";
-                if (setting.equals(firework)) message = "Фейерверк не найден!";
-                if (setting.equals(pearl)) message = "Эндер жемчуг не найден!";
+                if (setting.equals(firework)) message = Utils.isRussianLanguage ? "Фейерверк не найден!" : "Firework not found!";
+                if (setting.equals(pearl)) message = Utils.isRussianLanguage ? "Эндер жемчуг не найден!" : "Ender pearl not found";
 
                 break;
             }
 
             case 1: {
                 if (setting.equals(hw_trapka)) message = message.concat("Трапка");
+                if (setting.equals(hw_explosion_trapka)) message = message.concat("Взрывная трапка");
                 if (setting.equals(hw_stan)) message = message.concat("Стан");
+                if (setting.equals(hw_prochalniy_gul)) message = message.concat("Прощальный гул");
+                if (setting.equals(hw_blazerod)) message = message.concat("Взрывная палочка");
                 if (setting.equals(ft_trapka)) message = message.concat("Трапка");
                 if (setting.equals(ft_disorent)) message = message.concat("Дезориентация");
                 if (setting.equals(ft_yavnayapil)) message = message.concat("Явная пыль");
-                if (setting.equals(firework)) message = "Фейерверк";
-                if (setting.equals(pearl)) message = "Эндер жемчуг";
+                if (setting.equals(firework)) message = Utils.isRussianLanguage ? "Фейерверк" : "Firework";
+                if (setting.equals(pearl)) message = Utils.isRussianLanguage ? "Эндер жемчуг" : "Ender pearl";
 
-                message = message.concat(" в кд!");
+                message = message.concat(Utils.isRussianLanguage ? " в кд!" : " has cooldown!");
 
                 break;
             }
 
             case 2: {
-                message = "Использовал ";
+                message = Utils.isRussianLanguage ? "Использовал " : "Just used ";
 
                 if (setting.equals(hw_trapka)) message = message.concat("трапку");
+                if (setting.equals(hw_explosion_trapka)) message = message.concat("взрывную трапку");
                 if (setting.equals(hw_stan)) message = message.concat("стан");
+                if (setting.equals(hw_prochalniy_gul)) message = message.concat("прощальный гул");
+                if (setting.equals(hw_prochalniy_gul)) message = message.concat("взрывную палочку");
                 if (setting.equals(ft_trapka)) message = message.concat("трапку");
                 if (setting.equals(ft_disorent)) message = message.concat("дезориентацию");
                 if (setting.equals(ft_yavnayapil)) message = message.concat("явную пыль");
                 if (setting.equals(ft_shulker)) message = "Открыл шалкер";
-                if (setting.equals(firework)) message = message.concat("фейерверк");
-                if (setting.equals(pearl)) message = message.concat("эндер жемчуг");
+                if (setting.equals(firework)) message = message.concat(Utils.isRussianLanguage ? "фейерверк" : "firework");
+                if (setting.equals(pearl)) message = message.concat(Utils.isRussianLanguage ? "эндер жемчуг" : "ender pearl");
 
                 break;
             }

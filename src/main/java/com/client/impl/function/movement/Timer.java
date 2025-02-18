@@ -12,9 +12,9 @@ import net.minecraft.util.math.MathHelper;
 import java.util.List;
 
 public class Timer extends Function {
-    private final ListSetting mode = List().name("Режим").list(List.of("Легит", "ХвХ")).defaultValue("Легит").build();
-    public final DoubleSetting power = Double().name("Сила").defaultValue(1.7).min(1.1).max(5).build();
-    public final IntegerSetting remove = Integer().name("Скорость убывания").defaultValue(7).min(3).max(20).build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Легит", "ХвХ", "Обычный")).defaultValue("Легит").build();
+    public final DoubleSetting power = Double().name("Сила").enName("Power").defaultValue(1.7).min(1.1).max(5).build();
+    public final IntegerSetting remove = Integer().name("Скорость убывания").enName("Down Speed").defaultValue(7).min(3).max(20).visible(() -> !mode.get().equals("Обычный")).build();
 
     public Timer() {
         super("Timer", Category.MOVEMENT);
@@ -30,6 +30,8 @@ public class Timer extends Function {
     }
 
     public void update() {
+        if (mode.get().equals("Обычный")) return;
+
         timer = MathHelper.clamp(timer, 0, 100);
 
         if (isEnabled() && MovementUtils.isMoving()) {
@@ -62,7 +64,7 @@ public class Timer extends Function {
 
     public float getPower() {
         if (!canUpdate()) return OFF;
-        if (isEnabled() && MovementUtils.isMoving() && timer > 0) {
+        if (isEnabled() && MovementUtils.isMoving() && (timer > 0 || mode.get().equals("Обычный"))) {
             return power.floatValue();
         }
         if (override != OFF) return override;

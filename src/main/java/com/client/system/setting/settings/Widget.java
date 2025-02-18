@@ -46,6 +46,15 @@ public class Widget extends AbstractSettings<Runnable> {
         return this;
     }
 
+    public String getEnName() {
+        return enName;
+    }
+
+    public Widget enName(String name) {
+        this.enName = name;
+        return this;
+    }
+
     public boolean isPremium() {
         return isPremium;
     }

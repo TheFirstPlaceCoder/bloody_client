@@ -12,10 +12,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class Companion extends Function {
-    private final ListSetting color = List().name("Цвет").list(List.of("Желтый", "Оранжевый", "Светлый", "Фиолетовый")).defaultValue("Желтый").build();
-    public final IntegerSetting teleportDistance = Integer().name("Дистанция для тп").min(20).max(100).defaultValue(50).build();
+    private final ListSetting color = List().name("Цвет").list(List.of("Желтый", "Оранжевый", "Светлый", "Фиолетовый")).enName("Color Mode").defaultValue("Желтый").build();
+    public final IntegerSetting teleportDistance = Integer().name("Дистанция для тп").enName("Teleport Distance").min(20).max(100).defaultValue(50).build();
     public final BooleanSetting glow = Boolean().name("Glow").defaultValue(true).build();
-    public final ColorSetting glowColor = Color().name("Цвет").defaultValue(new Color(255, 255, 255, 40)).visible(glow::get).build();
 
     public Companion() {
         super("Companion", Category.CLIENT);

@@ -1,5 +1,6 @@
 package com.client.impl.function.visual.hitbubbles;
 
+import com.client.system.textures.DownloadImage;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
 import com.client.utils.math.animation.Animation;
@@ -19,9 +20,6 @@ public class Particle {
     private final float yaw, pitch;
     private int fade;
     private boolean rev = false;
-    private final Identifier identifier = new Identifier("bloody-client", "client/whirlwind.png");
-    private final Identifier identifier2 = new Identifier("bloody-client", "client/whirlwind2.png");
-
     private final Animation animation = new EaseBackIn(200, 1, 1);
 
     public Particle(Vec3d pos) {
@@ -53,7 +51,7 @@ public class Particle {
         matrix.multiply(Vec3f.NEGATIVE_Z.getDegreesQuaternion((float) Math.sin((System.currentTimeMillis() / 1000.0)) * 360.0F));
 
         TextureGL.create()
-                .bind(str.equals("Первый") ? identifier : identifier2)
+                .bind(str.equals("Обычный") ? DownloadImage.getGlId(DownloadImage.WHIRLWIND_FIRST) : DownloadImage.getGlId(DownloadImage.WHIRLWIND_SECOND))
                 .draw(matrix, new TextureGL.TextureRegion(256, 256), true, ColorUtils.injectAlpha(Colors.getColor(0), fade));
 
         matrix.pop();

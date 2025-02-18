@@ -3,7 +3,6 @@ package com.client.impl.function.movement;
 import com.client.event.events.NoSlowEvent;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
-import com.client.system.function.FunctionManager;
 import com.client.system.setting.settings.BooleanSetting;
 import com.client.system.setting.settings.ListSetting;
 import com.client.utils.game.entity.SelfUtils;
@@ -17,8 +16,8 @@ import net.minecraft.util.UseAction;
 import java.util.List;
 
 public class NoSlow extends Function {
-    private final ListSetting mode = List().name("Режим").list(List.of("Grim", "Matrix", "Ванильный", "ReallyWorld")).defaultValue("Grim").build();
-    private final BooleanSetting setSlot = Boolean().name("Свапать слот").defaultValue(true).visible(() -> mode.get().equals("Ванильный")).build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Grim", "Matrix", "Ванильный", "ReallyWorld")).defaultValue("Grim").build();
+    private final BooleanSetting setSlot = Boolean().name("Свапать слот").enName("Swap Slot").defaultValue(true).visible(() -> mode.get().equals("Ванильный")).build();
 
     public NoSlow() {
         super("No Slow", Category.MOVEMENT);

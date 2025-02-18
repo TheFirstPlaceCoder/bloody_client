@@ -15,6 +15,7 @@ import com.client.system.setting.settings.BooleanSetting;
 import com.client.system.setting.settings.ListSetting;
 import com.client.system.setting.settings.multiboolean.MultiBooleanSetting;
 import com.client.system.setting.settings.multiboolean.MultiBooleanValue;
+import com.client.utils.Utils;
 import com.client.utils.math.MsTimer;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -30,8 +31,8 @@ import net.minecraft.world.GameMode;
 import java.util.*;
 
 public class Notifications extends Function {
-    public final ListSetting mode = List().name("Режим").list(List.of("Чат", "Уведомление", "Оба")).defaultValue("Оба").build();
-    private final MultiBooleanSetting listSetting = MultiBoolean().name("Уведомлять о").defaultValue(List.of(
+    public final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Chat", "Notification", "Both")).defaultValue("Оба").build();
+    private final MultiBooleanSetting listSetting = MultiBoolean().name("Уведомлять о").enName("Notificate about").defaultValue(List.of(
             new MultiBooleanValue(true, "Поломке брони"),
             new MultiBooleanValue(false, "Приближении игрока"),
             new MultiBooleanValue(false, "Смене гм"),
@@ -75,16 +76,16 @@ public class Notifications extends Function {
 
         if (p.getStatus() != 35) return;
 
-        Entity entity = p.getEntity(mc.world);
+        Entity pEntity = p.getEntity(mc.world);
 
-        if (!(entity instanceof PlayerEntity)) return;
+        if (!(pEntity instanceof PlayerEntity entity)) return;
 
         synchronized (totemPopMap) {
             int pops = totemPopMap.getOrDefault(entity.getUuid(), 0);
             totemPopMap.put(entity.getUuid(), ++pops);
 
-            if (entity == mc.player) NotificationManager.add(new Notification(NotificationType.CLIENT, "Вы потеряли " +  pops + " " + (pops == 1 ? "тотем" : pops < 5 ? "тотема" : "тотемов"), 2000L), NotificationManager.NotifType.Warning);
-            else NotificationManager.add(new Notification(NotificationType.CLIENT, entity.getEntityName() + " потерял " + pops + " " + (pops == 1 ? "тотем" : pops < 5 ? "тотема" : "тотемов"), 2000L), NotificationManager.NotifType.Warning);
+            if (entity == mc.player) NotificationManager.add(new Notification(NotificationType.CLIENT, Utils.isRussianLanguage ? ("Вы потеряли " +  pops + " " + (pops == 1 ? "тотем" : pops < 5 ? "тотема" : "тотемов")) : ("You have lost " +  pops + " " + (pops == 1 ? "totem" : "totems")), 2000L), NotificationManager.NotifType.Warning);
+            else NotificationManager.add(new Notification(NotificationType.CLIENT, Utils.isRussianLanguage ? (entity.getGameProfile().getName() + " потерял " + pops + " " + (pops == 1 ? "тотем" : pops < 5 ? "тотема" : "тотемов")) : (entity.getEntityName() + " have lost " + pops + " " + (pops == 1 ? "totem" : "totems")), 2000L), NotificationManager.NotifType.Warning);
         }
     }
 
@@ -92,9 +93,9 @@ public class Notifications extends Function {
     public void addEntity(EntityEvent.Add event) {
         if (event.entity.getUuid().equals(mc.player.getUuid()) || !listSetting.get(1)) return;
 
-        if (event.entity instanceof PlayerEntity) {
-            if (FriendManager.isFriend((PlayerEntity) event.entity)) return;
-            NotificationManager.add(new Notification(NotificationType.CLIENT, Formatting.WHITE + event.entity.getEntityName() + " появился на " + Formatting.RED + event.entity.getBlockPos().getX() + " " + event.entity.getBlockPos().getY() + " " + event.entity.getBlockPos().getZ(), 3000L), NotificationManager.NotifType.Warning);
+        if (event.entity instanceof PlayerEntity p) {
+            if (FriendManager.isFriend(p)) return;
+            NotificationManager.add(new Notification(NotificationType.CLIENT, Formatting.WHITE + p.getGameProfile().getName() + (Utils.isRussianLanguage ? " появился на " : " logged in your distance at") + Formatting.RED + event.entity.getBlockPos().getX() + " " + event.entity.getBlockPos().getY() + " " + event.entity.getBlockPos().getZ(), 3000L), NotificationManager.NotifType.Warning);
         }
     }
 
@@ -105,28 +106,28 @@ public class Notifications extends Function {
             for (ItemStack armorPiece : armorPieces) {
                 if (checkThreshold(armorPiece)) {
                     if (isHelm(armorPiece) && !alertedHelm) {
-                        NotificationManager.add(new Notification(NotificationType.CLIENT, "Прочность шлема на " + Formatting.RED + "исходе", 2000L), NotificationManager.NotifType.Warning);
+                        NotificationManager.add(new Notification(NotificationType.CLIENT, Utils.isRussianLanguage ? ("Прочность шлема на " + Formatting.RED + "исходе") : ("Your helmet has " + Formatting.RED + "few durability"), 2000L), NotificationManager.NotifType.Warning);
                         alertedHelm = true;
                     }
                 }
 
                 if (checkThreshold(armorPiece)) {
                     if (isChest(armorPiece) && !alertedChest) {
-                        NotificationManager.add(new Notification(NotificationType.CLIENT, "Прочность нагрудника на " + Formatting.RED + "исходе", 2000L), NotificationManager.NotifType.Warning);
+                        NotificationManager.add(new Notification(NotificationType.CLIENT, Utils.isRussianLanguage ? ("Прочность нагрудника на " + Formatting.RED + "исходе") : ("Your chestplate has " + Formatting.RED + "few durability"), 2000L), NotificationManager.NotifType.Warning);
                         alertedChest = true;
                     }
                 }
 
                 if (checkThreshold(armorPiece)) {
                     if (isLegs(armorPiece) && !alertedLegs) {
-                        NotificationManager.add(new Notification(NotificationType.CLIENT, "Прочность штанов на " + Formatting.RED + "исходе", 2000L), NotificationManager.NotifType.Warning);
+                        NotificationManager.add(new Notification(NotificationType.CLIENT, Utils.isRussianLanguage ? ("Прочность штанов на " + Formatting.RED + "исходе") : ("Your leggins has " + Formatting.RED + "few durability"), 2000L), NotificationManager.NotifType.Warning);
                         alertedLegs = true;
                     }
                 }
 
                 if (checkThreshold(armorPiece)) {
                     if (isBoots(armorPiece) && !alertedBoots) {
-                        NotificationManager.add(new Notification(NotificationType.CLIENT, "Прочность ботинок на " + Formatting.RED + "исходе", 2000L), NotificationManager.NotifType.Warning);
+                        NotificationManager.add(new Notification(NotificationType.CLIENT, Utils.isRussianLanguage ? ("Прочность ботинок на " + Formatting.RED + "исходе") : ("Your boots has " + Formatting.RED + "few durability"), 2000L), NotificationManager.NotifType.Warning);
                         alertedBoots = true;
                     }
                 }
@@ -159,8 +160,8 @@ public class Notifications extends Function {
                                 case SURVIVAL, ADVENTURE -> Formatting.GREEN;
                                 default -> Formatting.RED;
                             };
-                            String dName = playerListEntry.getDisplayName() != null ? playerListEntry.getDisplayName().getString() : playerListEntry.getProfile().getName();
-                            NotificationManager.add(new Notification(NotificationType.CLIENT, Formatting.WHITE + dName + "сменил гм на " + formatting + StringUtil.capitalize(gm.getName()), 2000L), NotificationManager.NotifType.Warning);
+                            String dName = playerListEntry.getProfile().getName();
+                            NotificationManager.add(new Notification(NotificationType.CLIENT, Formatting.WHITE + dName + (Utils.isRussianLanguage ? "сменил гм на " : "just switched gamemode to ") + formatting + StringUtil.capitalize(gm.getName()), 2000L), NotificationManager.NotifType.Warning);
                             seen.put(id, gm);
                         }
                     }
@@ -181,8 +182,8 @@ public class Notifications extends Function {
                     if (player.deathTime > 0 || player.getHealth() <= 0) {
                         int pops = totemPopMap.removeInt(player.getUuid());
 
-                        if (player == mc.player) NotificationManager.add(new Notification(NotificationType.CLIENT, "Вы умерли после " +  pops + " " + (pops == 1 ? "тотема" : "тотемов"), 2000L), NotificationManager.NotifType.Warning);
-                        else NotificationManager.add(new Notification(NotificationType.CLIENT, player.getEntityName() + " умер после " + pops + " " + (pops == 1 ? "тотема" : "тотемов"), 2000L), NotificationManager.NotifType.Warning);
+                        if (player == mc.player) NotificationManager.add(new Notification(NotificationType.CLIENT, Utils.isRussianLanguage ? ("Вы умерли после " +  pops + " " + (pops == 1 ? "тотема" : "тотемов")) : ("You died after losing " + pops + " " + (pops == 1 ? "totem" : "totems")), 2000L), NotificationManager.NotifType.Warning);
+                        else NotificationManager.add(new Notification(NotificationType.CLIENT, Utils.isRussianLanguage ? (player.getGameProfile().getName() + " умер после " + pops + " " + (pops == 1 ? "тотема" : "тотемов")) : (player.getGameProfile().getName() + " died after losing " + pops + " " + (pops == 1 ? "totem" : "totems")), 2000L), NotificationManager.NotifType.Warning);
                         chatIdMap.removeInt(player.getUuid());
                     }
                 }

@@ -1,14 +1,16 @@
 package com.client.utils.render.wisetree.render.render2d.utils.shader;
 
-import com.client.BloodyClient;
 import com.mojang.blaze3d.platform.GlStateManager;
 import org.lwjgl.opengl.GL30;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.URL;
 import java.nio.FloatBuffer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.client.BloodyClient.mc;
@@ -23,14 +25,13 @@ public class Shader {
     public static final String ROUNDED_BLURRED_GRADIENT = "https://raw.githubusercontent.com/sxmurxy2005/2D-Render-Util-1.16/forge-1.16.5/src/main/resources/assets/renderutil/shaders/rounded_blurred_gradient.frag";
     public static final String ROUNDED_TEXTURE_FRAG = "https://raw.githubusercontent.com/sxmurxy2005/2D-Render-Util-1.16/forge-1.16.5/src/main/resources/assets/renderutil/shaders/rounded_texture.frag";
     public static final String VERTEX_VERT = "https://raw.githubusercontent.com/sxmurxy2005/2D-Render-Util-1.16/forge-1.16.5/src/main/resources/assets/renderutil/shaders/vertex.vert";
-    public static final String BACK_FRAG = "https://raw.githubusercontent.com/Ranele/k/main/bms";
-    public static final String GAUSSIAN_BLOOM_SHADER = "https://raw.githubusercontent.com/Ranele/k/main/gbs";
+    public static final String GAUSSIAN_BLOOM_SHADER = "https://raw.githubusercontent.com/TheFirstPlaceCoder/shaders/refs/heads/main/gbs";
     public static final String mainMenuShader = "https://raw.githubusercontent.com/TheFirstPlaceCoder/shaders/main/mainmenu.fsh";
     public static final String ROUNDED_GLOW = "https://raw.githubusercontent.com/TheFirstPlaceCoder/shaders/main/rounded_glow.frag";
     public static final String ROUNDED_OUTLINE = "https://raw.githubusercontent.com/TheFirstPlaceCoder/shaders/main/rounded_outline_gradient.frag";
-
     public static final int VERTEX_SHADER;
     private final int programId;
+    private static final Map<String, String> shaderSources = new HashMap<>();
 
     static {
         VERTEX_SHADER = GlStateManager.createShader(GL30.GL_VERTEX_SHADER);
@@ -39,25 +40,26 @@ public class Shader {
     }
 
     public Shader(String fragmentShaderName) {
-        int programId = GlStateManager.createProgram();
-
-        try {
-            int fragmentShader = GlStateManager.createShader(GL30.GL_FRAGMENT_SHADER);
-            GlStateManager.shaderSource(fragmentShader, getShaderSource(fragmentShaderName));
-            GlStateManager.compileShader(fragmentShader);
-
-            int isFragmentCompiled = GL30.glGetShaderi(fragmentShader, GL30.GL_COMPILE_STATUS);
-            if(isFragmentCompiled == 0) {
-                GlStateManager.deleteShader(fragmentShader);
-                System.err.println("Fragment shader couldn't compile. It has been deleted.");
-            }
-
-            GlStateManager.attachShader(programId, VERTEX_SHADER);
-            GlStateManager.attachShader(programId, fragmentShader);
-            GlStateManager.linkProgram(programId);
-        } catch (Exception ignored) {
+        String fragmentShaderSource = getShaderSource(fragmentShaderName);
+        int fragmentShader = GlStateManager.createShader(GL30.GL_FRAGMENT_SHADER);
+        GlStateManager.shaderSource(fragmentShader, fragmentShaderSource);
+        GlStateManager.compileShader(fragmentShader);
+        int isFragmentCompiled = GL30.glGetShaderi(fragmentShader, GL30.GL_COMPILE_STATUS);
+        if (isFragmentCompiled == 0) {
+            GlStateManager.deleteShader(fragmentShader);
+            System.err.println("Fragment shader couldn't compile. It has been deleted.");
+            throw new RuntimeException("Shader compilation failed");
         }
-
+        int programId = GlStateManager.createProgram();
+        GlStateManager.attachShader(programId, VERTEX_SHADER);
+        GlStateManager.attachShader(programId, fragmentShader);
+        GlStateManager.linkProgram(programId);
+        int isLinked = GL30.glGetProgrami(programId, GL30.GL_LINK_STATUS);
+        if (isLinked == 0) {
+            GlStateManager.deleteProgram(programId);
+            System.err.println("Shader program couldn't link. It has been deleted.");
+            throw new RuntimeException("Shader linking failed");
+        }
         this.programId = programId;
     }
 
@@ -74,7 +76,7 @@ public class Shader {
     }
 
     public void setUniformf(String name, float... args) {
-        int loc = GL30.glGetUniformLocation(programId, name);
+        int loc = getUniform(name);
         switch (args.length) {
             case 1:
                 GL30.glUniform1f(loc, args[0]);
@@ -92,7 +94,7 @@ public class Shader {
     }
 
     public void setUniformi(String name, int... args) {
-        int loc = GL30.glGetUniformLocation(programId, name);
+        int loc = getUniform(name);
         switch (args.length) {
             case 1:
                 GL30.glUniform1i(loc, args[0]);
@@ -110,17 +112,10 @@ public class Shader {
     }
 
     public void setUniformfb(String name, FloatBuffer buffer) {
-        GL30.glUniform1fv(GL30.glGetUniformLocation(programId, name), buffer);
+        GL30.glUniform1fv(getUniform(name), buffer);
     }
 
     public static void draw() {
-        draw(0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight());
-    }
-
-    public void drawMainMenu() {
-        setUniformf("resolution", mc.getWindow().getWidth(), mc.getWindow().getHeight());
-        setUniformf("time", (System.currentTimeMillis() - BloodyClient.initTime) / 1000f);
-
         draw(0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight());
     }
 
@@ -137,16 +132,32 @@ public class Shader {
         GL30.glEnd();
     }
 
-    public static String getShaderSource(String link) {
-        String source = "";
+    public static void draw(double x, double y, double width, double height, Color color) {
+        GL30.glBegin(GL_QUADS);
+        GL30.glTexCoord2d(0, 0);
+        GL30.glVertex2d(x, y);
+        GL30.glTexCoord2d(0, 1);
+        GL30.glVertex2d(x, y + height);
+        GL30.glTexCoord2d(1, 1);
+        GL30.glVertex2d(x + width, y + height);
+        GL30.glTexCoord2d(1, 0);
+        GL30.glVertex2d(x + width, y);
+        GL30.glEnd();
+    }
 
+    public static String getShaderSource(String link) {
+        if (shaderSources.containsKey(link)) {
+            return shaderSources.get(link);
+        }
+        String source = "";
         try {
             LineNumberReader reader = new LineNumberReader(new InputStreamReader(new URL(link).openStream()));
             source = reader.lines().filter(str -> !str.isEmpty()).map(str -> str.replace("\t", "")).collect(Collectors.joining("\n"));
             reader.close();
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
+        shaderSources.put(link, source);
         return source;
     }
 }

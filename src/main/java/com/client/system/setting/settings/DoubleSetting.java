@@ -1,16 +1,25 @@
 package com.client.system.setting.settings;
 
+import com.client.impl.function.client.ClickGui;
 import com.client.system.function.Function;
+import com.client.system.function.FunctionManager;
 import com.client.system.setting.api.AbstractSettings;
 import com.client.system.setting.api.IVisible;
 import com.client.system.setting.api.SettingsType;
 import com.client.system.setting.manager.SettingManager;
 import com.client.utils.auth.Loader;
+import com.client.utils.files.SoundManager;
+import com.client.utils.misc.CustomSoundInstance;
+import net.minecraft.sound.SoundCategory;
 
+import java.util.Objects;
 import java.util.function.Consumer;
+
+import static com.client.BloodyClient.mc;
 
 public class DoubleSetting extends AbstractSettings<Double> {
     private double min, max;
+    private int c = 1;
     private Consumer<Double> onChanged;
 
     public DoubleSetting(Function function) {
@@ -27,9 +36,17 @@ public class DoubleSetting extends AbstractSettings<Double> {
     }
 
     public void set(Double value) {
+        boolean shouldSound = !Objects.equals(value, this.value);
+
         if (this.isPremium && !Loader.isPremium()) this.value = getDefaultValue();
         else this.value = value;
         onChanged();
+
+        if (shouldSound && mc.world != null && mc.player != null && FunctionManager.get(ClickGui.class).clientSound.get()) {
+            CustomSoundInstance customSoundInstance = new CustomSoundInstance(SoundManager.BUTTON_EVENT, SoundCategory.MASTER);
+            customSoundInstance.setVolume(FunctionManager.get(ClickGui.class).volume.floatValue());
+            mc.getSoundManager().play(customSoundInstance);
+        }
     }
 
     private void onChanged() {
@@ -59,6 +76,15 @@ public class DoubleSetting extends AbstractSettings<Double> {
         return this;
     }
 
+    public int getC() {
+        return c;
+    }
+
+    public DoubleSetting c(int c) {
+        this.c = c;
+        return this;
+    }
+
     public Double getDefaultValue() {
         return defaultValue;
     }
@@ -75,6 +101,15 @@ public class DoubleSetting extends AbstractSettings<Double> {
 
     public DoubleSetting name(String name) {
         this.name = name;
+        return this;
+    }
+
+    public String getEnName() {
+        return enName;
+    }
+
+    public DoubleSetting enName(String name) {
+        this.enName = name;
         return this;
     }
 

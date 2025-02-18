@@ -12,10 +12,10 @@ import com.client.utils.auth.Loader;
 import net.minecraft.client.option.Perspective;
 
 public class CameraTweaks extends Function {
-    public final BooleanSetting noCameraClip = Boolean().name("Камера клип").defaultValue(true).build();
-    public final DoubleSetting cameraDistance = Double().name("Дистанция до игрока").defaultValue(4.0).min(0).max(10).build();
-    public final BooleanSetting zoomMouse = Boolean().name("Приближение колесиком").defaultValue(true).build();
-    public final DoubleSetting distanceScroll = Double().name("Сила приближения").defaultValue(1.0).min(0.1).max(5).visible(zoomMouse::get).build();
+    public final BooleanSetting noCameraClip = Boolean().name("Камера клип").enName("Camera Clip").defaultValue(true).build();
+    public final DoubleSetting cameraDistance = Double().name("Дистанция до игрока").enName("F5 Player Distance").defaultValue(4.0).min(0).max(10).build();
+    public final BooleanSetting zoomMouse = Boolean().name("Приближение колесиком").enName("Mouse Wheel Add").defaultValue(true).build();
+    public final DoubleSetting distanceScroll = Double().name("Сила приближения").enName("Add Power").defaultValue(1.0).min(0.1).max(5).visible(zoomMouse::get).build();
 
     public CameraTweaks() {
         super("Camera Tweaks", Category.VISUAL);

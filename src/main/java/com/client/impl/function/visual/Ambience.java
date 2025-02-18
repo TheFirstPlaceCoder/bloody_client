@@ -14,21 +14,22 @@ import java.awt.*;
 import java.util.List;
 
 public class Ambience extends Function {
-    public final ListSetting fog = List().name("Туман").list(List.of("Оставить", "Убрать", "Изменить")).defaultValue("Убрать").build();
-    public final ColorSetting colorSetting = Color().name("Цвет").defaultValue(Color.CYAN).visible(() -> fog.get().equals("Изменить")).build();
-    public final DoubleSetting fogStart = Double().name("Начало тумана").defaultValue(5.0).min(0).max(10).visible(() -> fog.get().equals("Изменить")).build();
-    public final DoubleSetting end = Double().name("Размытие").defaultValue(5.0).min(0).max(10).visible(() -> fog.get().equals("Изменить")).build();
+    public final ListSetting fog = List().name("Туман").enName("Fog Mode").list(List.of("Оставить", "Убрать", "Изменить")).defaultValue("Убрать").build();
+    public final ListSetting fogColorMode = List().name("Режим цвета тумана").enName("Fog Color Mode").list(List.of("Клиентский", "Свой")).defaultValue("Клиентский").build();
+    public final ColorSetting colorSetting = Color().name("Цвет").enName("Fog Color").defaultValue(Color.CYAN).visible(() -> fog.get().equals("Изменить") && fogColorMode.get().equals("Свой")).build();
+    public final DoubleSetting fogStart = Double().name("Начало тумана").enName("Fog Start").defaultValue(5.0).min(0).max(10).visible(() -> fog.get().equals("Изменить")).build();
+    public final DoubleSetting end = Double().name("Размытие").enName("Fog Unsaturation").defaultValue(5.0).min(0).max(10).visible(() -> fog.get().equals("Изменить")).build();
 
-    public final BooleanSetting sky = Boolean().name("Изменить небо").defaultValue(true).build();
-    public final ColorSetting skycolorSetting = Color().name("Цвет неба").defaultValue(Color.CYAN).visible(sky::get).build();
+    public final BooleanSetting sky = Boolean().name("Изменить небо").enName("Change Sky").defaultValue(true).build();
+    public final ColorSetting skycolorSetting = Color().name("Цвет неба").enName("Sky Color").defaultValue(Color.CYAN).visible(sky::get).build();
 
-    private final ListSetting mode = List().list(List.of("Оставить","Ночь", "Утро", "Заход", "День", "Свой")).defaultValue("Заход").name("Время").build();
-    private final IntegerSetting custom = Integer().name("Значение").min(0).max(120).defaultValue(0).visible(() -> mode.get().equals("Свой")).build();
+    private final ListSetting mode = List().list(List.of("Оставить","Ночь", "Утро", "Заход", "День", "Свой")).defaultValue("Заход").name("Время").enName("World Time").build();
+    private final IntegerSetting custom = Integer().name("Значение").enName("Custom Time").min(0).max(120).defaultValue(0).visible(() -> mode.get().equals("Свой")).build();
 
-    public final ListSetting totemParticles = List().name("Партиклы тотема").list(List.of("Оставить", "Убрать", "Изменить")).defaultValue("Убрать").build();
-    public final ListSetting colorMode = List().name("Режим цвета партиклов").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").visible(() -> totemParticles.get().equals("Изменить")).build();
-    public final ColorSetting colorParticles = Color().name("Цвет").defaultValue(Color.CYAN).visible(() -> totemParticles.get().equals("Изменить") && colorMode.get().equals("Статичный")).build();
-    public final DoubleSetting particlesSize = Double().name("Размер").min(0).max(5).defaultValue(0.5).visible(() -> totemParticles.get().equals("Изменить")).build();
+    public final ListSetting totemParticles = List().name("Партиклы тотема").enName("Totem Particles Mode").list(List.of("Оставить", "Убрать", "Изменить")).defaultValue("Убрать").build();
+    public final ListSetting colorMode = List().name("Режим цвета партиклов").enName("Totem Color Mode").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").visible(() -> totemParticles.get().equals("Изменить")).build();
+    public final ColorSetting colorParticles = Color().name("Цвет партиклов").enName("Particles Color").defaultValue(Color.CYAN).visible(() -> totemParticles.get().equals("Изменить") && colorMode.get().equals("Статичный")).build();
+    public final DoubleSetting particlesSize = Double().name("Размер").enName("Particles Size").min(0).max(5).defaultValue(0.5).visible(() -> totemParticles.get().equals("Изменить")).build();
 
     public Ambience() {
         super("Ambience", Category.VISUAL);
@@ -70,7 +71,7 @@ public class Ambience extends Function {
     @Override
     public void onFog(CustomFogEvent event) {
         if (fog.get().equals("Изменить"))
-        event.color = colorSetting.get();
+            event.color = fogColorMode.get().equals("Свой") ? colorSetting.get() : Colors.getColor(0);
     }
 
     @Override

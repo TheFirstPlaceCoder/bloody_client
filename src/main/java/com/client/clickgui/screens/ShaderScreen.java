@@ -1,44 +1,35 @@
 package com.client.clickgui.screens;
 
 import com.client.BloodyClient;
-import com.client.alt.Account;
 import com.client.clickgui.Impl;
+import com.client.impl.function.client.ClickGui;
+import com.client.system.function.FunctionManager;
+import com.client.system.textures.DownloadImage;
 import com.client.utils.Utils;
-import com.client.utils.changelog.ChangeLog;
-import com.client.utils.color.ColorUtils;
-import com.client.utils.color.Colors;
+import com.client.utils.auth.Loader;
+import com.client.utils.files.SoundManager;
+import com.client.utils.math.animation.AnimationUtils;
 import com.client.utils.math.rect.FloatRect;
-import com.client.utils.render.DrawMode;
-import com.client.utils.render.Matrices;
-import com.client.utils.render.Renderer2D;
+import com.client.utils.misc.CustomSoundInstance;
+import com.client.utils.render.wisetree.font.api.FontRenderer;
 import com.client.utils.render.wisetree.font.main.IFont;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
-import com.client.utils.render.wisetree.render.render2d.main.TextureGL;
-import com.client.utils.render.wisetree.render.render2d.utils.shader.Shader;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.client.utils.render.wisetree.render.render2d.utils.shader.shaders.BlurShader;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerWarningScreen;
 import net.minecraft.client.gui.screen.option.OptionsScreen;
 import net.minecraft.client.gui.screen.world.SelectWorldScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.realms.gui.screen.RealmsBridgeScreen;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL11C;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.client.BloodyClient.mc;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 
 public class ShaderScreen extends Screen {
     private static ShaderScreen instance;
@@ -47,7 +38,14 @@ public class ShaderScreen extends Screen {
         if (instance == null) {
             instance = new ShaderScreen();
             instance.initka();
+            if (!Objects.equals(Loader.debugString, "Checked")) {
+                BloodyClient.LOGGER.info("D");
+                throw new ArithmeticException();
+            }
         }
+
+        instance.animation = 0;
+
         return instance;
     }
 
@@ -55,42 +53,61 @@ public class ShaderScreen extends Screen {
         super(Text.of(""));
     }
 
-    private Shader shader;
     private List<Button> buttonList = new ArrayList<>();
-    private Identifier logo = new Identifier("bloody-client", "/client/menulogo.png");
-    private double oldWidth, oldHeight;
+    private double oldWidth, oldHeight, animation;
+    private FloatRect mainRect = new FloatRect(0, 0, 0, 0);
+    private Button one, two, three, four, five;
+    private boolean closing = false;
+    private Runnable postTask = () -> {};
 
     @Override
     public void render(MatrixStack matrices, int mouseX1, int mouseY1, float partialTicks) {
         if (oldWidth != mc.getWindow().getWidth() || oldHeight != mc.getWindow().getHeight()) initka();
 
+        if (animation != 1000 && !closing) animation = AnimationUtils.fast(animation, 1000);
+        else if (animation != 2000 && closing) animation = AnimationUtils.fast(animation, 2000);
+
+        if (animation >= 1800 && closing) {
+            closing = false;
+            postTask.run();
+        }
+
+        mainRect.setX((float) (mc.getWindow().getWidth() / 4 - 75 + 1000 - animation));
+
+        buttonList.forEach(e -> e.rect.setX((float) (mc.getWindow().getWidth() / 4 + (e.text.equals(Utils.isRussianLanguage ? "Выйти" : "Quit") ? 2.5 : - 62.5) + 1000 - animation)));
+
         int mouseX = (int) (BloodyClient.mc.mouse.getX() / 2);
         int mouseY = (int) (BloodyClient.mc.mouse.getY() / 2);
 
-        GlStateManager.disableTexture();
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        shader.load();
-        shader.drawMainMenu();
-        shader.unload();
-
-        RenderSystem.defaultBlendFunc();
-        GlStateManager.enableTexture();
-        GlStateManager.disableBlend();
-
         Utils.rescaling(() -> {
-            GL11.glPushMatrix();
-            GL11.glTranslated(0, 0, 100);
-            ChangeLog.draw(mouseX, mouseY);
-            GL11.glPopMatrix();
+            GL.prepare();
+            GL.drawRoundedTexture(DownloadImage.getGlId(DownloadImage.CHRISTMAS_MENU), 0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight(), 0);
+            GL.end();
 
-            TextureGL.create().bind(logo).draw(new TextureGL.TextureRegion(mc.getWindow().getWidth() / 4f - 40f, mc.getWindow().getHeight() / 4f - 11.2f - 120f, 80, 80), true,
-                    Colors.getColor(0, 13),
-                    Colors.getColor(90, 13),
-                    Colors.getColor(180, 13),
-                    Colors.getColor(270, 13)
-            );
+            BlurShader.registerRenderCall(() -> {
+                GL.drawRoundedRect(new FloatRect(0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight()), 0, Color.WHITE);
+            });
+
+            BlurShader.draw(8);
+
+            GL.prepare();
+            GL.drawRoundedRect(mainRect, 7, new Color(28, 30, 35, 175));
+            GL.end();
+
+            FontRenderer.color(true);
+            IFont.drawCenteredX(IFont.MONTSERRAT_BOLD, "Bloody Client", mainRect.getCenteredX(), mainRect.getY() + 5, new Color(162, 162, 162).brighter(), 13);
+            IFont.drawCenteredX(IFont.MONTSERRAT_BOLD, "v" + BloodyClient.VERSION, mainRect.getCenteredX(), mainRect.getY() + 5 + IFont.getHeight(IFont.MONTSERRAT_BOLD, "ABC123", 13), new Color(162, 162, 162).brighter(), 7);
+            FontRenderer.color(false);
+
+            float w = IFont.getWidth(IFont.MONTSERRAT_MEDIUM, (Utils.isRussianLanguage ? "Вы авторизованы как " : "You're loggined as ") + mc.getSession().getUsername(), 8);
+            float h = IFont.getHeight(IFont.MONTSERRAT_MEDIUM, "A", 9);
+            IFont.draw(IFont.MONTSERRAT_MEDIUM, (Utils.isRussianLanguage ? "Вы авторизованы как " : "You're loggined as "), mc.getWindow().getWidth() / 4 - w / 2, mc.getWindow().getHeight() / 2 - h, new Color(162, 162, 162).brighter(), 8);
+
+            FontRenderer.color(true);
+            FontRenderer.shouldRename(false);
+            IFont.draw(IFont.MONTSERRAT_MEDIUM, mc.getSession().getUsername(), mc.getWindow().getWidth() / 4 - w / 2 + IFont.getWidth(IFont.MONTSERRAT_MEDIUM, (Utils.isRussianLanguage ? "Вы авторизованы как " : "You're loggined as "), 8), mc.getWindow().getHeight() / 2 - h, new Color(162, 162, 162).brighter(), 8);
+            FontRenderer.color(false);
+            FontRenderer.shouldRename(true);
 
             buttonList.forEach(e -> e.draw(mouseX, mouseY, 1));
         });
@@ -103,8 +120,6 @@ public class ShaderScreen extends Screen {
         double mouseX = (mc.mouse.getX() / 2);
         double mouseY = (mc.mouse.getY() / 2);
 
-        ChangeLog.click((int) mouseX, (int) mouseY, button);
-
         for (Button buttons : buttonList) {
             buttons.click(mouseX, mouseY, button);
         }
@@ -113,26 +128,20 @@ public class ShaderScreen extends Screen {
     }
 
     private class Button implements Impl {
-        // Лого на 154
         public FloatRect rect = new FloatRect(0, 0, 0, 0);
         public String text;
         public Runnable runnable;
         public boolean isOneLine = false;
+        public float selectedAlpha;
 
-        public Button(double y, String text, Runnable run) {
-            rect.setW(152f);
-            rect.setH(22.4f);
-            rect.setX(mc.getWindow().getWidth() / 4 - 76f);
-            rect.setY(mc.getWindow().getHeight() / 4 + 22.4f + (float) y * 1.3f);
+        public Button(FloatRect rect, String text, Runnable run) {
+            this.rect = rect;
             this.text = text;
             this.runnable = run;
         }
 
-        public Button(double y, String text, Runnable run, boolean isOneLine) {
-            rect.setW(isOneLine ? 64f : 80f);
-            rect.setH(22.4f);
-            rect.setX(mc.getWindow().getWidth() / 4 - 76f + (isOneLine ? 88 : 0));
-            rect.setY(mc.getWindow().getHeight() / 4 + 22.4f + (float) y * 1.3f);
+        public Button(FloatRect rect, String text, Runnable run, boolean isOneLine) {
+            this.rect = rect;
             this.text = text;
             this.runnable = run;
             this.isOneLine = isOneLine;
@@ -140,42 +149,13 @@ public class ShaderScreen extends Screen {
 
         @Override
         public void draw(double mx, double my, float alpha) {
-            int alphach = rect.intersect(mx, my) ? 140 : 110;
-//            GL.drawRoundedGradientRect(rect, 3, new Color(33, 91, 23, alphach),
-//                    new Color(180, 229, 172, alphach),
-//                    new Color(33, 91, 23, alphach),
-//                    new Color(180, 229, 172, alphach));
+            selectedAlpha = AnimationUtils.fast(selectedAlpha, rect.intersect(mx, my) ? 255 : 0, rect.intersect(mx, my) ? 10 : 5);
 
             GL.prepare();
-            GL.drawRoundedGradientRect(rect, 3, ColorUtils.injectAlpha(Colors.getColor(0, 13), alphach),
-                    ColorUtils.injectAlpha(Colors.getColor(90, 13), alphach),
-                    ColorUtils.injectAlpha(Colors.getColor(270, 13), alphach),
-                    ColorUtils.injectAlpha(Colors.getColor(180, 13), alphach));
-
-            GL.drawRoundedGradientOutline(rect, 3, 1, ColorUtils.injectAlpha(Colors.getColor(0, 13), 255),
-                    ColorUtils.injectAlpha(Colors.getColor(90, 13), 255),
-                    ColorUtils.injectAlpha(Colors.getColor(270, 13), 255),
-                    ColorUtils.injectAlpha(Colors.getColor(180, 13), 255));
-
+            GL.drawRoundedRect(rect, 5, Utils.lerp(new Color(40, 40, 40, 200), new Color(15, 15, 15, 200), selectedAlpha / 255));
             GL.end();
-//            Matrices.push();
-//            Matrices.translate(0, 0, 0);
-//
-//            Renderer2D.COLOR.begin(GL11C.GL_TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
-//            Renderer2D.COLOR.roundedQuad(rect.getX(), rect.getY(), rect.getX2(), rect.getY2(), 3, 9,
-//                    ColorUtils.injectAlpha(Colors.getColor(0, 13), alphach),
-//                    ColorUtils.injectAlpha(Colors.getColor(90, 13), alphach));
-//            Renderer2D.COLOR.end();
-//
-//            Renderer2D.COLOR.begin(GL11C.GL_TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
-//            Renderer2D.COLOR.renderRoundedOutline(Colors.getColor(0, 13),
-//                    Colors.getColor(90, 13),
-//                    rect.getX() + 1, rect.getY() + 1, rect.getX2() - 1, rect.getY2() - 1, 3, 1);
-//            Renderer2D.COLOR.end();
-//
-//            Matrices.pop();
 
-            IFont.drawCenteredXY(IFont.MONTSERRAT_MEDIUM, text, rect.getCenteredX(), rect.getCenteredY(), Color.WHITE, 12);
+            IFont.drawCenteredX(IFont.Greycliff, text, rect.getCenteredX(), rect.getCenteredY() - IFont.getHeight(IFont.Greycliff, "a", 9) / 2, Color.WHITE, 9);
         }
 
         @Override
@@ -183,7 +163,15 @@ public class ShaderScreen extends Screen {
             double mx = BloodyClient.mc.mouse.getX() / 2;
             double my = BloodyClient.mc.mouse.getY() / 2;
 
-            if (rect.intersect(mx, my) && runnable != null) runnable.run();
+            if (rect.intersect(mx, my) && runnable != null) {
+                if (FunctionManager.get(ClickGui.class).clientSound.get()) {
+                    CustomSoundInstance customSoundInstance = new CustomSoundInstance(SoundManager.BUBBLE_EVENT, SoundCategory.MASTER);
+                    customSoundInstance.setVolume(FunctionManager.get(ClickGui.class).volume.floatValue());
+                    mc.getSoundManager().play(customSoundInstance);
+                }
+
+                runnable.run();
+            }
         }
 
         @Override
@@ -207,42 +195,33 @@ public class ShaderScreen extends Screen {
         }
     }
 
-    @Override
-    public void init() {
-        this.shader = BloodyClient.shader;
-        //new Account("Vasya_ggwp").login();
-//        Window window = mc.getWindow();
-//        this.addButton(new ButtonWidget(window.getScaledWidth() - 80, window.getScaledHeight() - 30, 70, 20, Text.of("Close"),
-//                button -> this.onClose()));
-    }
-
     public void initka() {
         buttonList.clear();
         oldWidth = mc.getWindow().getWidth();
         oldHeight = mc.getWindow().getHeight();
-        Button one = new Button(0, "Одиночная игра", () -> {
+
+        // mainRect = new FloatRect(mc.getWindow().getWidth() / 4 - 75, mc.getWindow().getHeight() / 4, 150, 145);
+        mainRect = new FloatRect(mc.getWindow().getWidth() / 4 - 75 + 1000, mc.getWindow().getHeight() / 4, 150, 145);
+
+        one = new Button(new FloatRect(mc.getWindow().getWidth() / 4 - 62.5 + 1000, mc.getWindow().getHeight() / 4 + 10 + 30, 125, 20), (Utils.isRussianLanguage ? "Одиночная игра" : "Singleplayer"), () -> {
             this.client.openScreen(new SelectWorldScreen(getInstance()));
         });
 
-        Button two = new Button(22.4, "Сетевая игра", () -> {
+        two = new Button(new FloatRect(mc.getWindow().getWidth() / 4 - 62.5 + 1000, mc.getWindow().getHeight() / 4 + 10 + 30 + 25, 125, 20), (Utils.isRussianLanguage ? "Сетевая игра" : "Multiplayer"), () -> {
             Screen screen = this.client.options.skipMultiplayerWarning ? new MultiplayerScreen(getInstance()) : new MultiplayerWarningScreen(getInstance());
             this.client.openScreen(screen);
         });
 
-        Button three = new Button(44.8, "Minecraft Realms", () -> {
-            RealmsBridgeScreen realmsBridgeScreen = new RealmsBridgeScreen();
-            realmsBridgeScreen.switchToRealms(getInstance());
+        three = new Button(new FloatRect(mc.getWindow().getWidth() / 4 - 62.5 + 1000, mc.getWindow().getHeight() / 4 + 10 + 30 + 50, 125, 20), (Utils.isRussianLanguage ? "Аккаунты" : "Accounts"), () -> {
+            closing = true;
+            postTask = () -> this.client.openScreen(AltScreen.getInstance());
         });
 
-        Button four = new Button(67.2, "Аккаунты", () -> {
-            this.client.openScreen(AltScreen.getInstance(getInstance()));
-        });
-
-        Button five = new Button(89.6, "Настройки", () -> {
+        four = new Button(new FloatRect(mc.getWindow().getWidth() / 4 - 62.5 + 1000, mc.getWindow().getHeight() / 4 + 10 + 30 + 75, 60, 20), (Utils.isRussianLanguage ? "Настройки" : "Settings"), () -> {
             this.client.openScreen(new OptionsScreen(getInstance(), this.client.options));
         }, false);
 
-        Button six = new Button(89.6, "Выйти", () -> {
+        five = new Button(new FloatRect(mc.getWindow().getWidth() / 4 + 2.5 + 1000, mc.getWindow().getHeight() / 4 + 10 + 30 + 75, 60, 20), (Utils.isRussianLanguage ? "Выйти" : "Quit"), () -> {
             this.client.scheduleStop();
         }, true);
 
@@ -251,9 +230,9 @@ public class ShaderScreen extends Screen {
         buttonList.add(three);
         buttonList.add(four);
         buttonList.add(five);
-        buttonList.add(six);
     }
 
     @Override
-    public void onClose() {}
+    public void onClose() {
+    }
 }

@@ -20,9 +20,9 @@ import java.awt.*;
 import java.util.Map;
 
 public class BreakIndicators extends Function {
-    private final BooleanSetting alpha = Boolean().name("Плавное появление").defaultValue(false).build();
-    private final BooleanSetting renderSelf = Boolean().name("Нынешняя позиция").defaultValue(false).build();
-    public final ColorSetting colorSetting = Color().name("Цвет").defaultValue(Color.CYAN).build();
+    private final BooleanSetting alpha = Boolean().name("Плавное появление").enName("Smooth Alpha").defaultValue(false).build();
+    private final BooleanSetting renderSelf = Boolean().name("Нынешняя позиция").enName("Current Position").defaultValue(false).build();
+    public final ColorSetting colorSetting = Color().name("Цвет").enName("Color").defaultValue(Color.CYAN).build();
 
     public BreakIndicators() {
         super("Break Indicators", Category.VISUAL);

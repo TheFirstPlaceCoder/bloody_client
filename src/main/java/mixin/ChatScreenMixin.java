@@ -19,6 +19,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -35,14 +36,17 @@ public class ChatScreenMixin extends Screen implements IChatScreen {
     }
 
     @Shadow protected TextFieldWidget chatField;
+    @Unique private PassHider passHider;
 
     @Inject(method = "render", at = @At("TAIL"))
     private void render(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+        if (passHider == null) passHider = FunctionManager.get(PassHider.class);
+
         HudManager.handle(mouseX, mouseY);
 
         String string = chatField.getText().trim();
 
-        if ((string.contains("/l") || string.contains("/login") || string.contains("/reg") || string.contains("/register") || string.contains("/д") || string.contains("/куп") || string.contains("/дщпшт") || string.contains("/купшыеук")) && FunctionManager.get(PassHider.class).isEnabled() && !Loader.unHook) {
+        if ((string.contains("/l") || string.contains("/login") || string.contains("/reg") || string.contains("/register") || string.contains("/д") || string.contains("/куп") || string.contains("/дщпшт") || string.contains("/купшыеук")) && passHider.isEnabled() && !Loader.unHook) {
             BlurShader.registerRenderCall(() -> GL.drawQuad(new FloatRect(0, client.getWindow().getScaledHeight() - 15, client.textRenderer.getTextHandler().getWidth(string) + 6, 15), Color.WHITE));
             BlurShader.draw(5);
         }

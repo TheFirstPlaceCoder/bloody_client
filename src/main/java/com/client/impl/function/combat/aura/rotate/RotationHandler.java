@@ -7,12 +7,9 @@ import com.client.impl.function.combat.aura.rotate.handler.Handler;
 import com.client.impl.function.combat.aura.rotate.handler.Handlers;
 import com.client.impl.function.combat.aura.rotate.handler.handlers.FunTimeRotationsHandler;
 import com.client.utils.game.movement.MovementUtils;
-import com.client.utils.render.wisetree.font.main.IFont;
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.math.MathHelper;
-
-import java.awt.*;
 
 import static com.client.system.function.Function.mc;
 
@@ -126,7 +123,7 @@ public class RotationHandler {
     @EventHandler
     private void onKeyboardInputEvent(KeyboardInputEvent event) {
         if (!checkIdle()) {
-            if (aura.moveFix.get().equals("Обычная") || aura.bypass.get().equals("ReallyWorld")) {
+            if (aura.moveFix.get().equals("Обычная") || aura.bypass.get().equals("Snap")) {
                 MovementUtils.fixMovement(event, RotationHandler.serverYaw);
                 event.cancel();
             }
@@ -136,10 +133,13 @@ public class RotationHandler {
     @EventHandler
     private void onUpdate(TickEvent.Pre event) {
         switch (aura.bypass.get()) {
-            case "HolyWorld" -> handler = Handlers.get("HolyWorld");
-            case "ReallyWorld" -> handler = Handlers.get("ReallyWorld");
+            case "Snap" -> handler = Handlers.get("ReallyWorld");
             case "FunTime" -> handler = Handlers.get("FunTime");
             case "HvH" -> handler = Handlers.get("HvH");
+            case "Interpolate" -> handler = Handlers.get("CustomInterpolate");
+            case "Vulcan/Grim" -> handler = Handlers.get("VulcanGrim");
+            case "Grim Combat" -> handler = Handlers.get("HolyWorld");
+            case "Custom Linear" -> handler = Handlers.get("CustomLinear");
         }
 
         if (checkIdle() || handler.name.equals("HvH")) {
@@ -175,7 +175,7 @@ public class RotationHandler {
     }
 
     public static boolean checkMoveFix() {
-        return (!aura.moveFix.get().equals("Нет") || aura.bypass.get().equals("ReallyWorld")) && !checkIdle();
+        return (!aura.moveFix.get().equals("Нет") || aura.bypass.get().equals("Snap")) && !checkIdle();
     }
 
     public static void register(AttackAura attackAura) {

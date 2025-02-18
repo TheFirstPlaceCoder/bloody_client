@@ -7,8 +7,8 @@ import com.client.system.setting.settings.IntegerSetting;
 import com.client.utils.render.Renderer2D;
 
 public class DamageTint extends Function {
-    public final IntegerSetting health = Integer().name("Здоровье").defaultValue(13).min(1).max(20).build();
-    public final DoubleSetting amplifier = Double().name("Насыщенность").defaultValue(1.0).min(0).max(10).build();
+    public final IntegerSetting health = Integer().name("Здоровье").enName("Health").defaultValue(13).min(1).max(20).build();
+    public final DoubleSetting amplifier = Double().name("Насыщенность").enName("Saturation").defaultValue(1.0).min(0).max(10).build();
 
     public DamageTint() {
         super("Damage Tint", Category.VISUAL);

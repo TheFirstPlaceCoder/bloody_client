@@ -10,8 +10,8 @@ import java.awt.*;
 import java.util.List;
 
 public class BlockOutline extends Function {
-    public final ListSetting color = List().name("Режим цвета").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
-    public final ColorSetting colorSetting = Color().name("Цвет").defaultValue(Color.CYAN).visible(() -> color.get().equals("Статичный")).build();
+    public final ListSetting color = List().name("Режим цвета").enName("Color Mode").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
+    public final ColorSetting colorSetting = Color().name("Цвет").enName("Color").defaultValue(Color.CYAN).visible(() -> color.get().equals("Статичный")).build();
 
     public BlockOutline() {
         super("Block Outline", Category.VISUAL);

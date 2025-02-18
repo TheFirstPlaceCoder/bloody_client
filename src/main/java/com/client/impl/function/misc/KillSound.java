@@ -6,14 +6,17 @@ import com.client.system.function.Function;
 import com.client.system.setting.settings.DoubleSetting;
 import com.client.system.setting.settings.ListSetting;
 import com.client.utils.files.SoundManager;
+import com.client.utils.misc.CustomSoundInstance;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 
 import java.util.List;
 
 public class KillSound extends Function {
-    private final ListSetting mode = List().name("Режим").list(List.of("Among Us", "AWP", "Звон", "Uuuh", "Еее")).defaultValue("AWP").build();
-    public final DoubleSetting volume = Double().name("Громкось").defaultValue(1d).min(0).max(1).build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Among Us", "AWP", "Звон", "Еее", "Chime")).defaultValue("AWP").build();
+    public final DoubleSetting volume = Double().name("Громкось").enName("Volume").defaultValue(1.0).min(0).max(1).build();
 
     public KillSound() {
         super("Kill Sound", Category.MISC);
@@ -21,9 +24,11 @@ public class KillSound extends Function {
 
     @Override
     public void onPacket(PacketEvent.Receive event) {
-        if (event.packet instanceof EntityStatusS2CPacket p) {
-            if (p.getEntity(mc.world) != mc.player && p.getStatus() == 3 && mc.player.distanceTo(p.getEntity(mc.world)) < 7) {
-                mc.player.playSound(getEvent(), volume.floatValue(), 1f);
+        if (event.packet instanceof EntityStatusS2CPacket p && p.getEntity(mc.world) instanceof PlayerEntity e) {
+            if (e != mc.player && p.getStatus() == 3 && mc.player.distanceTo(e) < 7) {
+                CustomSoundInstance customSoundInstance = new CustomSoundInstance(getEvent(), SoundCategory.MASTER);
+                customSoundInstance.setVolume(volume.floatValue());
+                mc.getSoundManager().play(customSoundInstance);
             }
         }
     }
@@ -33,8 +38,8 @@ public class KillSound extends Function {
             case "Among Us" -> SoundManager.AMOGUS_EVENT;
             case "AWP" -> SoundManager.AWP_EVENT;
             case "Звон" -> SoundManager.CLOCK_EVENT;
-            case "Uuuh" -> SoundManager.UUUH_EVENT;
-            default -> SoundManager.YAY_EVENT;
+            case "Еее" -> SoundManager.YAY_EVENT;
+            default -> SoundManager.CHIME_EVENT;
         };
     }
 }

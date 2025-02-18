@@ -12,9 +12,12 @@ import com.client.system.notification.NotificationType;
 import com.client.system.setting.settings.*;
 import com.client.system.setting.settings.multiboolean.MultiBooleanSetting;
 import com.client.system.setting.settings.theme.ThemeSetting;
+import com.client.utils.Utils;
 import com.client.utils.files.SoundManager;
 import com.client.utils.game.chat.ChatUtils;
+import com.client.utils.misc.CustomSoundInstance;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Formatting;
 
 import java.util.Objects;
@@ -63,20 +66,27 @@ public abstract class Function {
         }
     }
 
+    public String getHudPrefix() {
+        return "";
+    }
+
     private void notification() {
         if (canUpdate()) {
             if (FunctionManager.get(Notifications.class).isEnabled()) {
-                if (!FunctionManager.get(Notifications.class).mode.get().equals("Чат"))
+                if (!FunctionManager.get(Notifications.class).mode.get().equals("Chat"))
                     NotificationManager.add(new Notification(
                         isEnabled() ? NotificationType.ENABLE : NotificationType.DISABLE,
-                        isEnabled() ? getName() + " был " + Formatting.GREEN + "включен" + Formatting.RESET + "!" : getName() + " был " + Formatting.RED + "выключен" + Formatting.RESET + "!", 1000L));
+                        isEnabled() ? (Utils.isRussianLanguage ? (getName() + " был " + Formatting.GREEN + "включен" + Formatting.RESET + "!") : (getName() + " toggled " + Formatting.GREEN + "on" + Formatting.RESET + "!")) : (Utils.isRussianLanguage ? (getName() + " был " + Formatting.RED + "выключен" + Formatting.RESET + "!") : (getName() + " toggled " + Formatting.RED + "off" + Formatting.RESET + "!")), 1000L));
 
-                if (!FunctionManager.get(Notifications.class).mode.get().equals("Уведомление"))
-                    ChatUtils.sendMsg(this.hashCode(), Formatting.GRAY, "Модуль (highlight)%s(default) %s(default).", name, isEnabled() ? Formatting.GREEN + "включен" : Formatting.RED + "выключен");
+                if (!FunctionManager.get(Notifications.class).mode.get().equals("Notification"))
+                    if (Utils.isRussianLanguage) ChatUtils.sendMsg(this.hashCode(), Formatting.GRAY, "Модуль (highlight)%s(default) %s(default).", name, isEnabled() ? Formatting.GREEN + "включен" : Formatting.RED + "выключен");
+                    else ChatUtils.sendMsg(this.hashCode(), Formatting.GRAY, "(highlight)%s(default) %s(default).", name, "toggled " + (isEnabled() ? Formatting.GREEN + "включен" : Formatting.RED + "выключен"));
             }
 
             if (FunctionManager.get(ClickGui.class).clientSound.get()) {
-                mc.player.playSound(isEnabled() ? SoundManager.ENABLE_EVENT : SoundManager.DISABLE_EVENT, FunctionManager.get(ClickGui.class).volume.floatValue(), 1f);
+                CustomSoundInstance customSoundInstance = new CustomSoundInstance(isEnabled() ? SoundManager.ENABLE_EVENT : SoundManager.DISABLE_EVENT, SoundCategory.MASTER);
+                customSoundInstance.setVolume(FunctionManager.get(ClickGui.class).volume.floatValue());
+                mc.getSoundManager().play(customSoundInstance);
             }
         }
     }
@@ -103,6 +113,8 @@ public abstract class Function {
 
     public void tick(TickEvent.Pre event) {}
     public void tick(TickEvent.Post event) {}
+    public void onGameJoinEvent(GameEvent.Join event) {}
+    public void onGameLeftEvent(GameEvent.Left event) {}
     public void placeBlock(PlaceBlockEvent.Pre event) {}
     public void placeBlock(PlaceBlockEvent.Post event) {}
     public void addEntity(EntityEvent.Add event) {}
@@ -147,6 +159,7 @@ public abstract class Function {
     public void onFogDistance(CustomFogDistanceEvent event) {}
     public void onSetBlockState(SetBlockStateEvent event) {}
     public void onPlayerUpdate(PlayerUpdateEvent e) {}
+    public void onBlockState(BlockShapeEvent event) {}
 
     public BooleanSetting Boolean() {
         return new BooleanSetting(this);

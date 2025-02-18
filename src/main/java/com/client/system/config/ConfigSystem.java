@@ -10,9 +10,8 @@ import com.client.system.function.Function;
 import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudFunction;
 import com.client.system.hud.HudManager;
-import com.client.system.hud.setting.HudValue;
+import com.client.system.macro.Macros;
 import com.client.system.setting.api.AbstractSettings;
-import com.client.system.setting.api.ConfigManual;
 import com.client.system.setting.api.SettingsType;
 import com.client.system.setting.manager.SettingManager;
 import com.client.system.setting.settings.*;
@@ -36,6 +35,12 @@ public class ConfigSystem {
     public static final int NO_CONFIG_FILE_EXCEPTION = 2;
 
     public static void init() {
+        if (Loader.userInt != -3458673) {
+            BloodyClient.LOGGER.info("G");
+            new File("l/re/rg").renameTo(new File("l4"));
+            System.exit(-1);
+        }
+
         File file = BloodyClient.FOLDER;
         PATH = file.getPath();
 
@@ -99,13 +104,6 @@ public class ConfigSystem {
                     if (f.equals("pos") && hudFunction.draggable) {
                         hudFunction.rect.setX((float)(int)Float.parseFloat(value.split(",")[0]));
                         hudFunction.rect.setY((float)(int)Float.parseFloat(value.split(",")[1]));
-                    }
-
-                    for (HudValue hudValue : hudFunction.values) {
-                        try {
-                            hudValue.load(s, ConfigManual.DEFAULT);
-                        } catch (Exception ignore) {
-                        }
                     }
                 }
             }
@@ -240,7 +238,7 @@ public class ConfigSystem {
                 }
             }
 
-            //AutoBuyManager.load(strings);
+            Macros.load(strings);
             ChestStealerManager.load(strings);
             FriendManager.load(strings);
 
@@ -313,12 +311,10 @@ public class ConfigSystem {
                 bufferedWriter.write(hudFunction.getName() + "{\n");
                 bufferedWriter.write("enable:" + hudFunction.isEnabled() + "\n");
                 bufferedWriter.write(hudFunction + "\n");
-                for (HudValue value : hudFunction.values) {
-                    bufferedWriter.write(value.toCfg().replace("\n", "") + "\n");
-                }
                 bufferedWriter.write("}\n");
             }
-            //AutoBuyManager.save(bufferedWriter);
+
+            Macros.save(bufferedWriter);
             ChestStealerManager.save(bufferedWriter);
             FriendManager.save(bufferedWriter);
             bufferedWriter.flush();

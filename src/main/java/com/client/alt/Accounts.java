@@ -20,7 +20,14 @@ public class Accounts {
             String line;
 
             while ((line = br.readLine()) != null) {
-                add(line);
+                String name = line;
+                String isFavorite = "false";
+                try {
+                    name = line.split(":")[0];
+                    isFavorite = line.split(":")[1];
+                } catch (Exception e) {}
+
+                add(name, Boolean.parseBoolean(isFavorite));
             }
 
             br.close();
@@ -37,7 +44,7 @@ public class Accounts {
 
             BufferedWriter br = new BufferedWriter(new FileWriter(file));
             for (Account s : getAccounts()) {
-                br.write(s.name + "\n");
+                br.write(s.name + ":" + s.isFavorite + "\n");
             }
             br.close();
         } catch (IOException e) {
@@ -46,20 +53,30 @@ public class Accounts {
     }
 
     public static void add(Account account) {
-        if (!accounts.contains(account))
+        if (!accounts.contains(account)) {
             accounts.add(account);
+
+            AccountUtils.shouldUpdate = true;
+        }
     }
 
     public static void remove(Account account) {
         accounts.remove(account);
+
+        AccountUtils.shouldUpdate = true;
     }
 
-    public static void add(String account) {
-        if (accounts.stream().noneMatch(e -> e.name.equals(account)))
-            accounts.add(new Account(account));
+    public static void add(String account, boolean isFavorite) {
+        if (accounts.stream().noneMatch(e -> e.name.equals(account))) {
+            accounts.add(new Account(account, isFavorite));
+
+            AccountUtils.shouldUpdate = true;
+        }
     }
 
     public static void remove(String account) {
         accounts.removeIf(e -> e.name.equals(account));
+
+        AccountUtils.shouldUpdate = true;
     }
 }

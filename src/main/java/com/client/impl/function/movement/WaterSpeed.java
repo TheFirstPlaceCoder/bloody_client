@@ -31,7 +31,8 @@ public class WaterSpeed extends Function {
         super("Water Speed", Category.MOVEMENT);
     }
 
-    private final ListSetting mode = List().name("Режим").list(List.of("FunTime")).defaultValue("FunTime").build();
+    //private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("FunTime")).defaultValue("FunTime").build();
+    public final IntegerSetting expand = Integer().name("Скорость").enName("Speed").defaultValue(11).min(1).max(20).build();
 
     private float acceleration = 0f;
 
@@ -40,8 +41,8 @@ public class WaterSpeed extends Function {
         if (mc.player.isSwimming()) {
             mc.player.input.movementSideways = 0;
             double[] dirSpeed = MovementUtils.forward(acceleration / 6.3447f);
-            ((IVec3d) e.movement).setX(e.movement.getX() + dirSpeed[0] * 0.11);
-            ((IVec3d) e.movement).setZ(e.movement.getZ() + dirSpeed[1] * 0.11);
+            ((IVec3d) e.movement).setX(e.movement.getX() + dirSpeed[0] * (expand.get() / 100));
+            ((IVec3d) e.movement).setZ(e.movement.getZ() + dirSpeed[1] * (expand.get() / 100));
             e.cancel();
 
             if(Math.abs(mc.player.yaw - mc.player.prevYaw) > 3) acceleration -= 0.1f;

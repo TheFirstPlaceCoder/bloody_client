@@ -7,6 +7,7 @@ import net.minecraft.block.FluidBlock;
 import net.minecraft.client.input.Input;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.potion.Potion;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -19,6 +20,10 @@ public class MovementUtils {
     public static final double WALK_SPEED = 0.19;
     private static final Vec3d horizontalVelocity = new Vec3d(0, 0, 0);
     private static final double diagonal = 1 / Math.sqrt(2);
+
+    public static double getSpeedEffect(double amp) {
+        return mc.player.hasStatusEffect(StatusEffects.SPEED) ? ((mc.player.getStatusEffect(StatusEffects.SPEED).getAmplifier() + 1) * amp) : 0;
+    }
 
     public static int getSpeedEffect() {
         return ! mc.player.hasStatusEffect(StatusEffects.SPEED) ? 0 : mc.player.getStatusEffect(StatusEffects.SPEED).getAmplifier() + 1;
@@ -328,6 +333,10 @@ public class MovementUtils {
 
     public static float getSpeed() {
         return (float) Math.sqrt(mc.player.getVelocity().x * mc.player.getVelocity().x + mc.player.getVelocity().z * mc.player.getVelocity().z);
+    }
+
+    public static double getVelocitySpeed() {
+        return Math.hypot(mc.player.getVelocity().getX(), mc.player.getVelocity().getZ());
     }
 
     public static float getAllDirection() {

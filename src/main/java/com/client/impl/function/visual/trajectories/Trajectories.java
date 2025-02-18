@@ -23,10 +23,10 @@ public class Trajectories extends Function {
         super("Trajectories", Category.VISUAL);
     }
 
-    private final BooleanSetting timeTo = Boolean().name("Время к приземлению").defaultValue(false).build();
-    private final BooleanSetting pearl = Boolean().name("Жемчуг").defaultValue(true).build();
-    private final BooleanSetting trident = Boolean().name("Трезубец").defaultValue(false).build();
-    private final BooleanSetting arrows = Boolean().name("Стрелы").defaultValue(false).build();
+    private final BooleanSetting timeTo = Boolean().name("Время к приземлению").enName("Land Time").defaultValue(false).build();
+    private final BooleanSetting pearl = Boolean().name("Жемчуг").enName("Ender Pearl").defaultValue(true).build();
+    private final BooleanSetting trident = Boolean().name("Трезубец").enName("Trident").defaultValue(false).build();
+    private final BooleanSetting arrows = Boolean().name("Стрелы").enName("Arrows").defaultValue(false).build();
 
     private final HashMap<Entity, Path> paths = new HashMap<>();
 

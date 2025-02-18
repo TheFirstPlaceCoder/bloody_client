@@ -30,6 +30,7 @@ public class FunTimeRotationsHandler extends Handler {
     public float incrementTicks = 0;
     public V2F currentRot = new V2F(0, 0);
     public Interpolates interpolates = new Interpolates();
+    AttackAura aura;
 
     @Override
     public void tick(Entity target, double range) {
@@ -38,7 +39,7 @@ public class FunTimeRotationsHandler extends Handler {
     }
 
     public void tick1(Entity target, double range, boolean isEnabled) {
-        AttackAura aura = FunctionManager.get(AttackAura.class);
+        if (aura == null) aura = FunctionManager.get(AttackAura.class);
         V2F targetRotation = getBestPoint(target, range);
 
         if (target != null && isEnabled) {
@@ -54,12 +55,17 @@ public class FunTimeRotationsHandler extends Handler {
 
     @Override
     public void elytraTick(Entity target, double range) {
-        V2F vec = getBestPoint(target, range);
+        if (aura == null) aura = FunctionManager.get(AttackAura.class);
+        V2F targetRotation = getBestPoint(target, range);
 
-        rotate.a = (float) Utils.lerp(rotate.a, vec.a, Utils.random(0.45, 0.60));
+        if (target != null) {
+            if (((IGameRenderer) mc.gameRenderer).getTarget(rotate.a, rotate.b) == target || target == mc.player) incrementTicks = 0;
 
-        if (AttackAuraUtils.rayTrace(range, rotate.a, rotate.b).getType() != HitResult.Type.ENTITY) {
-            rotate.b = (float) Utils.lerp(rotate.b, vec.b, 0.05);
+            incrementTicks += 0.05;
+            rotate.a = interpolates.calculateInterpolate(aura.boostMode.get(), rotate.a, targetRotation.a, incrementTicks);
+
+            if (((IGameRenderer) mc.gameRenderer).getTarget(rotate.a, rotate.b) != target)
+                rotate.b = (float) Utils.lerp(rotate.b, targetRotation.b, 0.1);
         }
     }
 

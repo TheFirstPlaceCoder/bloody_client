@@ -9,6 +9,7 @@ import com.client.system.setting.settings.IntegerSetting;
 import com.client.system.setting.settings.ListSetting;
 import com.client.system.setting.settings.multiboolean.MultiBooleanSetting;
 import com.client.system.setting.settings.multiboolean.MultiBooleanValue;
+import com.client.system.textures.DownloadImage;
 import com.client.utils.Utils;
 import com.client.utils.color.Colors;
 import com.client.utils.game.entity.EntityUtils;
@@ -34,17 +35,17 @@ import static com.client.utils.math.MathUtils.getRotations;
  * 22.05.2024
  * */
 public class Arrows extends Function {
-    public final MultiBooleanSetting filter = MultiBoolean().name("Отображать").defaultValue(List.of(
+    public final MultiBooleanSetting filter = MultiBoolean().name("Отображать").enName("Draw to").defaultValue(List.of(
             new MultiBooleanValue(true, "Игроков"),
             new MultiBooleanValue(true, "Друзей"),
             new MultiBooleanValue(false, "Инвизов"),
             new MultiBooleanValue(false, "Предметы")
     )).build();
 
-    public final ListSetting color = List().name("Режим цвета").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
-    public final ColorSetting playerColor = Color().name("Цвет игроков").defaultValue(Color.CYAN).visible(() -> color.get().equals("Статичный")).build();
-    public final ColorSetting invisColor = Color().name("Цвет инвизов").defaultValue(Color.GREEN).visible(() -> color.get().equals("Статичный")).build();
-    public final ColorSetting itemsColor = Color().name("Цвет предметов").defaultValue(Color.RED).visible(() -> color.get().equals("Статичный")).build();
+    public final ListSetting color = List().name("Режим цвета").enName("Color Mode").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
+    public final ColorSetting playerColor = Color().name("Цвет игроков").enName("Players Color").defaultValue(Color.CYAN).visible(() -> color.get().equals("Статичный")).build();
+    public final ColorSetting invisColor = Color().name("Цвет инвизов").enName("Invisibles Color").defaultValue(Color.GREEN).visible(() -> color.get().equals("Статичный")).build();
+    public final ColorSetting itemsColor = Color().name("Цвет предметов").enName("Items Color").defaultValue(Color.RED).visible(() -> color.get().equals("Статичный")).build();
 
     public final IntegerSetting zazor = Integer().name("Зазор").defaultValue(70).min(0).max(70).build();
 
@@ -52,7 +53,6 @@ public class Arrows extends Function {
         super("Arrows", Category.VISUAL);
     }
 
-    private final Identifier arrow = new Identifier("bloody-client", "/client/arrows.png");
     private float yaw, step, offsetX, offsetY;
     private float size;
 
@@ -113,7 +113,7 @@ public class Arrows extends Function {
             colors[3] = getColor(entity, Colors.getColor((int) (270f * (MathHelper.clamp(((x + sin + offsetX) - (x - sin / 2)) * size, 0F, 1F))), 50));
         }
 
-        TextureGL.create().bind(arrow).draw(new TextureGL.TextureRegion(128, 128), true, colors[0], colors[1], colors[2], colors[3]);
+        TextureGL.create().bind(DownloadImage.getGlId(DownloadImage.ARROWS)).draw(new TextureGL.TextureRegion(128, 128), true, colors[0], colors[1], colors[2], colors[3]);
         GL11.glPopMatrix();
     }
 

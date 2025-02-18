@@ -24,11 +24,6 @@
       "bloody-client:clock"
     ]
   },
-  "uuuh": {
-    "sounds": [
-      "bloody-client:uuuh"
-    ]
-  },
   "yay": {
     "sounds": [
       "bloody-client:yay"
@@ -54,14 +49,24 @@
       "bloody-client:punch"
     ]
   },
-  "punch2": {
-    "sounds": [
-      "bloody-client:punch2"
-    ]
-  },
   "bonk": {
     "sounds": [
       "bloody-client:bonk"
+    ]
+  },
+  "button": {
+    "sounds": [
+      "bloody-client:button"
+    ]
+  },
+  "click": {
+    "sounds": [
+      "bloody-client:click"
+    ]
+  },
+  "bubble": {
+    "sounds": [
+      "bloody-client:bubble"
     ]
   },
   "bass": {
@@ -72,11 +77,6 @@
   "chime": {
     "sounds": [
       "bloody-client:chime"
-    ]
-  },
-  "done": {
-    "sounds": [
-      "bloody-client:done"
     ]
   }
 }

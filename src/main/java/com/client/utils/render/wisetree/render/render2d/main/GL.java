@@ -15,6 +15,7 @@ import net.minecraft.client.render.*;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix4f;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -22,9 +23,11 @@ import java.util.HashMap;
 
 import static com.mojang.blaze3d.platform.GlStateManager.bindTexture;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11C.GL_QUADS;
 
 public class GL {
     public static final HashMap<Integer, Integer> glowCache = new HashMap<>();
+    public static final HashMap<Integer, Integer> roundedCache = new HashMap<>();
     public static Shader ROUNDED = new Shader(Shader.ROUNDED_FRAG);
     public static Shader ROUNDED_BLURRED = new Shader(Shader.ROUNDED_BLURRED);
     public static Shader ROUNDED_BLURRED_GRADIENT = new Shader(Shader.ROUNDED_BLURRED_GRADIENT);
@@ -348,6 +351,42 @@ public class GL {
         float[] c2 = ColorUtils.getColorComps(colors[2]);
         float[] c3 = ColorUtils.getColorComps(colors[3]);
 
+//        BufferBuilder bb = Tessellator.getInstance().getBuffer();
+//
+//        RenderSystem.enableBlend();
+//        RenderSystem.disableAlphaTest();
+//        RenderSystem.defaultBlendFunc();
+//        RenderSystem.defaultAlphaFunc();
+//        RenderSystem.enableCull();
+//        AntiAliasing.enable(true, true, true);
+//
+//        bb.begin(GL_TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
+//
+//        double toX = x + width;
+//        double toY = y + height;
+//
+//        double[][] map = new double[][]{new double[]{toX - radius, toY - radius, radius}, new double[]{toX - radius, y + radius, radius}, new double[]{x + radius, y + radius, radius}, new double[]{x + radius, toY - radius, radius}};
+//        for (int i = 0; i < 4; i++) {
+//            double[] current = map[i];
+//            double rad = current[2];
+//            for (double r = i * 90; r < (90 + i * 90); r += 10) {
+//                float rad1 = (float) Math.toRadians(r);
+//                float sin = (float) (Math.sin(rad1) * rad);
+//                float cos = (float) (Math.cos(rad1) * rad);
+//                bb.vertex((float) current[0] + sin, (float) current[1] + cos, 0.0F).color(c[0], c[1], c[2], c[3]);
+//            }
+//            float rad1 = (float) Math.toRadians((360 / 4d + i * 90d));
+//            float sin = (float) (Math.sin(rad1) * rad);
+//            float cos = (float) (Math.cos(rad1) * rad);
+//            bb.vertex((float) current[0] + sin, (float) current[1] + cos, 0.0F).color(c[0], c[1], c[2], c[3]);
+//        }
+//
+//        Tessellator.getInstance().draw();
+//
+        RenderSystem.enableDepthTest();
+        RenderSystem.enableCull();
+        RenderSystem.disableBlend();
+        AntiAliasing.disable(true, true, true);
         GlStateManager.disableTexture();
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -443,14 +482,22 @@ public class GL {
     }
 
     public static void drawRoundedGlowRect(FloatRect rect, double round, double glowRadius, Color... color) {
-        drawRoundedGlowRect(rect.getX(), rect.getY(), rect.getW(), rect.getH(), round, glowRadius, color);
+        drawRoundedGlowRect(rect.getX(), rect.getY(), rect.getW(), rect.getH(), round, glowRadius, 0.75, color);
     }
 
     public static void drawRoundedGlowRect(FloatRect rect, double round, double glowRadius, Color color) {
-        drawRoundedGlowRect(rect.getX(), rect.getY(), rect.getW(), rect.getH(), round, glowRadius, color, color, color, color);
+        drawRoundedGlowRect(rect.getX(), rect.getY(), rect.getW(), rect.getH(), round, glowRadius, 0.75, color, color, color, color);
     }
 
-    public static void drawRoundedGlowRect(double x, double y, double width, double height, double round, double glowRadius, Color... colors) {
+    public static void drawRoundedGlowRect(FloatRect rect, double round, double glowRadius, double alpha, Color... color) {
+        drawRoundedGlowRect(rect.getX(), rect.getY(), rect.getW(), rect.getH(), round, glowRadius, alpha, color);
+    }
+
+    public static void drawRoundedGlowRect(FloatRect rect, double round, double glowRadius, double alpha, Color color) {
+        drawRoundedGlowRect(rect.getX(), rect.getY(), rect.getW(), rect.getH(), round, glowRadius, alpha, color, color, color, color);
+    }
+
+    public static void drawRoundedGlowRect(double x, double y, double width, double height, double round, double glowRadius, double alpha, Color... colors) {
         float[] c = ColorUtils.getColorComps(colors[0]);
         float[] c1 = ColorUtils.getColorComps(colors[1]);
         float[] c2 = ColorUtils.getColorComps(colors[2]);
@@ -465,6 +512,7 @@ public class GL {
         ROUNDED_GLOW.load();
         ROUNDED_GLOW.setUniformf("size", (float)(width + 2 * glowRadius), (float)(height + 2 * glowRadius));
         ROUNDED_GLOW.setUniformf("softness", (float) glowRadius);
+        ROUNDED_GLOW.setUniformf("alphaStart", (float) alpha);
         ROUNDED_GLOW.setUniformf("radius", (float)round);
         ROUNDED_GLOW.setUniformf("glowRadius", (float) 3);
         ROUNDED_GLOW.setUniformf("color1", c[0], c[1], c[2], c[3]);
@@ -545,10 +593,26 @@ public class GL {
     }
 
     public static void drawRoundedTexture(Identifier identifier, double x, double y, double width, double height, double radius) {
-        drawRoundedTexture(Utils.getTextureId(identifier), x, y, width, height, radius);
+        drawRoundedTexture(Utils.getTextureId(identifier), x, y, width, height, radius, Color.WHITE);
     }
 
-    public static void drawRoundedTexture(int texId, double x, double y, double width, double height, double radius) {
+    public static void drawRoundedTexture(int textureId, double x, double y, double width, double height, double radius) {
+        drawRoundedTexture(textureId, x, y, width, height, radius, Color.WHITE);
+    }
+
+    public static void drawRoundedTexture(Identifier identifier, FloatRect rect, double radius) {
+        drawRoundedTexture(Utils.getTextureId(identifier), rect.getX(), rect.getY(), rect.getW(), rect.getH(), radius, Color.WHITE);
+    }
+
+    public static void drawRoundedTexture(int textureId, FloatRect rect, double radius) {
+        drawRoundedTexture(textureId, rect.getX(), rect.getY(), rect.getW(), rect.getH(), radius, Color.WHITE);
+    }
+
+    public static void drawRoundedTexture(Identifier identifier, FloatRect rect, double radius, Color color) {
+        drawRoundedTexture(Utils.getTextureId(identifier), rect.getX(), rect.getY(), rect.getW(), rect.getH(), radius, color);
+    }
+
+    public static void drawRoundedTexture(int texId, double x, double y, double width, double height, double radius, Color color) {
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -556,10 +620,66 @@ public class GL {
         ROUNDED_TEXTURE.setUniformf("size", (float)width * 2, (float)height * 2);
         ROUNDED_TEXTURE.setUniformf("round", (float)radius * 2);
         bindTexture(texId);
-        Shader.draw(x, y, width, height);
+        //Shader.draw(x, y, width, height);
+
+        float r = color.getRed() / 255f;
+        float g = color.getGreen() / 255f;
+        float b = color.getBlue() / 255f;
+        float a = color.getAlpha() / 255f;
+
+        GL30.glBegin(GL_QUADS);
+        GL30.glColor4f(r, g, b, a);
+        GL30.glTexCoord2d(0, 0);
+        GL30.glVertex2d(x, y);
+        GL30.glColor4f(r, g, b, a);
+        GL30.glTexCoord2d(0, 1);
+        GL30.glVertex2d(x, y + height);
+        GL30.glColor4f(r, g, b, a);
+        GL30.glTexCoord2d(1, 1);
+        GL30.glVertex2d(x + width, y + height);
+        GL30.glColor4f(r, g, b, a);
+        GL30.glTexCoord2d(1, 0);
+        GL30.glVertex2d(x + width, y);
+        GL30.glEnd();
+
         bindTexture(0);
         ROUNDED_TEXTURE.unload();
 
+        GlStateManager.disableBlend();
+    }
+
+    public static void drawTexture(Identifier identifier, FloatRect rect) {
+        drawTexture(Utils.getTextureId(identifier), rect.getX(), rect.getY(), rect.getW(), rect.getH(), Color.WHITE);
+    }
+
+    public static void drawTexture(int texId, double x, double y, double width, double height, Color color) {
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        bindTexture(texId);
+        //Shader.draw(x, y, width, height);
+
+        float r = color.getRed() / 255f;
+        float g = color.getGreen() / 255f;
+        float b = color.getBlue() / 255f;
+        float a = color.getAlpha() / 255f;
+
+        GL30.glBegin(GL_QUADS);
+        GL30.glColor4f(r, g, b, a);
+        GL30.glTexCoord2d(0, 0);
+        GL30.glVertex2d(x, y);
+        GL30.glColor4f(r, g, b, a);
+        GL30.glTexCoord2d(0, 1);
+        GL30.glVertex2d(x, y + height);
+        GL30.glColor4f(r, g, b, a);
+        GL30.glTexCoord2d(1, 1);
+        GL30.glVertex2d(x + width, y + height);
+        GL30.glColor4f(r, g, b, a);
+        GL30.glTexCoord2d(1, 0);
+        GL30.glVertex2d(x + width, y);
+        GL30.glEnd();
+
+        bindTexture(0);
         GlStateManager.disableBlend();
     }
 
@@ -617,6 +737,60 @@ public class GL {
         GlStateManager.disableBlend();
     }
 
+    public static void drawRoundedRectTexture(FloatRect data, int radius, Color... color) {
+        drawRoundedRectTexture(data.getX(), data.getY(), data.getW(), data.getH(), radius, color);
+    }
+
+    public static void drawRoundedRectTexture(IntRect data, int radius, Color... color) {
+        drawRoundedRectTexture(data.getX(), data.getY(), data.getW(), data.getH(), radius, color);
+    }
+
+    public static void drawRoundedRectTexture(DoubleRect data, int radius, Color... color) {
+        drawRoundedRectTexture(data.getX(), data.getY(), data.getW(), data.getH(), radius, color);
+    }
+
+    public static void drawRoundedRectTexture(double x, double y, double width, double height, int radius, Color... color) {
+        int texture = getGlowTexture((int) width, (int) height, radius);
+        if (texture == -1) return;
+
+        GlStateManager.enableBlend();
+
+        GL11.glEnable(GL_ALPHA_TEST);
+        GL11.glAlphaFunc(GL_GREATER, 0.0001f);
+
+        GlStateManager.bindTexture(texture);
+        width += radius * 2;
+        height += radius * 2;
+        x -= radius;
+        y -= radius;
+
+        GlStateManager.shadeModel(GL_SMOOTH);
+
+        GL11.glBegin(GL_QUADS);
+        Renderer3D.color(color[0]);
+        GL11.glTexCoord2d(0, 1);
+        GL11.glVertex2d(x, y);
+
+        if (color.length > 1) Renderer3D.color(color[1]);
+        GL11.glTexCoord2d(0, 0);
+        GL11.glVertex2d(x, y + height);
+
+        if (color.length > 2) Renderer3D.color(color[2]);
+        GL11.glTexCoord2d(1, 0);
+        GL11.glVertex2d(x + width, y + height);
+
+        if (color.length > 3) Renderer3D.color(color[3]);
+        GL11.glTexCoord2d(1, 1);
+        GL11.glVertex2d(x + width, y);
+
+        GL11.glEnd();
+        GlStateManager.shadeModel(GL_FLAT);
+
+        GlStateManager.bindTexture(0);
+        GL11.glDisable(GL_ALPHA_TEST);
+        GlStateManager.disableBlend();
+    }
+
     private static int getGlowTexture(int width, int height, int blurRadius) {
         int identifier = (width * 401 + height) * 407 + blurRadius;
         int texId = glowCache.getOrDefault(identifier, -1);
@@ -631,6 +805,33 @@ public class GL {
 
             GlowFilter glow = new GlowFilter(blurRadius);
             BufferedImage blurred = glow.filter(original, null);
+            try {
+                texId = Utils.loadTexture(blurred);
+                glowCache.put(identifier, texId);
+            } catch (Exception ignored) {
+            }
+        }
+
+        return texId;
+    }
+
+    private static int getRoundedTexture(int width, int height, int radius) {
+        int identifier = (width * 401 + height) * 407 + radius;
+        int texId = glowCache.getOrDefault(identifier, -1);
+
+        if(texId == -1) {
+            BufferedImage original = new BufferedImage(width + radius * 2, height + radius * 2, BufferedImage.TYPE_INT_ARGB_PRE);
+
+            Graphics g = original.getGraphics();
+            g.setColor(Color.WHITE);
+            g.fillRect(radius, radius, width, height);
+            g.dispose();
+
+            GlowFilter glow = new GlowFilter(radius);
+            glow.setPremultiplyAlpha(false);
+            glow.setUseAlpha(false);
+            BufferedImage blurred = glow.filter(original, null);
+
             try {
                 texId = Utils.loadTexture(blurred);
                 glowCache.put(identifier, texId);

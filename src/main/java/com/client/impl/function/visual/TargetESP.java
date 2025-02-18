@@ -1,11 +1,13 @@
 package com.client.impl.function.visual;
 
 import com.client.event.events.Render3DEvent;
+import com.client.impl.function.combat.aura.AttackAura;
 import com.client.impl.function.combat.aura.TargetHandler;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.function.FunctionManager;
 import com.client.system.setting.settings.ListSetting;
+import com.client.system.textures.DownloadImage;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
 import com.client.utils.game.entity.PlayerUtils;
@@ -29,11 +31,12 @@ public class TargetESP extends Function {
         super("Target ESP", Category.VISUAL);
     }
 
-    private final ListSetting mode = List().name("Режим").defaultValue("Круг").list(List.of("Квадрат", "Круг", "Новый")).build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").defaultValue("Круг").list(List.of("Квадрат", "Круг", "Новый")).build();
 
     private final SmoothStepAnimation animation = new SmoothStepAnimation(600, 1);
     private final CircleRenderer circleRenderer = new CircleRenderer();
     private final GhostRenderer ghostRenderer = new GhostRenderer();
+    private AttackAura attackAura = FunctionManager.get(AttackAura.class);
 
     @Override
     public void onRender3D(Render3DEvent event) {
@@ -41,7 +44,7 @@ public class TargetESP extends Function {
 
         if (target == null) return;
 
-        if (!FunctionManager.isEnabled("Attack Aura") || !PlayerUtils.isInRange(target, FunctionUtils.range)) {
+        if (!attackAura.isEnabled() || !PlayerUtils.isInRange(target, FunctionUtils.range)) {
             animation.setDirection(Direction.BACKWARDS);
         } else {
             animation.setDirection(Direction.FORWARDS);
@@ -62,7 +65,7 @@ public class TargetESP extends Function {
                 stack.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(-mc.gameRenderer.getCamera().getYaw()));
                 stack.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(mc.gameRenderer.getCamera().getPitch()));
                 stack.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion((float) (Math.sin(System.currentTimeMillis() / 1000.0) * 360.0)));
-                TextureGL.create().bind(new Identifier("bloody-client", "/client/auratexture.png"))
+                TextureGL.create().bind(DownloadImage.getGlId(DownloadImage.AURA_TEXTURE))
                         .draw(stack, new TextureGL.TextureRegion(512, 512), false,
                                 ColorUtils.injectAlpha(Colors.getColor(0), (int) (alpha * 255)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (alpha * 255)),
                                 ColorUtils.injectAlpha(Colors.getColor(180), (int) (alpha * 255)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (alpha * 255)));
@@ -73,5 +76,10 @@ public class TargetESP extends Function {
         }
 
         stack.pop();
+    }
+
+    @Override
+    public String getHudPrefix() {
+        return mode.get();
     }
 }

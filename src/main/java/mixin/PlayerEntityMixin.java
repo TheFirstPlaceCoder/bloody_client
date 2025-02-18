@@ -11,6 +11,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
@@ -30,74 +31,14 @@ public abstract class PlayerEntityMixin {
         if (event.isSet()) info.setReturnValue(event.isClip());
     }
 
+    @Unique private Sprint sprint;
+
     @Inject(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;setSprinting(Z)V", shift = At.Shift.AFTER))
     public void attackAHook(CallbackInfo callbackInfo) {
-        if (FunctionManager.get(Sprint.class).keepSprint()) {
-            FunctionManager.get(Sprint.class).set();
+        if (sprint == null) sprint = FunctionManager.get(Sprint.class);
+        if (sprint.keepSprint()) {
+            sprint.set();
         }
-    }
-
-    @ModifyArg(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;playSound(Lnet/minecraft/entity/player/PlayerEntity;DDDLnet/minecraft/sound/SoundEvent;Lnet/minecraft/sound/SoundCategory;FF)V", ordinal = 0), index = 4)
-    public SoundEvent attackSoundHook(SoundEvent soundEvent) {
-        if (FunctionUtils.soundEvent != null) {
-            return FunctionUtils.soundEvent;
-        }
-
-        return soundEvent;
-    }
-
-    @ModifyArg(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;playSound(Lnet/minecraft/entity/player/PlayerEntity;DDDLnet/minecraft/sound/SoundEvent;Lnet/minecraft/sound/SoundCategory;FF)V", ordinal = 1), index = 4)
-    public SoundEvent attackSoundHook1(SoundEvent soundEvent) {
-        if (FunctionUtils.soundEvent != null) {
-            return FunctionUtils.soundEvent;
-        }
-
-        return soundEvent;
-    }
-
-    @ModifyArg(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;playSound(Lnet/minecraft/entity/player/PlayerEntity;DDDLnet/minecraft/sound/SoundEvent;Lnet/minecraft/sound/SoundCategory;FF)V", ordinal = 2), index = 4)
-    public SoundEvent attackSoundHook2(SoundEvent soundEvent) {
-        if (FunctionUtils.soundEvent != null) {
-            return FunctionUtils.soundEvent;
-        }
-
-        return soundEvent;
-    }
-
-    @ModifyArg(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;playSound(Lnet/minecraft/entity/player/PlayerEntity;DDDLnet/minecraft/sound/SoundEvent;Lnet/minecraft/sound/SoundCategory;FF)V", ordinal = 0), index = 4)
-    public SoundEvent attackSoundHook3(SoundEvent soundEvent) {
-        if (FunctionUtils.soundEvent != null) {
-            return FunctionUtils.soundEvent;
-        }
-
-        return soundEvent;
-    }
-
-    @ModifyArg(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;playSound(Lnet/minecraft/entity/player/PlayerEntity;DDDLnet/minecraft/sound/SoundEvent;Lnet/minecraft/sound/SoundCategory;FF)V", ordinal = 3), index = 4)
-    public SoundEvent attackSoundHook4(SoundEvent soundEvent) {
-        if (FunctionUtils.soundEvent != null) {
-            return FunctionUtils.soundEvent;
-        }
-
-        return soundEvent;
-    }
-
-    @ModifyArg(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;playSound(Lnet/minecraft/entity/player/PlayerEntity;DDDLnet/minecraft/sound/SoundEvent;Lnet/minecraft/sound/SoundCategory;FF)V", ordinal = 4), index = 4)
-    public SoundEvent attackSoundHook5(SoundEvent soundEvent) {
-        if (FunctionUtils.soundEvent != null) {
-            return FunctionUtils.soundEvent;
-        }
-
-        return soundEvent;
-    }
-
-    @ModifyArg(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;playSound(Lnet/minecraft/entity/player/PlayerEntity;DDDLnet/minecraft/sound/SoundEvent;Lnet/minecraft/sound/SoundCategory;FF)V", ordinal = 5), index = 4)
-    public SoundEvent attackSoundHook6(SoundEvent soundEvent) {
-        if (FunctionUtils.soundEvent != null) {
-            return FunctionUtils.soundEvent;
-        }
-
-        return soundEvent;
     }
 
     @Inject(method = "travel", at = @At("HEAD"), cancellable = true)

@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HitBubbles extends Function {
-    private final ListSetting mode = List().name("Режим").defaultValue("Первый").list(List.of("Первый", "Второй")).build();
+    private final ListSetting mode = List().name("Режим").enName("Type").defaultValue("Обычный").list(List.of("Обычный", "Яркий")).build();
 
     public HitBubbles() {
         super("Hit Bubbles", Category.VISUAL);
@@ -97,5 +97,10 @@ public class HitBubbles extends Function {
         for (Particle object : objects) {
             object.draw(event.getMatrices(), mode.get());
         }
+    }
+
+    @Override
+    public String getHudPrefix() {
+        return mode.get();
     }
 }

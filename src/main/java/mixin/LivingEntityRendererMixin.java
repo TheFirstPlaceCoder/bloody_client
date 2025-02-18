@@ -2,6 +2,7 @@ package mixin;
 
 import com.client.impl.function.combat.aura.rotate.RotationHandler;
 import com.client.impl.function.visual.Chams;
+import com.client.system.function.Function;
 import com.client.system.function.FunctionManager;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -15,6 +16,7 @@ import net.minecraft.entity.LivingEntity;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
@@ -59,10 +61,13 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
         return oldValue;
     }
 
+    @Unique private Chams module;
+    @Unique private Function function;
+
     @SuppressWarnings("UnresolvedMixinReference")
     @ModifyArgs(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/EntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;IIFFFF)V"))
     private void modifyColor(Args args, T livingEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i) {
-        Chams module = FunctionManager.get(Chams.class);
+        if (module == null) module = FunctionManager.get(Chams.class);
         if (!module.isEnabled() || !module.shouldDraw(livingEntity)) return;
 
         Color color = module.getEntityColor(livingEntity);
@@ -74,10 +79,12 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/LivingEntityRenderer;getRenderLayer(Lnet/minecraft/entity/LivingEntity;ZZZ)Lnet/minecraft/client/render/RenderLayer;"))
     private RenderLayer getRenderLayer(LivingEntityRenderer<T, M> livingEntityRenderer, T livingEntity, boolean showBody, boolean translucent, boolean showOutline) {
-        Chams module = FunctionManager.get(Chams.class);
-        if (!module.isEnabled() || !module.shouldDraw(livingEntity))
-            return getRenderLayer(livingEntity, FunctionManager.isEnabled("Anti Vanish") || !livingEntity.isInvisible(), FunctionManager.isEnabled("Anti Vanish") || !livingEntity.isInvisible(), FunctionManager.isEnabled("Anti Vanish") || !livingEntity.isInvisible());
+        if (module == null)  module = FunctionManager.get(Chams.class);
+        if (function == null) function = FunctionManager.get("Anti Vanish");
 
-        return getRenderLayer(livingEntity, ((FunctionManager.isEnabled("Anti Vanish") || module.filter.get(3)) || !livingEntity.isInvisible()), ((FunctionManager.isEnabled("Anti Vanish") || module.filter.get(3)) || !livingEntity.isInvisible()), ((FunctionManager.isEnabled("Anti Vanish") || module.filter.get(3)) || !livingEntity.isInvisible()));
+        if (!module.isEnabled() || !module.shouldDraw(livingEntity))
+            return getRenderLayer(livingEntity, function.isEnabled() || !livingEntity.isInvisible(), function.isEnabled() || !livingEntity.isInvisible(), function.isEnabled() || !livingEntity.isInvisible());
+
+        return getRenderLayer(livingEntity, ((function.isEnabled() || module.filter.get(3)) || !livingEntity.isInvisible()), ((function.isEnabled() || module.filter.get(3)) || !livingEntity.isInvisible()), ((function.isEnabled() || module.filter.get(3)) || !livingEntity.isInvisible()));
     }
 }

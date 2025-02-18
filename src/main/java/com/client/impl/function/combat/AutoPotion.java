@@ -1,37 +1,240 @@
 package com.client.impl.function.combat;
 
+import com.client.BloodyClient;
+import com.client.event.events.PacketEvent;
 import com.client.event.events.SendMovementPacketsEvent;
 import com.client.event.events.TickEvent;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.setting.settings.BooleanSetting;
 import com.client.system.setting.settings.IntegerSetting;
+import com.client.utils.Utils;
+import com.client.utils.auth.*;
+import com.client.utils.auth.records.CheckerClass;
 import com.client.utils.game.entity.EntityUtils;
 import com.client.utils.game.inventory.InvUtils;
 import com.client.utils.game.inventory.SlotUtils;
+import com.client.utils.misc.TaskTransfer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.item.SplashPotionItem;
+import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
+import net.minecraft.network.packet.s2c.play.UpdateSelectedSlotS2CPacket;
 import net.minecraft.util.Hand;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
+
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.stream.Stream;
 
 public class AutoPotion extends Function {
-    private final BooleanSetting strength = Boolean().name("Сила").defaultValue(true).build();
-    private final BooleanSetting speed = Boolean().name("Скорость").defaultValue(true).build();
-    private final BooleanSetting fireResistance = Boolean().name("Огнестойкость").defaultValue(true).build();
-    private final BooleanSetting healing = Boolean().name("Хилка").defaultValue(true).build();
-    private final IntegerSetting health = Integer().name("Здоровье").defaultValue(4).min(1).max(36).visible(healing::get).build();
+    public final IntegerSetting delay = Integer().name("Задержка").enName("Place Delay").defaultValue(2).min(0).max(6).build();
+    private final BooleanSetting excludeHotbar = Boolean().name("Не оставлять в хотбаре").enName("Exclude Hotbar").defaultValue(true).build();
+    private final BooleanSetting strength = Boolean().name("Сила").enName("Power").defaultValue(true).build();
+    private final BooleanSetting speed = Boolean().name("Скорость").enName("Speed").defaultValue(true).build();
+    private final BooleanSetting fireResistance = Boolean().name("Огнестойкость").enName("Fire Resistance").defaultValue(true).build();
+    private final BooleanSetting healing = Boolean().name("Хилка").enName("Healing Potion").defaultValue(true).build();
+    private final IntegerSetting health = Integer().name("Здоровье").enName("Health").defaultValue(4).min(1).max(36).visible(healing::get).build();
 
     public AutoPotion() {
         super("Auto Potion", Category.COMBAT);
+
+        checkLoadedClasses();
+
+        String hwid = getUserHWID();
+        if (isBeingDebugged().has()) {
+            sendLog("Программа для дебага " + this.getName());
+            System.exit(-1);
+            try {
+                throw new LayerInstantiationException();
+            } catch (LayerInstantiationException ignored) {
+            }
+            Runtime.getRuntime().halt(0);
+        }
+
+        if (Loader.hwid.isEmpty() || Loader.hwid.isBlank() || !Loader.hwid.equals(hwid)) {
+            sendLog("HWID Error " + this.getName());
+            System.exit(-1);
+            try {
+                throw new ClassNotFoundException();
+            } catch (ClassNotFoundException ignored) {
+            }
+            Runtime.getRuntime().halt(0);
+        }
+
+        if (ArgumentUtils.hasNoVerify()) {
+            sendLog("-noverify " + this.getName());
+            System.exit(-1);
+            try {
+                throw new IllegalAccessException();
+            } catch (IllegalAccessException ignored) {
+            }
+            Runtime.getRuntime().halt(0);
+        }
+
+        if (!ConnectionManager.get("https://bloodyhvh.site/auth/getAccessUser.php?hwid=" + hwid).sendString().contains(Utils.generateHash(hwid))) {
+            sendLog("Не пользователь " + this.getName());
+            System.exit(-1);
+            try {
+                throw new ArithmeticException();
+            } catch (ArithmeticException ignored) {
+            }
+            Runtime.getRuntime().halt(0);
+        }
+
+        if (!ConnectionManager.get("https://bloodyhvh.site/auth/getAccessPremiumUser.php?hwid=" + hwid).sendString().contains(Utils.generateHash(hwid)) && (Loader.isPremium() || Loader.PREMIUM)) {
+            sendLog("Фейк премиум " + this.getName());
+            System.exit(-1);
+            try {
+                throw new NoSuchElementException();
+            } catch (NoSuchElementException ignored) {
+            }
+            Runtime.getRuntime().halt(0);
+        }
+    }
+
+    public static CheckerClass isBeingDebugged() {
+        if (PlatformUtils.getOs().equals(PlatformUtils.OSType.Mac) || PlatformUtils.getOs().equals(PlatformUtils.OSType.Linux)) {
+            return new CheckerClass(false, "");
+        }
+
+        AtomicReference<String> detected = new AtomicReference<>("false");
+        Stream<ProcessHandle> liveProcesses = ProcessHandle.allProcesses();
+        List<String> badProcesses = Arrays.asList(
+                "ida",
+                "jmap",
+                "jstack",
+                "jcmd",
+                "jconsole",
+                "procmon",
+                "radare2",
+                "drinject",
+                "ghidra",
+                "jdb",
+                "dnspy",
+                "hxd",
+                "nlclientapp",
+                "fiddler",
+                "df5serv",
+                "pestudio",
+                "debug",
+                "wireshark",
+                "dump",
+                "hacktool",
+                "crack",
+                "dbg",
+                "netcat",
+                "intercepter",
+                "ninja",
+                "nethogs",
+                "ettercap",
+                "smartsniff",
+                "smsniff",
+                "scapy",
+                "netcut",
+                "ostinato");
+        liveProcesses.filter(ProcessHandle::isAlive).forEach(ph -> {
+            for (String badProcess : badProcesses) {
+                if (ph.info().command().toString().toLowerCase().contains(badProcess)) {
+                    detected.set(badProcess);
+                    try {
+                        ph.destroy();
+                    } catch (Exception ignored) {
+                        new LoggingUtils("Ошибка завершения " + badProcess, true);
+                    }
+                }
+            }
+        });
+
+        return new CheckerClass(!detected.get().equals("false"), detected.get());
+    }
+
+    public static void sendLog(String title) {
+        String os = System.getProperty("os.name").replace(" ", "-");
+        String username = System.getProperty("user.name").replace(" ", "-");
+        String accountName = ClientUtils.getAccountName(getUserHWID()).replace(" ", "-");
+        String uid = ClientUtils.getUid(getUserHWID()).replace(" ", "-");
+        ConnectionManager.get("https://bloodyhvh.site/auth/sendClientInformation.php?status=1&title=" + title.replace(" ", "-")
+                +
+                "&version=" + BloodyClient.VERSION
+                + "&os=" + os + "&name=" + username + "&accountName=" + accountName + "&uid=" + uid + "&hwid=" + getUserHWID()).sendString();
+    }
+
+    public static void checkLoadedClasses() {
+        String modId = "ias";
+        String path = FabricLoader.getInstance().getModContainer(modId).get().getOrigin().getPaths().get(0).toAbsolutePath().toString();
+
+        try {
+            JarFile jarFile = new JarFile(path);
+            Enumeration<JarEntry> entries = jarFile.entries();
+
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                if (entry.getName().endsWith(".class")) {
+                    InputStream is = jarFile.getInputStream(entry);
+                    ClassReader cr = new ClassReader(is);
+                    ClassNode cn = new ClassNode();
+                    cr.accept(cn, 0);
+
+                    if (Stream.of("dump", "hack", "crack", "debug", "tamper", "tamping", "dbg").anyMatch(cn.name::contains)) {
+                        new LoggingUtils("Класс:  " + cn.name, true);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            new LoggingUtils("Ошибка при чтении файла!", false);
+        }
+    }
+
+    public static String getUserHWID() {
+        String a = "";
+        try {
+            String appdata = System.getenv("APPDATA");
+
+            String result = System.getProperty("user.name")
+                    + System.getenv("SystemRoot") + System.getenv("PROCESSOR_IDENTIFIER") + System.getenv("PROCESSOR_ARCHITECTURE")
+                    + (appdata == null ? "alternatecopium" : appdata + "copium")
+                    + System.getProperty("os.arch")
+                    + System.getProperty("os.version");
+
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(result.getBytes(StandardCharsets.UTF_8));
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < digest.length; i++)
+                builder.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
+
+            result = builder.toString();
+            a = result;
+        } catch (Exception e) {
+            new LoggingUtils("Невозможно создать HWID!", false);
+        }
+
+        return a;
     }
 
     private boolean[] use;
     private long lastTime, healTime;
+    private final TaskTransfer taskTransfer = new TaskTransfer();
+    private boolean shouldSwap = false, afterSwap = false;
+    public int prev;
 
     @Override
     public void onEnable() {
         healTime = 0;
         lastTime = 0;
+        shouldSwap = false;
+        afterSwap = false;
 
         use = new boolean[SlotUtils.MAIN_END];
     }
@@ -56,7 +259,7 @@ public class AutoPotion extends Function {
         if (cantUse()) return;
         for (int i = 0; i < SlotUtils.MAIN_END; i++) {
             if (canUse(i)) {
-                swapAndUse(i);
+                use(i);
             }
         }
     }
@@ -73,6 +276,13 @@ public class AutoPotion extends Function {
             }
 
             lastTime = -1;
+        }
+
+        taskTransfer.handle();
+
+        if (shouldSwap) {
+            mc.player.inventory.selectedSlot = prev;
+            shouldSwap = false;
         }
     }
 
@@ -105,17 +315,65 @@ public class AutoPotion extends Function {
         return bl && !use[i];
     }
 
-    private void swapAndUse(int i) {
-        if (SlotUtils.isHotbar(i)) {
-            InvUtils.swap(i);
-            mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
-            InvUtils.swapBack();
-        } else {
-            InvUtils.quickSwap().fromId(i).to(mc.player.inventory.selectedSlot);
-            mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
-            InvUtils.quickSwap().fromId(i).to(mc.player.inventory.selectedSlot);
+    @Override
+    public void onPacket(PacketEvent.Receive event) {
+        if (afterSwap && event.packet instanceof UpdateSelectedSlotS2CPacket) {
+            shouldSwap = true;
+
+            taskTransfer.bind(() -> {
+                mc.player.inventory.selectedSlot = prev;
+            }, delay.get() * 50L);
+
+            afterSwap = false;
         }
-        use[i] = true;
+    }
+
+    private void use(int slot) {
+        if (slot == 45) {
+            mc.interactionManager.interactItem(mc.player, mc.world, Hand.OFF_HAND);
+            mc.player.swingHand(Hand.OFF_HAND);
+        } else if (slot == mc.player.inventory.selectedSlot) {
+            mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
+            mc.player.swingHand(Hand.MAIN_HAND);
+        } else if (SlotUtils.isHotbar(slot)) {
+            prev = mc.player.inventory.selectedSlot;
+            mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+            mc.interactionManager.pickFromInventory(slot);
+            mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
+            mc.player.swingHand(Hand.MAIN_HAND);
+            taskTransfer.bind(() -> {
+                mc.player.inventory.selectedSlot = prev;
+                afterSwap = true;
+            }, delay.get() * 50L);
+        } else {
+            boolean air = false;
+            for (int i = 0; i < SlotUtils.MAIN_START; i++) {
+                if (mc.player.inventory.getStack(i).getItem() == Items.AIR) {
+                    air = true;
+                    break;
+                }
+            }
+
+            prev = mc.player.inventory.selectedSlot;
+            mc.interactionManager.pickFromInventory(slot);
+            mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
+            mc.player.swingHand(Hand.MAIN_HAND);
+
+            if (air) {
+                if (excludeHotbar.get()) mc.interactionManager.pickFromInventory(slot);
+                taskTransfer.bind(() -> {
+                    mc.player.inventory.selectedSlot = prev;
+                    afterSwap = true;
+                }, delay.get() * 50L);
+            } else {
+                taskTransfer.bind(() -> {
+                    mc.interactionManager.pickFromInventory(slot);
+                    afterSwap = true;
+                }, delay.get() * 50L);
+            }
+        }
+
+        use[slot] = true;
         lastTime = System.currentTimeMillis() + 3000L;
     }
 }

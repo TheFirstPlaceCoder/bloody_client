@@ -9,9 +9,11 @@ import com.client.utils.auth.Loader;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ListSetting extends AbstractSettings<String> {
     private List<String> list = new ArrayList<>();
+    private Consumer<String> callback = null;
 
     public ListSetting(Function function) {
         super(SettingsType.List, function);
@@ -24,6 +26,7 @@ public class ListSetting extends AbstractSettings<String> {
     public void set(String value) {
         if (this.isPremium && !Loader.isPremium()) this.value = getDefaultValue();
         else this.value = value;
+        callback();
     }
 
     public ListSetting list(List<String> list) {
@@ -54,6 +57,15 @@ public class ListSetting extends AbstractSettings<String> {
         return this;
     }
 
+    public String getEnName() {
+        return enName;
+    }
+
+    public ListSetting enName(String name) {
+        this.enName = name;
+        return this;
+    }
+
     public boolean isPremium() {
         return isPremium;
     }
@@ -74,6 +86,17 @@ public class ListSetting extends AbstractSettings<String> {
 
     public SettingsType getType() {
         return type;
+    }
+
+    public void callback() {
+        if (callback != null) {
+            callback.accept(this.get());
+        }
+    }
+
+    public ListSetting callback(Consumer<String> callback) {
+        this.callback = callback;
+        return this;
     }
 
     public ListSetting build() {

@@ -1,6 +1,5 @@
 package com.client.utils.game.world;
 
-import com.client.impl.function.movement.Scaffold;
 import com.client.interfaces.IVec3d;
 import com.client.utils.game.inventory.FindItemResult;
 import com.client.utils.game.inventory.InvUtils;

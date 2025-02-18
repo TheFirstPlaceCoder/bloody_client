@@ -17,6 +17,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import static com.client.BloodyClient.mc;
 
@@ -63,7 +65,7 @@ public class HelpItems extends Function {
     @EventHandler
     private void onKey(KeyEvent event) {
         if (event.key == bind.get() && event.action == InputUtils.Action.PRESS && mc.currentScreen instanceof GenericContainerScreen chestScreen) {
-            Slot slot = getSlotAt(mc.mouse.getX(), mc.mouse.getY());
+            Slot slot = getSlotAt(mc.mouse.getX() / 2, mc.mouse.getY() / 2);
             if (slot != null) {
                 ItemStack itemStack = slot.getStack();
                 System.out.println("Stack Name: " + itemStack.getName().getString());
@@ -82,6 +84,9 @@ public class HelpItems extends Function {
                     System.out.println(j + ". Str-Name: " + in.getString());
                     j++;
                 }
+
+                String author = getName(itemStack);
+                System.out.println("PRODAVEC: " + (author != null ? author : ""));
             }
         }
     }
@@ -98,6 +103,40 @@ public class HelpItems extends Function {
         }
 
         return null;
+    }
+
+    @Nullable
+    private static String getName(ItemStack stack) {
+        try {
+            return stack.getSubTag("display").getList("Lore", 8).stream()
+                    .map(element -> {
+                        String string = Text.Serializer.fromJson(element.asString()).getString();
+
+                        if (Stream.of("Продавец:").anyMatch(string::contains)) {
+                            List<Character> list = new ArrayList<>();
+                            for (char c : string.toCharArray()) {
+                                if (c == '.' || c == '(') break;
+                                if (isLatinLetter(c) || Character.isDigit(c)) list.add(c);
+                            }
+                            char[] chars = new char[list.size()];
+                            for (int index = 0; index < list.size(); index++) chars[index] = list.get(index);
+                            try {
+                                return new String(chars);
+                            } catch (NumberFormatException ignored) {}
+                        }
+
+                        return null;
+                    })
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .get();
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    public static boolean isLatinLetter(char c) {
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_';
     }
 
     private boolean isPointOverSlot(Slot slot, double pointX, double pointY) {

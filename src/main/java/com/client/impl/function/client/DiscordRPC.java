@@ -18,7 +18,7 @@ public class DiscordRPC extends Function {
         super("Discord RPC", Category.CLIENT);
     }
 
-    public final MultiBooleanSetting draw = MultiBoolean().name("Отображать").defaultValue(List.of(
+    public final MultiBooleanSetting draw = MultiBoolean().name("Отображать").enName("Show").defaultValue(List.of(
             new MultiBooleanValue(true, "Имя"),
             new MultiBooleanValue(true, "Uid"),
             new MultiBooleanValue(true, "Группа")

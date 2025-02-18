@@ -1,11 +1,15 @@
 package com.client.impl.hud;
 
+import com.client.clickgui.newgui.GuiScreen;
+import com.client.impl.function.client.Optimization;
+import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudFunction;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.render.wisetree.font.api.FontRenderer;
 import com.client.utils.render.wisetree.font.main.IFont;
 import mixin.accessor.BossBarHudAccessor;
 import mixin.accessor.MinecraftClientAccessor;
+import net.minecraft.client.gui.hud.DebugHud;
 
 import java.awt.*;
 
@@ -15,10 +19,14 @@ public class FpsHud extends HudFunction {
         draggable = false;
     }
 
+    private Optimization optimization;
+
     @Override
     public void draw(float alpha) {
+        if (optimization == null) optimization = FunctionManager.get(Optimization.class);
+
         String ping = "Fps: ";
-        String value = "" + (isEnabled() ? ((MinecraftClientAccessor) mc).getFps() : 0);
+        String value = "" + (isEnabled() ? (int) (((MinecraftClientAccessor) mc).getFps() * (optimization.isEnabled() ? 1.5 : 1)) : 0);
 
         draw(2, ping, value, alpha);
     }

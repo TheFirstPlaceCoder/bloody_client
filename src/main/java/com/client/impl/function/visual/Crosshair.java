@@ -1,16 +1,14 @@
 package com.client.impl.function.visual;
 
-import api.interfaces.EventHandler;
 import com.client.event.events.Render2DEvent;
 import com.client.event.events.RenderOverlayEvent;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.setting.settings.BooleanSetting;
 import com.client.system.setting.settings.DoubleSetting;
-import com.client.system.setting.settings.IntegerSetting;
 import com.client.system.setting.settings.ListSetting;
+import com.client.system.textures.DownloadImage;
 import com.client.utils.color.Colors;
-import com.client.utils.render.Renderer2D;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
 import com.client.utils.render.wisetree.render.render2d.main.TextureGL;
 import com.client.utils.render.wisetree.render.render3d.Renderer3D;
@@ -28,9 +26,9 @@ import java.util.List;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Crosshair extends Function {
-    public final ListSetting mode = List().name("Режим").list(List.of("Классический", "Круг", "Свастика")).defaultValue("Классический").build();
-    public final BooleanSetting dynamic = Boolean().name("Динамичный").defaultValue(true).build();
-    public final DoubleSetting length = Double().name("Размер").defaultValue(1.0).min(0).max(5).build();
+    public final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Классический", "Круг", "Свастика")).defaultValue("Классический").build();
+    public final BooleanSetting dynamic = Boolean().name("Динамичный").enName("Dynamic").defaultValue(true).build();
+    public final DoubleSetting length = Double().name("Размер").enName("Size").defaultValue(1.0).min(0).max(5).build();
 
     public Crosshair() {
         super("Crosshair", Category.VISUAL);
@@ -80,7 +78,7 @@ public class Crosshair extends Function {
                     stack.translate(centerX, centerY, 0);
                     stack.scale(0.5f, 0.5f, 0.5f);
                     stack.multiply(Vec3f.NEGATIVE_Z.getDegreesQuaternion(progress));
-                    TextureGL.create().bind(new Identifier("bloody-client", "client/crosshair.png")).draw(stack, new TextureGL.TextureRegion(16 * length.floatValue()), false, Colors.getColor(0));
+                    TextureGL.create().bind(DownloadImage.getGlId(DownloadImage.NAZI_CROSSHAIR)).draw(stack, new TextureGL.TextureRegion(16 * length.floatValue()), false, Colors.getColor(0));
                 }
             }
         }

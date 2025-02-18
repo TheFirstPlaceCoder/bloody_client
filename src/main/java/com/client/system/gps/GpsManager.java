@@ -8,6 +8,7 @@ import com.client.event.events.Render3DEvent;
 import com.client.impl.function.client.ClickGui;
 import com.client.impl.function.client.GPS;
 import com.client.system.function.FunctionManager;
+import com.client.system.textures.DownloadImage;
 import com.client.utils.Utils;
 import com.client.utils.auth.Loader;
 import com.client.utils.files.StreamUtils;
@@ -44,8 +45,6 @@ import static com.client.utils.math.MathUtils.getRotations;
 
 public class GpsManager {
     private static final List<GpsPoint> points = new ArrayList<>();
-    private static final Identifier arrow = new Identifier("bloody-client", "/client/arrows.png");
-    private static final Identifier gps = new Identifier("bloody-client", "/client/gps.png");
     private static float yaw;
     public static boolean show = true;
 
@@ -54,6 +53,7 @@ public class GpsManager {
     private static final Color TEXT = new Color(255, 255, 255);
 
     public static final Map<String, AbstractTexture> icons = new HashMap<>();
+    public static GPS gg;
 
     public static void init() {
         File iconsFolder = new File(BloodyClient.GPS_FOLDER, "gps");
@@ -112,7 +112,7 @@ public class GpsManager {
         points.clear();
     }
 
-    public Vec3d getCoords(GpsPoint waypoint) {
+    public static Vec3d getCoords(GpsPoint waypoint) {
         double x = waypoint.x;
         double y = waypoint.y;
         double z = waypoint.z;
@@ -136,7 +136,7 @@ public class GpsManager {
     @EventHandler
     private void onRender3DEvent(GpsRenderEvent event) {
         if (show && !Loader.unHook) {
-            GPS gg = FunctionManager.get(GPS.class);
+            if (gg == null) gg = FunctionManager.get(GPS.class);
 
             for (GpsPoint waypoint : get()) {
                 Camera camera = mc.gameRenderer.getCamera();
@@ -193,16 +193,8 @@ public class GpsManager {
                 double w = TextRenderer.get().getWidth(waypoint.name) / 2.0;
                 double h = TextRenderer.get().getHeight();
 
-                // TODO: I HATE EVERYTHING ABOUT HOW RENDERING ROTATING THINGS WORKS AND I CANNOT BE ASKED TO WORK THIS OUT, THE WHOLE THING NEEDS TO BE RECODED REEEEEEEEEEEEEEEEEEEE
-                // sounds like a personal problem
-            /*MB.begin(null, DrawMode.Triangles, VertexFormats.POSITION_COLOR);
-            MB.quad(-w - 1, -h + 1, 0, -w - 1, 9 - h, 0, w + 1, 9 - h, 0, w + 1, -h + 1, 0, BACKGROUND);
-            MB.quad(-w2 - 1, 0, 0, -w2 - 1, 8, 0, w2 + 1, 8, 0, w2 + 1, 0, 0, BACKGROUND);
-            MB.end();*/
-
                 waypoint.renderIcon(-8, h, 0, a, 16);
 
-                // Render name text
                 TextRenderer.get().render(waypoint.name, -w, 0, TEXT);
 
                 TextRenderer.get().end();
@@ -226,7 +218,7 @@ public class GpsManager {
         GL11.glScalef(12F / 128f, 12F / 128f, 12F / 128f);
         GL11.glRotated(getRotations(x, y, (float) (x + sin), (float) (y - cos)), 0, 0, 1);
 
-        TextureGL.create().bind(arrow).draw(new TextureGL.TextureRegion(128, 128), true, getColor(gpsPoint));
+        TextureGL.create().bind(DownloadImage.getGlId(DownloadImage.ARROWS)).draw(new TextureGL.TextureRegion(128, 128), true, getColor(gpsPoint));
 
         GL11.glPopMatrix();
 

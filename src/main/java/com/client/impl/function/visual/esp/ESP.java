@@ -34,7 +34,7 @@ public class ESP extends Function {
         super("ESP", Category.VISUAL);
     }
 
-    public final MultiBooleanSetting filter = MultiBoolean().name("Отображать").defaultValue(List.of(
+    public final MultiBooleanSetting filter = MultiBoolean().name("Отображать").enName("Draw at").defaultValue(List.of(
             new MultiBooleanValue(true, "Игроков"),
             new MultiBooleanValue(true, "Себя"),
             new MultiBooleanValue(true, "Друзей"),
@@ -42,13 +42,13 @@ public class ESP extends Function {
             new MultiBooleanValue(false, "Предметы")
     )).build();
 
-    public final DoubleSetting width = Double().name("Ширина линий").defaultValue(1.2).min(1).max(2).build();
-    public final ListSetting mode = List().name("Режим").list(List.of("Отключен", "Квадрат", "Углы")).defaultValue("Квадрат").build();
-    public final ListSetting color = List().name("Режим цвета").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
-    public final ColorSetting colorSetting = Color().name("Цвет").defaultValue(Color.CYAN).visible(() -> color.get().equals("Статичный")).build();
-    public final ListSetting healthBar = List().name("Режим бара").list(List.of("Отключен", "Клиентский", "Здоровье", "Индивидуальный")).defaultValue("Здоровье").build();
-    public final ColorSetting downColor = Color().name("Нижний цвет бара").defaultValue(new Color(255, 0, 0, 255)).visible(() -> healthBar.get().equals("Индивидуальный")).build();
-    public final ColorSetting upColor = Color().name("Верхний цвет бара").defaultValue(new Color(0, 255, 13, 255)).visible(() -> healthBar.get().equals("Индивидуальный")).build();
+    public final DoubleSetting width = Double().name("Ширина линий").enName("Line Width").defaultValue(1.2).min(1).max(2).build();
+    public final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Отключен", "Квадрат", "Углы")).defaultValue("Квадрат").build();
+    public final ListSetting color = List().name("Режим цвета").enName("Color Mode").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
+    public final ColorSetting colorSetting = Color().name("Цвет").enName("Color").defaultValue(Color.CYAN).visible(() -> color.get().equals("Статичный")).build();
+    public final ListSetting healthBar = List().name("Режим бара").enName("Healthbar Mode").list(List.of("Отключен", "Клиентский", "Здоровье", "Индивидуальный")).defaultValue("Здоровье").build();
+    public final ColorSetting downColor = Color().name("Нижний цвет бара").enName("Down Color").defaultValue(new Color(255, 0, 0, 255)).visible(() -> healthBar.get().equals("Индивидуальный")).build();
+    public final ColorSetting upColor = Color().name("Верхний цвет бара").enName("Up Color").defaultValue(new Color(0, 255, 13, 255)).visible(() -> healthBar.get().equals("Индивидуальный")).build();
 
     private final Vec3 pos0 = new Vec3();
     private final Vec3 pos1 = new Vec3();

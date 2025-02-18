@@ -24,6 +24,9 @@ public abstract class CameraMixin {
     @Shadow private boolean thirdPerson;
     @Unique private float tickDelta;
 
+    @Unique private Freecam freecam;
+    @Unique private CameraTweaks cameraTweaks;
+
     @Inject(method = "update", at = @At("HEAD"))
     private void onUpdateHead(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo info) {
         this.tickDelta = tickDelta;
@@ -31,29 +34,36 @@ public abstract class CameraMixin {
 
     @ModifyArgs(method = "update", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;moveBy(DDD)V", ordinal = 0))
     private void modifyCameraDistance(Args args) {
-        args.set(0, -clipToSpace(FunctionManager.get(CameraTweaks.class).getDistance()));
-        if (!Loader.unHook && FunctionManager.get(Freecam.class).isEnabled()) {
+        if (freecam == null) freecam = FunctionManager.get(Freecam.class);
+        if (cameraTweaks == null) cameraTweaks = FunctionManager.get(CameraTweaks.class);
+
+        args.set(0, -clipToSpace(cameraTweaks.getDistance()));
+        if (!Loader.unHook && freecam.isEnabled()) {
             args.set(0, -clipToSpace(0));
         }
     }
 
     @Inject(method = "clipToSpace", at = @At("HEAD"), cancellable = true)
     private void onClipToSpace(double desiredCameraDistance, CallbackInfoReturnable<Double> info) {
-        if (FunctionManager.get(CameraTweaks.class).clip()) {
+        if (cameraTweaks == null) cameraTweaks = FunctionManager.get(CameraTweaks.class);
+
+        if (cameraTweaks.clip()) {
             info.setReturnValue(desiredCameraDistance);
         }
     }
 
     @Inject(method = "update", at = @At("TAIL"))
     private void onUpdateTail(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo info) {
-        if (!Loader.unHook && FunctionManager.get(Freecam.class).isEnabled()) {
+        if (freecam == null) freecam = FunctionManager.get(Freecam.class);
+
+        if (!Loader.unHook && freecam.isEnabled()) {
             this.thirdPerson = true;
         }
     }
 
     @ModifyArgs(method = "update", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;setPos(DDD)V"))
     private void onUpdateSetPosArgs(Args args) {
-        Freecam freecam = FunctionManager.get(Freecam.class);
+        if (freecam == null) freecam = FunctionManager.get(Freecam.class);
 
         if (freecam.isEnabled()) {
             args.set(0, freecam.getX(tickDelta));
@@ -64,7 +74,7 @@ public abstract class CameraMixin {
 
     @ModifyArgs(method = "update", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;setRotation(FF)V"))
     private void onUpdateSetRotationArgs(Args args) {
-        Freecam freecam = FunctionManager.get(Freecam.class);
+        if (freecam == null) freecam = FunctionManager.get(Freecam.class);
 
         if (freecam.isEnabled()) {
             args.set(0, (float) freecam.getYaw(tickDelta));

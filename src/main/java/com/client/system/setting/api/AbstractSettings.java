@@ -4,7 +4,7 @@ import com.client.system.function.Function;
 
 public abstract class AbstractSettings<T> implements ISettings<T> {
     public T value, defaultValue;
-    public String name;
+    public String name, enName;
     public SettingsType type;
     public IVisible visible;
     public Function function;

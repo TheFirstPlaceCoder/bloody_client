@@ -3,10 +3,12 @@ package mixin;
 import com.client.event.events.*;
 import com.client.impl.function.misc.MiddleClick;
 import com.client.impl.function.movement.NoPush;
+import com.client.impl.function.player.PortalGUI;
 import com.client.interfaces.IClientPlayerEntity;
 import com.client.system.function.FunctionManager;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
@@ -28,10 +30,8 @@ import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.client.BloodyClient.mc;
 
@@ -78,7 +78,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 
     @Shadow public abstract void closeScreen();
 
-    @Unique private boolean event;
+    @Unique private PortalGUI portalGUI;
+    @Unique private NoPush noPush;
 
     @Inject(method = "closeHandledScreen", at = @At("HEAD"), cancellable = true)
     private void closeHandledScreen(CallbackInfo ci) {
@@ -98,20 +99,28 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
         }
     }
 
+    @Redirect(method = "updateNausea", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;currentScreen:Lnet/minecraft/client/gui/screen/Screen;"))
+    private Screen updateNauseaGetCurrentScreenProxy(MinecraftClient client) {
+        if (portalGUI == null) portalGUI = FunctionManager.get(PortalGUI.class);
+
+        if (portalGUI.isEnabled()) return null;
+        return client.currentScreen;
+    }
+
     /**
      * @author Artik
      * @reason DEFOLT
      */
     @Overwrite
     private void sendMovementPackets() {
-        boolean bl = (FunctionManager.get("Water Speed").isEnabled() && this.isSwimming()) || this.isSprinting();
+        boolean bl = this.isSprinting();
         if (bl != this.lastSprinting) {
             ClientCommandC2SPacket.Mode mode = bl ? ClientCommandC2SPacket.Mode.START_SPRINTING : ClientCommandC2SPacket.Mode.STOP_SPRINTING;
             this.networkHandler.sendPacket(new ClientCommandC2SPacket(this, mode));
             this.lastSprinting = bl;
         }
 
-        boolean bl2 = (FunctionManager.get("Water Speed").isEnabled() && this.isSwimming()) || this.isSneaking();
+        boolean bl2 = this.isSneaking();
         if (bl2 != this.lastSneaking) {
             ClientCommandC2SPacket.Mode mode2 = bl2 ? ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY : ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY;
             this.networkHandler.sendPacket(new ClientCommandC2SPacket(this, mode2));
@@ -184,11 +193,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
         MiddleClick.sendPacket = false;
     }
 
-//    @Inject(method = "isSneaking", at = @At(value = "HEAD"), cancellable = true)
-//    public void injectMine(CallbackInfoReturnable<Boolean> cir) {
-//        if (FunctionManager.get(TestFly.class).isEnabled() && this.isSwimming()) cir.setReturnValue(true);
-//    }
-
     /**
      * @author Artik
      * @reason DEFOLT
@@ -202,9 +206,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 
         this.updateNausea();
         boolean bl = this.input.jumping;
-        boolean bl2 = (FunctionManager.get("Water Speed").isEnabled() && this.isSwimming()) || this.input.sneaking;
+        boolean bl2 = this.input.sneaking;
         boolean bl3 = this.isWalking();
-        this.inSneakingPose = !this.abilities.flying && !this.isSwimming() && this.wouldPoseNotCollide(EntityPose.CROUCHING) && (((FunctionManager.get("Water Speed").isEnabled() && this.isSwimming()) || this.isSneaking()) || !this.isSleeping() && !this.wouldPoseNotCollide(EntityPose.STANDING));
+        this.inSneakingPose = !this.abilities.flying && !this.isSwimming() && this.wouldPoseNotCollide(EntityPose.CROUCHING) && (this.isSneaking() || !this.isSleeping() && !this.wouldPoseNotCollide(EntityPose.STANDING));
 
         this.input.tick(this.shouldSlowDown());
         this.client.getTutorialManager().onMovement(this.input);
@@ -367,7 +371,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 
     @Inject(method = "pushOutOfBlocks", at = @At("HEAD"), cancellable = true)
     private void onPushOutOfBlocksHook(double x, double d, CallbackInfo info) {
-        NoPush noPush = FunctionManager.get(NoPush.class);
+        if (noPush == null) noPush = FunctionManager.get(NoPush.class);
 
         if (noPush.isEnabled() && noPush.blocks.get()) {
             info.cancel();

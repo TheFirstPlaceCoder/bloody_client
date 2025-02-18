@@ -52,6 +52,7 @@ public abstract class ChatHudMixin extends DrawableHelper implements IChatHud {
     @Shadow protected abstract boolean isChatFocused();
     @Shadow public abstract void scroll(double amount);
     @Shadow @Final private List<String> messageHistory;
+    @Unique private static BetterChat betterChat;
 
     /**
      * @author
@@ -103,7 +104,8 @@ public abstract class ChatHudMixin extends DrawableHelper implements IChatHud {
 
     @Inject(method = "clear", at = @At("HEAD"), cancellable = true)
     private void onClear(CallbackInfo info) {
-        if (!Loader.unHook && !clientCall && FunctionManager.get(BetterChat.class).getKeepHistory()) {
+        if (betterChat == null) betterChat = FunctionManager.get(BetterChat.class);
+        if (!Loader.unHook && !clientCall && betterChat.getKeepHistory()) {
             info.cancel();
         }
     }
@@ -114,10 +116,12 @@ public abstract class ChatHudMixin extends DrawableHelper implements IChatHud {
      */
     @Overwrite
     private void addMessage(Text message, int messageId, int timestamp, boolean refresh) {
+        if (betterChat == null) betterChat = FunctionManager.get(BetterChat.class);
+
         ReceiveChatMessageEvent chatMessage = new ReceiveChatMessageEvent(message.getString());
         chatMessage.post();
 
-        if (FunctionManager.get(BetterChat.class).getTime() && !clientCall && !Loader.unHook) {
+        if (betterChat.getTime() && !clientCall && !Loader.unHook) {
             message = new LiteralText(Formatting.GRAY + "<" + BloodyClient.getTime() + "> " + Formatting.RESET).append(message);
         }
 
@@ -138,14 +142,14 @@ public abstract class ChatHudMixin extends DrawableHelper implements IChatHud {
             }
         }
 
-        while (this.visibleMessages.size() > (FunctionManager.get(BetterChat.class).isEnabled() ? 50000 : 100)) {
+        while (this.visibleMessages.size() > (betterChat.getMoreHistory() ? betterChat.count.get() : 100)) {
             this.visibleMessages.remove(this.visibleMessages.size() - 1);
         }
 
         if (!refresh) {
             this.messages.add(0, new ChatHudLine<>(timestamp, message, messageId));
 
-            while (this.messages.size() > (FunctionManager.get(BetterChat.class).isEnabled() ? 50000 : 100)) {
+            while (this.messages.size() > (betterChat.getMoreHistory() ? betterChat.count.get() : 100)) {
                 this.messages.remove(this.messages.size() - 1);
             }
         }
@@ -164,6 +168,8 @@ public abstract class ChatHudMixin extends DrawableHelper implements IChatHud {
      */
     @Overwrite
     public void render(MatrixStack matrices, int tickDelta) {
+        if (betterChat == null) betterChat = FunctionManager.get(BetterChat.class);
+
         if (!this.isChatHidden()) {
             this.processMessageQueue();
             int i = this.getVisibleLineCount();
@@ -201,7 +207,7 @@ public abstract class ChatHudMixin extends DrawableHelper implements IChatHud {
                                 fill(matrices, -2, (int) (s - g), k + 4, (int) s, q << 24);
                                 RenderSystem.enableBlend();
                                 matrices.translate(0.0, 0.0, 50.0);
-                                this.client.textRenderer.drawWithShadow(matrices, chatHudLine.getText(), FunctionManager.get(BetterChat.class).getAnimation() && !Loader.unHook ? ((IChatHudLine)chatHudLine).getX() : 0, (float) ((int) (s + h)), 16777215 + (p << 24));
+                                this.client.textRenderer.drawWithShadow(matrices, chatHudLine.getText(), betterChat.getAnimation() && !Loader.unHook ? ((IChatHudLine)chatHudLine).getX() : 0, (float) ((int) (s + h)), 16777215 + (p << 24));
                                 RenderSystem.disableAlphaTest();
                                 RenderSystem.disableBlend();
                                 matrices.pop();

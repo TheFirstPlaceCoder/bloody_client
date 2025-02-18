@@ -1,15 +1,14 @@
 package com.client.impl.hud;
 
-import com.client.impl.function.client.Hud;
-import com.client.system.function.Function;
-import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudFunction;
-import com.client.utils.math.animation.Animation;
+import com.client.system.hud.HudManager;
+import com.client.system.textures.DownloadImage;
 import com.client.utils.math.animation.AnimationUtils;
 import com.client.utils.math.rect.FloatRect;
-import com.client.utils.misc.InputUtils;
+import com.client.utils.render.DrawMode;
 import com.client.utils.render.wisetree.font.main.IFont;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
+import com.client.utils.render.wisetree.render.render2d.main.TextureGL;
 import com.client.utils.render.wisetree.render.render2d.utils.ScissorUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.BufferBuilder;
@@ -36,7 +35,6 @@ public class PotionHud extends HudFunction {
     }
 
     public FloatRect potionRect = new FloatRect();
-    public Identifier potion = new Identifier("bloody-client", "hud/potion.png");
 
     @Override
     public void draw(float alpha) {
@@ -57,11 +55,11 @@ public class PotionHud extends HudFunction {
 
         drawNewClientRect(new FloatRect(rect.getX(), rect.getY(), rect.getW(), 16));
 
-        GL11.glPushMatrix();
-        GL11.glScalef(1f, 1f, 1f);
-        GL11.glTranslatef(rect.getX() + 2.5f, rect.getY(), 0);
-        GL.drawRoundedTexture(potion, 0, 0, 16, 16, 0);
-        GL11.glPopMatrix();
+        postTask.add(() -> {
+            HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
+            HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.POTION), new TextureGL.TextureRegion(rect.getX() + 2.5f, rect.getY(), 16, 16), Color.WHITE);
+            HudManager.MB.end();
+        });
 
         IFont.drawCenteredXY(IFont.MONTSERRAT_BOLD, "Potions", rect.getCenteredX(), rect.getY() + 8, Color.WHITE, 9);
 

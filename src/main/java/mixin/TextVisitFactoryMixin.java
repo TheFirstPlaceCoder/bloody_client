@@ -8,6 +8,7 @@ import net.minecraft.text.Style;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(TextVisitFactory.class)
 public abstract class TextVisitFactoryMixin {
@@ -16,15 +17,19 @@ public abstract class TextVisitFactoryMixin {
         return false;
     }
 
+    @Unique
+    private static NameProtect nameProtect;
+
     /**
      * @author .
      * @reason .
      */
     @Overwrite
     public static boolean visitFormatted(String text, int startIndex, Style style, CharacterVisitor visitor) {
-        if (FunctionManager.get(NameProtect.class) != null) {
-            text = FunctionManager.get(NameProtect.class).replace(text);
-        }
+        if (nameProtect == null) nameProtect = FunctionManager.get(NameProtect.class);
+
+        text = nameProtect.replace(text);
+
         return visitFormatted(text, startIndex, style, style, visitor);
     }
 }

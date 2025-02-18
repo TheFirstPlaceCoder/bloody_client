@@ -1,7 +1,7 @@
 package mixin;
 
 import api.main.EventUtils;
-import com.client.clickgui.GuiScreen;
+import com.client.clickgui.newgui.GuiScreen;
 import com.client.event.events.KeyEvent;
 import com.client.event.events.KeybindSettingEvent;
 import com.client.system.function.Function;

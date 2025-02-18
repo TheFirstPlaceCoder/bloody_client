@@ -8,7 +8,7 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.gen.Accessor;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -22,15 +22,18 @@ public abstract class KeyBindingMixin implements IKeyBinding {
     @Shadow public abstract boolean equals(KeyBinding other);
 
     @Shadow public abstract boolean isPressed();
+    @Unique private SafeWalk safeWalk;
 
     @Inject(method = "isPressed",at = @At("HEAD"),cancellable = true)
-    private void pressHook(CallbackInfoReturnable<Boolean> cir){
+    private void pressHook(CallbackInfoReturnable<Boolean> cir) {
+        if (safeWalk == null) safeWalk = FunctionManager.get(SafeWalk.class);
+
         if (     this.equals(mc.options.keySneak)
                 && mc.player != null
                 && mc.world != null
-                && FunctionManager.get(SafeWalk.class).isEnabled()
-                && mc.player.isOnGround() && mc.world.getBlockState(new BlockPos((int) Math.floor(mc.player.getPos().getX()), (int) Math.floor(mc.player.getPos().getY()) - 1, (int) Math.floor(mc.player.getPos().getZ()))).isAir()
-                ) {
+                && safeWalk.isEnabled()
+                && safeWalk.mode.get().equals("Обычный")
+                && mc.player.isOnGround() && mc.world.getBlockState(new BlockPos((int) Math.floor(mc.player.getPos().getX()), (int) Math.floor(mc.player.getPos().getY()) - 1, (int) Math.floor(mc.player.getPos().getZ()))).isAir()) {
             cir.setReturnValue(true);
         }
     }

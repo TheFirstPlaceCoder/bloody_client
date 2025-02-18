@@ -1,5 +1,6 @@
 package com.client.utils.render.wisetree.render.render3d;
 
+import com.client.system.textures.DownloadImage;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
 import com.client.utils.render.wisetree.render.render2d.main.TextureGL;
@@ -14,7 +15,6 @@ import static com.client.system.function.Function.mc;
 
 public class GhostRenderer {
     private static final long initTime = System.currentTimeMillis();
-    private Identifier identifier = new Identifier("bloody-client", "client/glow_circle.png");
 
     public void draw(MatrixStack matrix, Entity target, float alpha) {
         float height = target.getHeight() - 0.2f;
@@ -48,7 +48,7 @@ public class GhostRenderer {
                     matrix.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(mc.gameRenderer.getCamera().getPitch()));
 
                     TextureGL.create()
-                            .bind(identifier)
+                            .bind(DownloadImage.getGlId(DownloadImage.GLOW_CIRCLE))
                             .draw(
                                     matrix, new TextureGL.TextureRegion(scale, scale), true,
                                     ColorUtils.injectAlpha(Colors.getColor((int) (90 * (f / (90f)))), (int) (alpha * 145))

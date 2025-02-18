@@ -17,10 +17,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3f;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 
 import java.util.Random;
 
@@ -37,14 +34,20 @@ public abstract class ItemEntityRendererMixin extends EntityRenderer<ItemEntity>
 
     @Shadow protected abstract int getRenderedAmount(ItemStack stack);
 
+    @Unique private Optimization optimization;
+    @Unique private ItemPhysic itemPhysic1;
+
     /**
      * @author .
      * @reason .
      */
     @Overwrite
     public void render(ItemEntity itemEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i) {
-        if (!FunctionManager.get(Optimization.class).isEnabled() || FunctionManager.get(Optimization.class).getItemEntities().contains(itemEntity)) {
-            boolean itemPhysic = FunctionManager.get(ItemPhysic.class).isEnabled();
+        if (optimization == null) optimization = FunctionManager.get(Optimization.class);
+        if (!optimization.isEnabled() || optimization.getItemEntities().contains(itemEntity)) {
+            if (itemPhysic1 == null) itemPhysic1 = FunctionManager.get(ItemPhysic.class);
+
+            boolean itemPhysic = itemPhysic1.isEnabled();
 
             matrixStack.push();
             ItemStack itemStack = itemEntity.getStack();

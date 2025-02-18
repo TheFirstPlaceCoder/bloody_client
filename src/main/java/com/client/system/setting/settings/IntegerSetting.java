@@ -1,11 +1,20 @@
 package com.client.system.setting.settings;
 
+import com.client.impl.function.client.ClickGui;
 import com.client.system.function.Function;
+import com.client.system.function.FunctionManager;
 import com.client.system.setting.api.AbstractSettings;
 import com.client.system.setting.api.IVisible;
 import com.client.system.setting.api.SettingsType;
 import com.client.system.setting.manager.SettingManager;
 import com.client.utils.auth.Loader;
+import com.client.utils.files.SoundManager;
+import com.client.utils.misc.CustomSoundInstance;
+import net.minecraft.sound.SoundCategory;
+
+import java.util.Objects;
+
+import static com.client.BloodyClient.mc;
 
 public class IntegerSetting extends AbstractSettings<Integer> {
     private Integer min, max;
@@ -19,8 +28,16 @@ public class IntegerSetting extends AbstractSettings<Integer> {
     }
 
     public void set(Integer value) {
+        boolean shouldSound = !Objects.equals(value, this.value);
+
         if (this.isPremium && !Loader.isPremium()) this.value = getDefaultValue();
         else this.value = value;
+
+        if (shouldSound && mc.world != null && mc.player != null && FunctionManager.get(ClickGui.class).clientSound.get()) {
+            CustomSoundInstance customSoundInstance = new CustomSoundInstance(SoundManager.BUTTON_EVENT, SoundCategory.MASTER);
+            customSoundInstance.setVolume(FunctionManager.get(ClickGui.class).volume.floatValue());
+            mc.getSoundManager().play(customSoundInstance);
+        }
     }
 
     public Integer getMax() {
@@ -57,6 +74,15 @@ public class IntegerSetting extends AbstractSettings<Integer> {
 
     public IntegerSetting name(String name) {
         this.name = name;
+        return this;
+    }
+
+    public String getEnName() {
+        return enName;
+    }
+
+    public IntegerSetting enName(String name) {
+        this.enName = name;
         return this;
     }
 

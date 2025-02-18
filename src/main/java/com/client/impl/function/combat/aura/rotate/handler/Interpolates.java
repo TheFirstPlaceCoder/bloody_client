@@ -32,6 +32,18 @@ public class Interpolates {
         };
     }
 
+    public float calculateCustomInterpolate(String mode, float start, float end, float percent) {
+        return switch (mode) {
+            case "Back Ease Out" -> backEaseOut(start, end, percent);
+            case "Cubic Ease Out" -> cubicEaseOut(start, end, percent);
+            case "Circ Ease Out" -> circEaseOut(start, end, percent);
+            case "Elastic Ease Out" -> elasticEaseOut(start, end, percent);
+            case "Quad Ease Out" -> quadEaseOut(start, end, percent);
+            case "Quint Ease Out" -> quintEaseOut(start, end, percent);
+            default -> start;
+        };
+    }
+
     public float backEaseIn(float start, float end, float percent, float d) {
         percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
         float change = (float) calculate(1, end, start);
@@ -39,14 +51,16 @@ public class Interpolates {
         return change*(percent/= d)*percent*((s+1)*percent - s) + start;
     }
 
-    public float backEaseOut(float start, float end, float percent, float d) {
+    public float backEaseOut(float start, float end, float percent) {
+        float d = 2.1f;
         percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
         float change = (float) calculate(1, end, start);
 
         return change*((percent=percent/d-1)*percent*((s+1)*percent + s) + 1) + start;
     }
 
-    public float bounceEaseOut(float start, float end, float percent, float d) {
+    public float bounceEaseOut(float start, float end, float percent) {
+        float d = 0.7f;
         percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
         float change = (float) calculate(1, end, start);
 
@@ -61,13 +75,15 @@ public class Interpolates {
         }
     }
 
-    public float cubicEaseIn(float start, float end, float percent, float d) {
+    public float cubicEaseIn(float start, float end, float percent) {
+        float d = 0.38f;
         percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
         float change = (float) calculate(1, end, start);
         return change*(percent/=d)*percent*percent + start;
     }
 
-    public float cubicEaseOut(float start, float end, float percent, float d) {
+    public float cubicEaseOut(float start, float end, float percent) {
+        float d = 1.24f;
         percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
         float change = (float) calculate(1, end, start);
         return change*((percent=percent/d-1)*percent*percent + 1) + start;
@@ -80,7 +96,8 @@ public class Interpolates {
         return -change * ((float)Math.sqrt(1 - (percent/=d)*percent) - 1) + start;
     }
 
-    public float circEaseOut(float start, float end, float percent, float d) {
+    public float circEaseOut(float start, float end, float percent) {
+        float d = 5;
         percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
         float change = (float) calculate(1, end, start);
 
@@ -97,11 +114,13 @@ public class Interpolates {
         return -(change *(float)Math.pow(2,10*(percent-=1)) * (float)Math.sin( (percent*d-s)*(2*(float)Math.PI)/p )) + start;
     }
 
-    public float elasticEaseOut(float start, float end, float percent, float d) {
+    public float elasticEaseOut(float start, float end, float percent) {
+        float d = 4;
         percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
         float change = (float) calculate(1, end, start);
 
-        if (percent==0) return s;  if ((percent/=d)==1) return start+change;
+        if (percent==0) return s;
+        if ((percent/=d)==1) return start+change;
         float p=d*.3f;
         float s=p/4;
         return (change *(float)Math.pow(2,-10*percent) * (float)Math.sin( (percent*d-s)*(2*(float)Math.PI)/p ) + change + start);
@@ -130,14 +149,16 @@ public class Interpolates {
         return change*percent/d + start;
     }
 
-    public float quadEaseIn(float start, float end, float percent, float d) {
+    public float quadEaseIn(float start, float end, float percent) {
+        float d = 0.21f;
         percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
         float change = (float) calculate(1, end, start);
 
         return change*(percent/=d)*percent + start;
     }
 
-    public float quadEaseOut(float start, float end, float percent, float d) {
+    public float quadEaseOut(float start, float end, float percent) {
+        float d = 0.77f;
         percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
         float change = (float) calculate(1, end, start);
 
@@ -151,7 +172,8 @@ public class Interpolates {
         return change*(percent/=d)*percent*percent*percent*percent + start;
     }
 
-    public float quintEaseOut(float start, float end, float percent, float d) {
+    public float quintEaseOut(float start, float end, float percent) {
+        float d = 1.8f;
         percent = Math.min(percent, 1.0f); // Ограничиваем значение до 1
         float change = (float) calculate(1, end, start);
 

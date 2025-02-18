@@ -58,13 +58,17 @@ public abstract class WorldRendererMixin {
     @Shadow
     private EntityRenderDispatcher entityRenderDispatcher;
 
+    @Unique private Optimization optimization;
+
     @Inject(
             at = {@At("HEAD")},
             method = {"renderEntity"},
             cancellable = true
     )
     private void renderEntity1(Entity entity, double cameraX, double cameraY, double cameraZ, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, CallbackInfo info) {
-        if (!FunctionManager.get(Optimization.class).isEnabled() || !FunctionManager.get(Optimization.class).rayTrace.get()) return;
+        if (optimization == null) optimization = FunctionManager.get(Optimization.class);
+
+        if (!optimization.isEnabled() || !optimization.rayTrace.get()) return;
 
         Cullable cullable = (Cullable)entity;
         if (!cullable.isForcedVisible() && cullable.isCulled()) {
@@ -120,56 +124,36 @@ public abstract class WorldRendererMixin {
     @Inject(method = "loadEntityOutlineShader", at = @At("TAIL"))
     private void onLoadEntityOutlineShader(CallbackInfo info) {
         Outlines.load();
-        OutlinesCompanion.load();
     }
 
     @Inject(method = "render", at = @At("HEAD"))
     private void onRenderHead(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo info) {
         ChatUtils.update();
         Outlines.beginRender();
-
-        OutlinesCompanion.beginRender();
     }
 
     @Inject(method = "renderEntity", at = @At("HEAD"))
     private void renderEntity(Entity entity, double cameraX, double cameraY, double cameraZ, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, CallbackInfo info) {
-        if (vertexConsumers == Outlines.vertexConsumerProvider || vertexConsumers == OutlinesCompanion.vertexConsumerProvider) return;
+        if (vertexConsumers == Outlines.vertexConsumerProvider) return;
 
         if (shaders.isEnabled() && shaders.shouldDraw(entity)) {
             Color c0 = shaders.getColore(entity);
 
             Framebuffer prevBuffer = this.entityOutlinesFramebuffer;
-            if (FunctionManager.get(Companion.class).isEnabled() && Companion.entity != null && entity instanceof DumboOctopusEntity) {
-                this.entityOutlinesFramebuffer = OutlinesCompanion.outlinesFbo;
+            this.entityOutlinesFramebuffer = Outlines.outlinesFbo;
 
-                OutlinesCompanion.setUniform("resolution", (float) mc.getWindow().getScaledWidth(), (float) mc.getWindow().getScaledHeight());
-                OutlinesCompanion.setUniform("radius", shaders.lineWidth.get().floatValue());
-                OutlinesCompanion.setUniform("fillOpacity", (shaders.getColor(entity).getAlpha() / 255F));
-                OutlinesCompanion.setUniform("time", time);
-                OutlinesCompanion.setUniform("renderMode", shaders.getIndexOfMode());
-                OutlinesCompanion.setUniform("glowMode", shaders.getGlow());
-                OutlinesCompanion.setUniform("power", shaders.glowPower.get() / 10f);
-                time += (shaders.speed.floatValue() / 1000);
+            Outlines.setUniform("resolution", (float) mc.getWindow().getScaledWidth(), (float) mc.getWindow().getScaledHeight());
+            Outlines.setUniform("radius", shaders.lineWidth.get().floatValue());
+            Outlines.setUniform("fillOpacity", (shaders.getColor(entity).getAlpha() / 255F));
+            Outlines.setUniform("time", time);
+            Outlines.setUniform("renderMode", shaders.getIndexOfMode());
+            Outlines.setUniform("glowMode", shaders.getGlow());
+            Outlines.setUniform("power", shaders.glowPower.get() / 10f);
+            time += (shaders.speed.floatValue() / 1000);
 
-                OutlinesCompanion.vertexConsumerProvider.setColor(c0.getRed(), c0.getGreen(), c0.getBlue(), c0.getAlpha());
-                renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrices, OutlinesCompanion.vertexConsumerProvider);
+            Outlines.vertexConsumerProvider.setColor(c0.getRed(), c0.getGreen(), c0.getBlue(), c0.getAlpha());
+            renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrices, Outlines.vertexConsumerProvider);
 
-            } else {
-                this.entityOutlinesFramebuffer = Outlines.outlinesFbo;
-
-                Outlines.setUniform("resolution", (float) mc.getWindow().getScaledWidth(), (float) mc.getWindow().getScaledHeight());
-                Outlines.setUniform("radius", shaders.lineWidth.get().floatValue());
-                Outlines.setUniform("fillOpacity", (shaders.getColor(entity).getAlpha() / 255F));
-                Outlines.setUniform("time", time);
-                Outlines.setUniform("renderMode", shaders.getIndexOfMode());
-                Outlines.setUniform("glowMode", shaders.getGlow());
-                Outlines.setUniform("power", shaders.glowPower.get() / 10f);
-                time += (shaders.speed.floatValue() / 1000);
-
-                Outlines.vertexConsumerProvider.setColor(c0.getRed(), c0.getGreen(), c0.getBlue(), c0.getAlpha());
-                renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrices, Outlines.vertexConsumerProvider);
-
-            }
             this.entityOutlinesFramebuffer = prevBuffer;
         }
     }
@@ -177,19 +161,16 @@ public abstract class WorldRendererMixin {
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/OutlineVertexConsumerProvider;draw()V"))
     private void onRender(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo info) {
         Outlines.endRender(tickDelta);
-        OutlinesCompanion.endRender(tickDelta);
     }
 
     @Inject(method = "drawEntityOutlinesFramebuffer", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gl/Framebuffer;draw(IIZ)V"))
     private void onDrawEntityOutlinesFramebuffer(CallbackInfo info) {
         Outlines.renderFbo();
-        OutlinesCompanion.renderFbo();
     }
 
     @Inject(method = "onResized", at = @At("HEAD"))
     private void onResized(int i, int j, CallbackInfo info) {
         Outlines.onResized(i, j);
-        OutlinesCompanion.onResized(i, j);
     }
 
     @Inject(method = "renderWeather", at = @At("HEAD"), cancellable = true)
@@ -210,9 +191,13 @@ public abstract class WorldRendererMixin {
         }
     }
 
+    @Unique private Freecam freecam;
+
     @ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WorldRenderer;setupTerrain(Lnet/minecraft/client/render/Camera;Lnet/minecraft/client/render/Frustum;ZIZ)V"), index = 4)
     private boolean renderSetupTerrainModifyArg(boolean spectator) {
-        return FunctionManager.get(Freecam.class).isEnabled() || spectator;
+        if (freecam == null) freecam = FunctionManager.get(Freecam.class);
+
+        return freecam.isEnabled() || spectator;
     }
 
     @Inject(method = "checkEmpty", at = @At("HEAD"), cancellable = true)

@@ -10,11 +10,14 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 import java.awt.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
 import static com.client.BloodyClient.mc;
 
 public class Utils {
+    public static boolean isRussianLanguage = true;
     public static final Random random = new Random();
     public static int random(int min, int max) {
         return random.nextInt(max - min) + min;
@@ -132,5 +135,42 @@ public class Utils {
 
     public static Color injectAlpha(Color color, int alp) {
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), alp);
+    }
+
+    public static String getStringIgnoreLastChar(String str) {
+        StringBuilder s = new StringBuilder();
+
+        for (int i = 0; i < str.toCharArray().length - 1; i++) {
+            s.append(str.toCharArray()[i]);
+        }
+
+        return s.toString();
+    }
+
+    public static String formatDuration(float seconds) {
+        int minutes = (int) seconds / 60;
+        int secs = (int) seconds % 60;
+        return String.format("%d:%02d", minutes, secs);
+    }
+
+    public static String generateHash(String text) {
+        String a = "SfG123+H" + text + "1389HGA1";
+        return sha256(a);
+    }
+
+    private static String sha256(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

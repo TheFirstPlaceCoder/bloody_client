@@ -9,7 +9,7 @@ public class ItemScroller extends Function {
         super("Item Scroller", Category.MISC);
     }
 
-    public final IntegerSetting delay = Integer().name("Задержка (MS)").defaultValue(50).max(300).min(0).build();
+    public final IntegerSetting delay = Integer().name("Задержка (MS)").enName("Delay (MS)").defaultValue(50).max(300).min(0).build();
 
     public long time;
 }

@@ -24,6 +24,7 @@ import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -40,12 +41,16 @@ public abstract class ClientConnectionMixin implements IClientConnection {
 
     @Shadow public abstract void send(Packet<?> packet);
 
+    @Unique private UnHook unHook;
+
     @Inject(method = "send(Lnet/minecraft/network/Packet;)V", at = @At("HEAD"), cancellable = true)
     private void sendd(Packet<?> packet, CallbackInfo ci) {
+        if (unHook == null) unHook = FunctionManager.get(UnHook.class);
+
         if (BloodyClient.canUpdate()) {
             if (packet instanceof ChatMessageC2SPacket chatMessageC2SPacket) {
                 if (!Loader.unHook) {
-                    if (chatMessageC2SPacket.getChatMessage().equals(Command.getPrefix() + FunctionManager.get(UnHook.class).enableCommand.get())) {
+                    if (chatMessageC2SPacket.getChatMessage().equals(Command.getPrefix() + unHook.enableCommand.get())) {
                         HudManager.beforeUnhook();
                         Loader.unHook = true;
                         ConfigSystem.save();
@@ -69,7 +74,7 @@ public abstract class ClientConnectionMixin implements IClientConnection {
                         ci.cancel();
                     }
                 } else {
-                    if (chatMessageC2SPacket.getChatMessage().equals(Command.getPrefix() + FunctionManager.get(UnHook.class).disableCommand.get())) {
+                    if (chatMessageC2SPacket.getChatMessage().equals(Command.getPrefix() + unHook.disableCommand.get())) {
                         Loader.unHook = false;
                         ConfigSystem.renameFolder(false);
                         ConfigSystem.load();

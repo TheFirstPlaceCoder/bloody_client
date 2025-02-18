@@ -1,22 +1,25 @@
 package com.client.impl.hud;
 
-import com.client.impl.function.client.Hud;
 import com.client.system.function.Function;
 import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudFunction;
-import com.client.utils.math.animation.Animation;
+import com.client.system.hud.HudManager;
+import com.client.system.textures.DownloadImage;
 import com.client.utils.math.animation.AnimationUtils;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.misc.InputUtils;
+import com.client.utils.render.DrawMode;
 import com.client.utils.render.wisetree.font.main.IFont;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
+import com.client.utils.render.wisetree.render.render2d.main.TextureGL;
 import com.client.utils.render.wisetree.render.render2d.utils.ScissorUtils;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class KeybindHud extends HudFunction {
     public KeybindHud() {
@@ -24,25 +27,30 @@ public class KeybindHud extends HudFunction {
     }
 
     public FloatRect bindRect = new FloatRect();
-    public Identifier keyboard = new Identifier("bloody-client", "hud/keyboard.png");
+    private List<Function> bindList = new CopyOnWriteArrayList<>();
+    private List<Function> toDraw = new CopyOnWriteArrayList<>();
 
     @Override
-    public void draw(float alpha) {
+    public void tick() {
         bindRect.setX(rect.getX());
         bindRect.setW(rect.getW());
         bindRect.setY(rect.getY() + 18);
+        if (bindList.isEmpty()) bindList = FunctionManager.getFunctionList();
 
-        List<Function> bindList = FunctionManager.getFunctionList().stream().filter(f -> f.isEnabled() && f.getKeyCode() != -1).toList();
-        bindRect.setH(AnimationUtils.fast(bindRect.getH(), bindList.isEmpty() ? 0 : bindList.size() * 12 + 2));
+        toDraw = bindList.stream().filter(f -> f.isEnabled() && f.getKeyCode() != -1).toList();
+        bindRect.setH(AnimationUtils.fast(bindRect.getH(), toDraw.isEmpty() ? 0 : toDraw.size() * 12 + 2));
         rect.setH(16 + bindRect.getH() + 2);
+    }
 
+    @Override
+    public void draw(float alpha) {
         drawNewClientRect(new FloatRect(rect.getX(), rect.getY(), rect.getW(), 16));
 
-        GL11.glPushMatrix();
-        GL11.glScalef(1f, 1f, 1f);
-        GL11.glTranslatef(rect.getX() + 2.5f, rect.getY(), 0);
-        GL.drawRoundedTexture(keyboard, 0, 0, 16, 16, 0);
-        GL11.glPopMatrix();
+        postTask.add(() -> {
+            HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
+            HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.KEYBOARD), new TextureGL.TextureRegion(rect.getX() + 2.5f, rect.getY(), 16, 16), Color.WHITE);
+            HudManager.MB.end();
+        });
 
         IFont.drawCenteredXY(IFont.MONTSERRAT_BOLD, "KeyBinds", rect.getCenteredX(), rect.getY() + 8, Color.WHITE, 9);
 
@@ -51,7 +59,7 @@ public class KeybindHud extends HudFunction {
         ScissorUtils.enableScissor(bindRect);
         float y = bindRect.getY() + 1;
         double w = 0;
-        for (Function function : bindList) {
+        for (Function function : toDraw) {
             IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, function.getName(), bindRect.getX() + 4, y + (float) 12 / 2, Color.WHITE, 7);
             String bind = Formatting.GRAY + "[" + Formatting.WHITE
                     + (function.getKeyCode() > 90000 ? InputUtils.getButtonName(function.getKeyCode() - 90001) : InputUtils.getKeyName(function.getKeyCode()))

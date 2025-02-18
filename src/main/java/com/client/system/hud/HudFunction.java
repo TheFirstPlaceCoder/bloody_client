@@ -3,11 +3,8 @@ package com.client.system.hud;
 import api.main.EventUtils;
 import com.client.BloodyClient;
 import com.client.event.events.ToggleEvent;
-import com.client.impl.function.client.ClickGui;
 import com.client.impl.function.client.Hud;
-import com.client.system.friend.FriendManager;
 import com.client.system.function.FunctionManager;
-import com.client.system.hud.setting.HudValue;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
 import com.client.utils.math.animation.AnimationUtils;
@@ -15,6 +12,7 @@ import com.client.utils.math.animation.Direction;
 import com.client.utils.math.animation.impl.SmoothStepAnimation;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.math.vector.floats.V2F;
+import com.client.utils.render.MeshBuilder;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
 import com.client.utils.render.wisetree.render.render2d.utils.shader.shaders.BlurShader;
 import com.client.utils.render.wisetree.render.render3d.Renderer3D;
@@ -25,12 +23,10 @@ import org.lwjgl.opengl.GL11;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class HudFunction {
     public static MinecraftClient mc = BloodyClient.mc;
-
-    public List<HudValue> values = new ArrayList<>();
-    private final HudSettingPanel panel = new HudSettingPanel();
 
     public boolean draggable = true;
     public FloatRect rect;
@@ -44,9 +40,11 @@ public abstract class HudFunction {
     private long uptime;
 
     private boolean toggled = false, draw;
+    public List<Runnable> postTask = new CopyOnWriteArrayList<>();
 
     private final SmoothStepAnimation panel_anim = new SmoothStepAnimation(300, 1);
     public final SmoothStepAnimation alpha_anim = new SmoothStepAnimation(300, 1);
+    private static Hud hud = FunctionManager.get(Hud.class);
 
     public HudFunction(FloatRect rect, String name) {
         this.rect = rect;
@@ -96,6 +94,9 @@ public abstract class HudFunction {
     public void onDisable() {
     }
 
+    public void tick() {
+    }
+
     public abstract void draw(float alpha);
 
     public void onToggle(ToggleEvent event) {
@@ -127,24 +128,6 @@ public abstract class HudFunction {
         this.rect.setY(rect.getY());
     }
 
-    public void drawPanel() {
-        if (values.isEmpty()) return;
-
-        panel_anim.setDirection(draw ? Direction.FORWARDS : Direction.BACKWARDS);
-        double out = panel_anim.getOutput();
-        if (out > 0) {
-            if (rect.getX2() >= mc.getWindow().getWidth() / 2 - 110) {
-                panel.rect.setX(rect.getX() - 110);
-            } else {
-                panel.rect.setX(rect.getX2() + 10);
-            }
-            panel.rect.setX(Math.round(panel.rect.getX() * 10.0f) / 10.0f);
-            panel.rect.setY(rect.getY());
-            panel.setValues(values);
-            panel.draw(0, 0, (float) out);
-        }
-    }
-
     public boolean click(int mx, int my, int b) {
         //FloatRect rect = new FloatRect(this.rect.getX() * 2 / mc.options.guiScale, this.rect.getY() * 2 / mc.options.guiScale, this.rect.getW() * 2 / mc.options.guiScale, this.rect.getH() * 2 / mc.options.guiScale);
 
@@ -161,15 +144,12 @@ public abstract class HudFunction {
             }
         }
 
-        if (draw && !values.isEmpty()) {
-            panel.click(mx, my, b);
-        }
-
         return dragged;
     }
 
     public void release(int mx, int my, int b) {
         dragged = false;
+        PATH.clear();
 
         rect.setX((float) rect.getX().intValue());
         rect.setY((float) rect.getY().intValue());
@@ -189,7 +169,7 @@ public abstract class HudFunction {
     }
 
     public void drawNewClientRect(FloatRect rect) {
-        if (FunctionManager.get(Hud.class).blur.get()) {
+        if (hud.blur.get()) {
             BlurShader.registerRenderCall(() -> {
                 GL.drawRoundedRect(rect, 3.5, Color.WHITE);
             });
@@ -197,8 +177,7 @@ public abstract class HudFunction {
             BlurShader.draw(4);
         }
 
-        if (FunctionManager.get(Hud.class).glow.get()) GL.drawRoundedGlowRect(rect, 3.5, 4, Colors.getColor(0), Colors.getColor(90), Colors.getColor(270), Colors.getColor(180));
-            //GL.drawGlow(rect, 8, ColorUtils.injectAlpha(Colors.getColor(0), 105), ColorUtils.injectAlpha(Colors.getColor(90), 105), ColorUtils.injectAlpha(Colors.getColor(180), 105), ColorUtils.injectAlpha(Colors.getColor(270), 105));
+        if (hud.glow.get()) GL.drawRoundedGlowRect(rect, 3.5, 4, Colors.getColor(0), Colors.getColor(90), Colors.getColor(270), Colors.getColor(180));
         else GL.drawRoundedGradientRect(rect, 3.5, ColorUtils.injectAlpha(Colors.getColor(0), 120), ColorUtils.injectAlpha(Colors.getColor(90), 120), ColorUtils.injectAlpha(Colors.getColor(270), 120), ColorUtils.injectAlpha(Colors.getColor(180), 120));
         GL.drawRoundedGradientOutline(rect, 3.5, 1d, Colors.getColor(0), Colors.getColor(90), Colors.getColor(270), Colors.getColor(180));
     }
@@ -212,7 +191,7 @@ public abstract class HudFunction {
         );
 
         GL.prepare();
-        Renderer3D.enableSmoothLine(2.5F);
+        Renderer3D.enableSmoothLine(1F);
         Renderer3D.begin(GL11.GL_LINE_STRIP);
         Renderer3D.color(ColorUtils.injectAlpha(Colors.getColor(0), (int) (a * 255)));
         GL11.glVertex2d(rect.getX(), rect.getY());
@@ -229,23 +208,8 @@ public abstract class HudFunction {
         GL.end();
     }
 
-    public static void drawRectHotbar(FloatRect rect) {
-        if (FunctionManager.get(Hud.class).blur.get()) {
-            BlurShader.registerRenderCall(() -> {
-                GL.drawRoundedRect(rect, 3.5, Color.WHITE);
-            });
-
-            BlurShader.draw(4);
-        }
-
-        if (FunctionManager.get(Hud.class).glow.get()) GL.drawRoundedGlowRect(rect, 3.5, 4, Colors.getColor(0), Colors.getColor(90), Colors.getColor(270), Colors.getColor(180));
-            //GL.drawGlow(rect, 8, ColorUtils.injectAlpha(Colors.getColor(0), 105), ColorUtils.injectAlpha(Colors.getColor(90), 105), ColorUtils.injectAlpha(Colors.getColor(180), 105), ColorUtils.injectAlpha(Colors.getColor(270), 105));
-        else GL.drawRoundedGradientRect(rect, 3.5, ColorUtils.injectAlpha(Colors.getColor(0), 120), ColorUtils.injectAlpha(Colors.getColor(90), 120), ColorUtils.injectAlpha(Colors.getColor(270), 120), ColorUtils.injectAlpha(Colors.getColor(180), 120));
-        GL.drawRoundedGradientOutline(rect, 3.5, 1d, Colors.getColor(0), Colors.getColor(90), Colors.getColor(270), Colors.getColor(180));
-    }
-
     public static void drawRectGui(FloatRect rect, float a) {
-        if (FunctionManager.get(Hud.class).blur.get()) {
+        if (hud.blur.get()) {
             BlurShader.registerRenderCall(() -> {
                 GL.drawRoundedRect(rect, 3.5, ColorUtils.injectAlpha(Color.WHITE, (int) (a * 255)));
             });
@@ -253,8 +217,7 @@ public abstract class HudFunction {
             BlurShader.draw(4);
         }
 
-        if (FunctionManager.get(Hud.class).glow.get()) GL.drawRoundedGlowRect(rect, 3.5, 4, ColorUtils.injectAlpha(Colors.getColor(0), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (a * 255)));
-            //GL.drawGlow(rect, 8, ColorUtils.injectAlpha(Colors.getColor(0), 105), ColorUtils.injectAlpha(Colors.getColor(90), 105), ColorUtils.injectAlpha(Colors.getColor(180), 105), ColorUtils.injectAlpha(Colors.getColor(270), 105));
+        if (hud.glow.get()) GL.drawRoundedGlowRect(rect, 3.5, 4, ColorUtils.injectAlpha(Colors.getColor(0), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (a * 255)));
         else GL.drawRoundedGradientRect(rect, 3.5, ColorUtils.injectAlpha(Colors.getColor(0), (int) (a * 120)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (a * 120)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (a * 120)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (a * 120)));
         GL.drawRoundedGradientOutline(rect, 3.5, 1d, ColorUtils.injectAlpha(Colors.getColor(0), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (a * 255)));
     }
@@ -272,17 +235,6 @@ public abstract class HudFunction {
 
     public boolean canUpdate() {
         return BloodyClient.canUpdate();
-    }
-
-    public HudValue create(String name, boolean defaultValue) {
-        return create(name, defaultValue, null);
-    }
-
-    public HudValue create(String name, boolean defaultValue, Runnable callback) {
-        HudValue v = new HudValue(name, defaultValue);
-        values.add(v);
-        v.setCallback(callback);
-        return v;
     }
 
     public float getAlpha() {

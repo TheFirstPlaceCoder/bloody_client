@@ -29,10 +29,10 @@ public class StorageESP extends Function {
         super("Storage ESP", Category.VISUAL);
     }
 
-    private final IntegerSetting max = Integer().name("Кол-во").defaultValue(512).min(64).max(1024).build();
-    private final BooleanSetting tracers = Boolean().name("Трейсер").defaultValue(true).build();
-    private final IntegerSetting alpha = Integer().name("Яркость").defaultValue(128).min(0).max(255).build();
-    private final MultiBooleanSetting target = MultiBoolean().name("Цель").defaultValue(List.of(
+    private final IntegerSetting max = Integer().name("Кол-во").enName("Count").defaultValue(512).min(64).max(1024).build();
+    private final BooleanSetting tracers = Boolean().name("Трейсер").enName("Draw Tracer").defaultValue(true).build();
+    private final IntegerSetting alpha = Integer().name("Яркость").enName("Brightness").defaultValue(128).min(0).max(255).build();
+    private final MultiBooleanSetting target = MultiBoolean().name("Цель").enName("Storages").defaultValue(List.of(
             new MultiBooleanValue(true, "Сундук"),
             new MultiBooleanValue(true, "Эндер сундук"),
             new MultiBooleanValue(false, "Сундук ловушка"),

@@ -1,6 +1,6 @@
 package com.client.system.notification;
 
-import com.client.clickgui.GuiScreen;
+import com.client.clickgui.newgui.GuiScreen;
 import com.client.impl.function.client.Notifications;
 import com.client.system.function.FunctionManager;
 import com.client.utils.Utils;
@@ -19,22 +19,24 @@ public class NotificationManager {
         Info
     }
 
+    public static Notifications notifications = FunctionManager.get(Notifications.class);
+
     private static final List<Notification> FIELDS = new CopyOnWriteArrayList<>();
 
     public static void add(Notification notification) {
-        if (!FunctionManager.get(Notifications.class).isEnabled() || mc.currentScreen instanceof GuiScreen && notification.type != NotificationType.CLIENT) return;
+        if (!notifications.isEnabled() || mc.currentScreen instanceof GuiScreen && notification.type != NotificationType.CLIENT) return;
         FIELDS.forEach(Notification::next);
         FIELDS.add(notification);
     }
 
     public static void add(Notification notification, NotifType type) {
-        if (!FunctionManager.get(Notifications.class).isEnabled() || mc.currentScreen instanceof GuiScreen && notification.type != NotificationType.CLIENT) return;
-        if (!FunctionManager.get(Notifications.class).mode.get().equals("Чат")) {
+        if (!notifications.isEnabled() || mc.currentScreen instanceof GuiScreen && notification.type != NotificationType.CLIENT) return;
+        if (!notifications.mode.get().equals("Chat")) {
             FIELDS.forEach(Notification::next);
             FIELDS.add(notification);
         }
 
-        if (!FunctionManager.get(Notifications.class).mode.get().equals("Уведомление")) {
+        if (!notifications.mode.get().equals("Notification")) {
             switch (type) {
                 case Info -> ChatUtils.info(notification.message);
                 case Warning -> ChatUtils.warning(notification.message);
@@ -44,7 +46,7 @@ public class NotificationManager {
     }
 
     public static void draw() {
-        if (!FunctionManager.get(Notifications.class).isEnabled()) return;
+        if (!notifications.isEnabled()) return;
         FIELDS.removeIf(Notification::remove);
         Utils.rescaling(() -> FIELDS.forEach(Notification::draw));
     }

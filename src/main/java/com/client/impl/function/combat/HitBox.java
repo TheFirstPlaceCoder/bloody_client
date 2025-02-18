@@ -7,7 +7,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 
 public class HitBox extends Function {
-    public final DoubleSetting size = Double().name("Размер").defaultValue(1.0).min(0).max(2).build();
+    public final DoubleSetting size = Double().name("Размер").enName("Size").defaultValue(1.0).min(0).max(2).build();
 
     public HitBox() {
         super("Hit Box", Category.COMBAT);

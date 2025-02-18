@@ -17,8 +17,8 @@ public class Sprint extends Function {
         super("Sprint", Category.MOVEMENT);
     }
 
-    private final ListSetting mode = List().name("Анти-чит").list(List.of("Обычный", "Matrix", "FunTime")).defaultValue("Обычный").build();
-    private final BooleanSetting keepSprint = Boolean().name("Сохранять спринт").defaultValue(true).build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Обычный", "Matrix", "FunTime")).defaultValue("Обычный").build();
+    private final BooleanSetting keepSprint = Boolean().name("Сохранять спринт").enName("Save Sprint").defaultValue(true).build();
 
     @EventHandler
     private void onTick(TickEvent.Pre event) {

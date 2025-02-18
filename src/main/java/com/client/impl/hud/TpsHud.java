@@ -19,9 +19,12 @@ public class TpsHud extends HudFunction {
     }
 
     private final SmoothStepAnimation animation = new SmoothStepAnimation(300, 1);
+    private PingHud pingHud;
 
     @Override
     public void draw(float alpha) {
+        if (pingHud == null) pingHud = HudManager.get(PingHud.class);
+
         String tps = "Tps: ";
         String value = isEnabled() ? String.format("%.1f", TickRate.getTickRate()).replace(",", ".") : "0.0";
 
@@ -31,7 +34,7 @@ public class TpsHud extends HudFunction {
 
         offsetY = (float) ((mc.getWindow().getHeight() / 2) - (15f * animation.getOutput()));
 
-        y = HudManager.get(PingHud.class).isEnabled() || mc.currentScreen instanceof ChatScreen ? IFont.getHeight(IFont.MONTSERRAT_MEDIUM, "AAA123", 7) + 1 : 0;
+        y = pingHud.isEnabled() || mc.currentScreen instanceof ChatScreen ? IFont.getHeight(IFont.MONTSERRAT_MEDIUM, "AAA123", 7) + 1 : 0;
 
         draw(offsetY - y - IFont.getHeight(IFont.MONTSERRAT_MEDIUM, tps, 7), tps, value, alpha);
     }

@@ -26,6 +26,16 @@ public class DoubleRect extends Rect<Double> {
     }
 
     @Override
+    public DoubleRect expand(Double x) {
+        this.x -= x;
+        this.y -= x;
+        this.w += x * 2;
+        this.h += x * 2;
+        setup();
+        return this;
+    }
+
+    @Override
     public DoubleRect setX(Double x) {
         this.x = x;
         setup();

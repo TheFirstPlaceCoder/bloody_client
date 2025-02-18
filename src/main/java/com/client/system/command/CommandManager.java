@@ -16,7 +16,6 @@ public class CommandManager {
         add(new FriendsCommand());
         add(new GpsCommand());
         add(new DropCommand());
-        add(new ReportCommand());
         add(new HelpCommand());
         add(new StaffCommand());
         add(new ConfigCommand());

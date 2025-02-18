@@ -20,9 +20,9 @@ public class Zoom extends Function {
         super("Zoom", Category.VISUAL);
     }
 
-    private final KeybindSetting bind = Keybind().name("Бинд").defaultValue(-1).build();
-    private final DoubleSetting zoom = Double().name("Зум").defaultValue(2.5).min(1.1).max(10.0).build();
-    private final BooleanSetting cinematic = Boolean().name("Плавная камера").defaultValue(true).build();
+    private final KeybindSetting bind = Keybind().name("Бинд").enName("Bind").defaultValue(-1).build();
+    private final DoubleSetting zoom = Double().name("Зум").enName("Zoom").defaultValue(2.5).min(1.1).max(10.0).build();
+    private final BooleanSetting cinematic = Boolean().name("Плавная камера").enName("Smooth").defaultValue(true).build();
 
     private float v1, v2;
     private int flag;

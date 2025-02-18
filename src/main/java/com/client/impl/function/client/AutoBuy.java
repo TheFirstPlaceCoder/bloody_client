@@ -2,17 +2,16 @@ package com.client.impl.function.client;
 
 import api.interfaces.EventHandler;
 import com.client.clickgui.autobuy.AutoBuyGui;
+import com.client.clickgui.cheststealer.cheststealer.ChestStealerGui;
 import com.client.event.events.*;
+import com.client.impl.hud.StaffHud;
 import com.client.interfaces.IClickSlotC2SPacket;
 import com.client.interfaces.IClientPlayerInteractionManager;
 import com.client.system.autobuy.*;
 import com.client.system.command.Command;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
-import com.client.system.setting.settings.IntegerSetting;
-import com.client.system.setting.settings.KeybindSetting;
-import com.client.system.setting.settings.ListSetting;
-import com.client.system.setting.settings.Widget;
+import com.client.system.setting.settings.*;
 import com.client.utils.Utils;
 import com.client.utils.game.chat.ChatUtils;
 import com.client.utils.game.entity.ServerUtils;
@@ -49,15 +48,9 @@ public class AutoBuy extends Function {
     private final IntegerSetting delayAddPlus = Integer().name("Задержка после клика").min(100).max(3000).defaultValue(1250).visible(() -> server.get().equals("FunTime")).build();
     private final IntegerSetting delayBeforeBuy = Integer().name("Задержка перед кликом").min(100).max(5000).defaultValue(3500).visible(() -> server.get().equals("FunTime")).build();
     private final IntegerSetting delayClick = Integer().name("Задержка между попытками").min(100).max(2000).defaultValue(1500).visible(() -> server.get().equals("FunTime")).build();
-    private final KeybindSetting bind = Keybind().name("Бинд").defaultValue(-1).build();
-    private final Widget openScreen = Widget().name("Открыть меню").defaultValue(() -> {
-        if (abGui == null) {
-            abGui = AutoBuyGui.getInstance();
-        } else {
-            abGui.open();
-        }
-        mc.openScreen(abGui);
-    }).build();
+    private final BooleanSetting ignoreStaff = Boolean().name("Игнорировать Staff").defaultValue(true).build();
+    private final KeybindSetting openScreen = Keybind().name("Открыть меню").defaultValue(-1).build();
+    private final KeybindSetting bind = Keybind().name("Включить/Выключить").defaultValue(-1).build();
 
     public long update;
     public long clickUptime;
@@ -80,6 +73,20 @@ public class AutoBuy extends Function {
     public void onEnable() {
         hash.clear();
         hashOfBlocked.clear();
+    }
+
+    @EventHandler
+    public void onKeybindSetting(KeybindSettingEvent event) {
+        if (event.action == InputUtils.Action.PRESS) {
+            if (openScreen.key(event.key, !event.mouse)) {
+                if (abGui == null) {
+                    abGui = AutoBuyGui.getInstance();
+                } else {
+                    abGui.open();
+                }
+                mc.openScreen(abGui);
+            }
+        }
     }
 
     @EventHandler
@@ -136,7 +143,7 @@ public class AutoBuy extends Function {
                     packetSend = false;
                     return;
                 }
-                lastItem.purchased = !event.message.contains("Этот предмет нельзя купить, т.к он больше не продается.");
+                lastItem.purchased = !event.message.contains("Невозможно забрать предмет, так как его уже купили");
                 HistoryManager.add(lastItem);
                 lastItem = null;
                 packetSend = false;
@@ -226,7 +233,7 @@ public class AutoBuy extends Function {
                     if (ah) {
                         for (int i = 0; i < chestScreen.getScreenHandler().getInventory().size(); i++) {
                             ItemStack stack = chestScreen.getScreenHandler().getInventory().getStack(i);
-                            if (hashOfBlocked.containsValue(i)) continue;
+                            if (hashOfBlocked.containsValue(i) || (ignoreStaff.get() && getName(stack) != null && StaffHud.getStaffNicknames().contains(getName(stack)))) continue;
 
                             String name = stack.getName().asString();
 
@@ -291,13 +298,13 @@ public class AutoBuy extends Function {
                     if (ah) {
                         for (int i = 0; i < chestScreen.getScreenHandler().getInventory().size(); i++) {
                             ItemStack stack = chestScreen.getScreenHandler().getInventory().getStack(i);
-                            if (hash.containsValue(stack)) continue;
+                            if (hash.containsValue(stack) || stack.getItem() == Items.BARRIER || (ignoreStaff.get() && getName(stack) != null && StaffHud.getStaffNicknames().contains(getName(stack)))) continue;
 
                             String name = stack.getName().getString();
 
-                            if (name.equals("Активные товары на продаже") || name.equals("Завершенные товары") || name.equals("Следующая страница ▶")
-                                    || name.contains("помощь по аукциону") || name.equals("как продать товар?") || name.equals("сортировка")
-                                    || name.equals("Категории предметорв") || name.equals("◀ Предыдущая страница"))
+                            if (name.contains("Товары на продаже") || name.contains("Просроченные товары") || name.equals("◀ Предыдущая страница")
+                                    || name.equals(" Помощь по аукциону") || name.equals("Следующая страница ▶") || name.equals(" Помощь по системе аукциона:")
+                                    || name.equals(" Сортировка") || name.equals(" Категории предметов"))
                                 continue;
 
                             int[] sum = calcSum(stack.getTooltip(mc.player, TooltipContext.Default.NORMAL).stream().filter(text -> text.getString().contains("▍") && text.getString().contains("¤")).toList());
@@ -338,7 +345,7 @@ public class AutoBuy extends Function {
                                 hash.put(System.currentTimeMillis() + 10000L, stack);
                             }
 
-                            if (stack.getItem().equals(Items.EMERALD) && name.equals("Обновить аукцион ↻") && i == 47 && System.currentTimeMillis() > update && !packet && System.currentTimeMillis() > idkTime) {
+                            if (stack.getItem().equals(Items.EMERALD) && name.equals("⇵ Обновить аукцион") && i == 47 && System.currentTimeMillis() > update && !packet && System.currentTimeMillis() > idkTime) {
                                 click(i, 0);
                                 update = System.currentTimeMillis() + delay.get();
                             }
@@ -351,7 +358,7 @@ public class AutoBuy extends Function {
                         for (int i = 0; i < chestScreen.getScreenHandler().getInventory().size(); i++) {
                             ItemStack stack = chestScreen.getScreenHandler().getInventory().getStack(i);
                             String name = stack.getName().getString();
-                            if (stack.getItem().equals(Items.GREEN_STAINED_GLASS_PANE) && name.contains("Купить") && !click) {
+                            if (stack.getItem().equals(Items.LIME_STAINED_GLASS_PANE) && name.contains("Купить") && !click) {
                                 click(i, 0);
                                 click = true;
                                 clickUptime = System.currentTimeMillis() + 1000L;
@@ -403,6 +410,40 @@ public class AutoBuy extends Function {
         } catch (Exception ex) {
             return null;
         }
+    }
+
+    @Nullable
+    private static String getName(ItemStack stack) {
+        try {
+            return stack.getSubTag("display").getList("Lore", 8).stream()
+                    .map(element -> {
+                        String string = Text.Serializer.fromJson(element.asString()).getString();
+
+                        if (Stream.of("Продавец:").anyMatch(string::contains)) {
+                            List<Character> list = new ArrayList<>();
+                            for (char c : string.toCharArray()) {
+                                if (c == '.' || c == '(') break;
+                                if (isLatinLetter(c) || Character.isDigit(c)) list.add(c);
+                            }
+                            char[] chars = new char[list.size()];
+                            for (int index = 0; index < list.size(); index++) chars[index] = list.get(index);
+                            try {
+                                return new String(chars);
+                            } catch (NumberFormatException ex) {}
+                        }
+
+                        return null;
+                    })
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .get();
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    public static boolean isLatinLetter(char c) {
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_';
     }
 
     private int[] calcSum(List<Text> s) {

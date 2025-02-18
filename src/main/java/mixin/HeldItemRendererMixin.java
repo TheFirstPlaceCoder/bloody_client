@@ -20,6 +20,7 @@ import net.minecraft.util.math.Vec3f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -48,9 +49,12 @@ public abstract class HeldItemRendererMixin {
 
     @Shadow private ItemStack mainHand;
 
+    @Unique private SwingAnimation animation;
+
+
     @Inject(method = "applyEatOrDrinkTransformation", at = @At("HEAD"), cancellable = true)
     private void applyEatOrDrinkTransformation(MatrixStack matrices, float tickDelta, Arm arm, ItemStack stack, CallbackInfo ci) {
-        SwingAnimation animation = FunctionManager.get(SwingAnimation.class);
+        if (animation == null) animation = FunctionManager.get(SwingAnimation.class);
         boolean checkMain = mc.player.getMainHandStack().getItem().equals(Items.CROSSBOW) || mc.player.getMainHandStack().getItem().equals(Items.FILLED_MAP) || mc.player.getMainHandStack().getItem().equals(Items.BOW) || mc.player.getMainHandStack().getItem().equals(Items.TRIDENT);
         boolean checkOff = mc.player.getOffHandStack().getItem().equals(Items.CROSSBOW) || mc.player.getOffHandStack().getItem().equals(Items.FILLED_MAP) || mc.player.getOffHandStack().getItem().equals(Items.BOW) || mc.player.getOffHandStack().getItem().equals(Items.TRIDENT);
         if (animation.isEnabled() && animation.animation() && !checkOff && !checkMain) {
@@ -77,7 +81,7 @@ public abstract class HeldItemRendererMixin {
 
     @Inject(method = "applySwingOffset", at = @At("HEAD"), cancellable = true)
     private void applySwingOffset(MatrixStack matrices, Arm arm, float swingProgress, CallbackInfo ci) {
-        SwingAnimation animation = FunctionManager.get(SwingAnimation.class);
+        if (animation == null) animation = FunctionManager.get(SwingAnimation.class);
         boolean checkMain = mc.player.getMainHandStack().getItem().equals(Items.CROSSBOW) || mc.player.getMainHandStack().getItem().equals(Items.FILLED_MAP) || mc.player.getMainHandStack().getItem().equals(Items.BOW) || mc.player.getMainHandStack().getItem().equals(Items.TRIDENT);
         boolean checkOff = mc.player.getOffHandStack().getItem().equals(Items.CROSSBOW) || mc.player.getOffHandStack().getItem().equals(Items.FILLED_MAP) || mc.player.getOffHandStack().getItem().equals(Items.BOW) || mc.player.getOffHandStack().getItem().equals(Items.TRIDENT);
         if (animation.isEnabled() && animation.animation() && !checkOff && !checkMain) {
@@ -110,7 +114,7 @@ public abstract class HeldItemRendererMixin {
 
     @Inject(method = "renderFirstPersonItem", at = @At("HEAD"), cancellable = true)
     private void renderFirstPersonItem(AbstractClientPlayerEntity player, float tickDelta, float pitch, Hand hand, float swingProgress, ItemStack item, float equipProgress, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-        SwingAnimation animation = FunctionManager.get(SwingAnimation.class);
+        if (animation == null) animation = FunctionManager.get(SwingAnimation.class);
         boolean checkMain = player.getMainHandStack().getItem().equals(Items.CROSSBOW) || player.getMainHandStack().getItem().equals(Items.FILLED_MAP) || player.getMainHandStack().getItem().equals(Items.BOW) || player.getMainHandStack().getItem().equals(Items.TRIDENT);
         boolean checkOff = player.getOffHandStack().getItem().equals(Items.CROSSBOW) || player.getOffHandStack().getItem().equals(Items.FILLED_MAP) || player.getOffHandStack().getItem().equals(Items.BOW) || player.getOffHandStack().getItem().equals(Items.TRIDENT);
         if (animation.isEnabled() && animation.animation() && !checkOff && !checkMain) {
@@ -261,7 +265,7 @@ public abstract class HeldItemRendererMixin {
 
     @Inject(method = "applyEquipOffset", at = @At("HEAD"), cancellable = true)
     private void applyEquipOffset(MatrixStack matrices, Arm arm, float equipProgress, CallbackInfo ci) {
-        SwingAnimation animation = FunctionManager.get(SwingAnimation.class);
+        if (animation == null) animation = FunctionManager.get(SwingAnimation.class);
         boolean checkMain = mc.player.getMainHandStack().getItem().equals(Items.CROSSBOW) || mc.player.getMainHandStack().getItem().equals(Items.FILLED_MAP) || mc.player.getMainHandStack().getItem().equals(Items.BOW) || mc.player.getMainHandStack().getItem().equals(Items.TRIDENT);
         boolean checkOff = mc.player.getOffHandStack().getItem().equals(Items.CROSSBOW) || mc.player.getOffHandStack().getItem().equals(Items.FILLED_MAP) || mc.player.getOffHandStack().getItem().equals(Items.BOW) || mc.player.getOffHandStack().getItem().equals(Items.TRIDENT);
         if (animation.isEnabled() && animation.animation() && !checkOff && !checkMain) {
@@ -273,7 +277,7 @@ public abstract class HeldItemRendererMixin {
 
     @Inject(method = "renderItem(FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lnet/minecraft/client/network/ClientPlayerEntity;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/HeldItemRenderer;renderFirstPersonItem(Lnet/minecraft/client/network/AbstractClientPlayerEntity;FFLnet/minecraft/util/Hand;FLnet/minecraft/item/ItemStack;FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", shift = At.Shift.BEFORE, ordinal = 0))
     public void offsetRightBefore(float tickDelta, MatrixStack matrices, VertexConsumerProvider.Immediate vertexConsumers, ClientPlayerEntity player, int light, CallbackInfo ci) {
-        SwingAnimation animation = FunctionManager.get(SwingAnimation.class);
+        if (animation == null) animation = FunctionManager.get(SwingAnimation.class);
         if (animation.isEnabled() && animation.animation()) {
             matrices.push();
             matrices.translate(animation.x.floatValue(), animation.y.floatValue(), animation.z.floatValue());
@@ -283,7 +287,7 @@ public abstract class HeldItemRendererMixin {
 
     @Inject(method = "renderItem(FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lnet/minecraft/client/network/ClientPlayerEntity;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/HeldItemRenderer;renderFirstPersonItem(Lnet/minecraft/client/network/AbstractClientPlayerEntity;FFLnet/minecraft/util/Hand;FLnet/minecraft/item/ItemStack;FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", shift = At.Shift.AFTER, ordinal = 0))
     public void offsetRightAfter(float tickDelta, MatrixStack matrices, VertexConsumerProvider.Immediate vertexConsumers, ClientPlayerEntity player, int light, CallbackInfo ci) {
-        SwingAnimation animation = FunctionManager.get(SwingAnimation.class);
+        if (animation == null) animation = FunctionManager.get(SwingAnimation.class);
         if (animation.isEnabled() && animation.animation()) {
             matrices.pop();
         }
@@ -291,7 +295,7 @@ public abstract class HeldItemRendererMixin {
 
     @Inject(method = "renderItem(FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lnet/minecraft/client/network/ClientPlayerEntity;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/HeldItemRenderer;renderFirstPersonItem(Lnet/minecraft/client/network/AbstractClientPlayerEntity;FFLnet/minecraft/util/Hand;FLnet/minecraft/item/ItemStack;FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", shift = At.Shift.BEFORE, ordinal = 1))
     public void offsetLeftBefore(float tickDelta, MatrixStack matrices, VertexConsumerProvider.Immediate vertexConsumers, ClientPlayerEntity player, int light, CallbackInfo ci) {
-        SwingAnimation animation = FunctionManager.get(SwingAnimation.class);
+        if (animation == null) animation = FunctionManager.get(SwingAnimation.class);
         if (animation.isEnabled() && animation.animation()) {
             matrices.push();
             matrices.translate(-animation.x.floatValue(), animation.y.floatValue(), animation.z.floatValue());
@@ -301,7 +305,7 @@ public abstract class HeldItemRendererMixin {
 
     @Inject(method = "renderItem(FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lnet/minecraft/client/network/ClientPlayerEntity;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/HeldItemRenderer;renderFirstPersonItem(Lnet/minecraft/client/network/AbstractClientPlayerEntity;FFLnet/minecraft/util/Hand;FLnet/minecraft/item/ItemStack;FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", shift = At.Shift.AFTER, ordinal = 1))
     public void offsetLeftAfter(float tickDelta, MatrixStack matrices, VertexConsumerProvider.Immediate vertexConsumers, ClientPlayerEntity player, int light, CallbackInfo ci) {
-        SwingAnimation animation = FunctionManager.get(SwingAnimation.class);
+        if (animation == null) animation = FunctionManager.get(SwingAnimation.class);
         if (animation.isEnabled() && animation.animation()) {
             matrices.pop();
         }

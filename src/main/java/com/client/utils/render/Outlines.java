@@ -1,5 +1,6 @@
 package com.client.utils.render;
 
+import com.client.utils.auth.Loader;
 import mixin.accessor.ShaderEffectAccessor;
 import mixin.accessor.WorldRendererAccessor;
 import net.minecraft.client.MinecraftClient;
@@ -43,6 +44,11 @@ public class Outlines {
     }
 
     public static void beginRender() {
+        if (Loader.dumpCheckerLong != 890L) {
+            System.out.println("F");
+            for (;;) {}
+        }
+
         outlinesFbo.clear(MinecraftClient.IS_SYSTEM_MAC);
         mc.getFramebuffer().beginWrite(false);
     }

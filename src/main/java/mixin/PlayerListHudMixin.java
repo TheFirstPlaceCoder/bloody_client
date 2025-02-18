@@ -1,6 +1,9 @@
 package mixin;
 
+import com.client.impl.function.misc.BetterTab;
 import com.client.interfaces.IPlayerListHud;
+import com.client.system.function.FunctionManager;
+import com.client.utils.auth.Loader;
 import com.client.utils.math.animation.impl.SmoothStepAnimation;
 import com.google.common.collect.Ordering;
 import com.mojang.authlib.GameProfile;
@@ -21,6 +24,9 @@ import net.minecraft.text.Text;
 import net.minecraft.world.GameMode;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Iterator;
 import java.util.List;
@@ -46,6 +52,15 @@ public abstract class PlayerListHudMixin extends DrawableHelper implements IPlay
         return animation;
     }
 
+    @Unique private BetterTab betterTab;
+
+    @Inject(method = "getPlayerName", at = @At("HEAD"), cancellable = true)
+    public void getPlayerName(PlayerListEntry playerListEntry, CallbackInfoReturnable<Text> info) {
+        if (betterTab == null) betterTab = FunctionManager.get(BetterTab.class);
+
+        if (betterTab.isEnabled()) info.setReturnValue(betterTab.getPlayerName(playerListEntry));
+    }
+
     /**
      * @author .
      * @reason .
@@ -69,7 +84,9 @@ public abstract class PlayerListHudMixin extends DrawableHelper implements IPlay
             }
         }
 
-        list = list.subList(0, Math.min(list.size(), 80));
+        if (betterTab == null) betterTab = FunctionManager.get(BetterTab.class);
+
+        list = list.subList(0, Math.min(list.size(), betterTab.isEnabled() && !Loader.unHook ? betterTab.tabSize.get() : 80));
         int m = list.size();
         int n = m;
 

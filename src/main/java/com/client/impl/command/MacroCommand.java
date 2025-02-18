@@ -5,6 +5,7 @@ import com.client.system.command.Command;
 import com.client.system.friend.FriendManager;
 import com.client.system.macro.Macro;
 import com.client.system.macro.Macros;
+import com.client.utils.Utils;
 import com.client.utils.misc.InputUtils;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -26,7 +27,7 @@ public class MacroCommand extends Command {
         if (!listening || event.action != InputUtils.Action.PRESS) return;
 
         Macros.add(new Macro(name, command, event.key));
-        info(Formatting.WHITE + name + Formatting.AQUA + " был добавлен в список макросов.");
+        info(Formatting.WHITE + name + Formatting.AQUA + (Utils.isRussianLanguage ? " был добавлен в список макросов." : " was added to Macros list"));
         listening = false;
     }
 
@@ -35,16 +36,16 @@ public class MacroCommand extends Command {
         switch (args[0]) {
             case "add" : {
                 if (Macros.contains(args[1])) {
-                    info(Formatting.WHITE + args[1] + Formatting.RED + " уже есть в списке макросов.");
+                    info(Formatting.WHITE + args[1] + Formatting.RED + (Utils.isRussianLanguage ? " уже есть в списке макросов!" : " already exists!"));
                 } else {
                     String com = Arrays.toString(args).substring(args[0].length() + args[1].length() + 5).replace(",", "").replace("]", "");
 
                     if (com.isEmpty() || com.isBlank()) {
-                        error("Команды для действия устая");
+                        error((Utils.isRussianLanguage ? "Команды для действия пустая" : "Action command is empty!"));
                     } else if (com.contains("/")) {
-                        error("Команды для действия нужно вводить без знака " + Formatting.WHITE + "/");
+                        error((Utils.isRussianLanguage ? "Команды для действия нужно вводить без знака " : "Action command must not contains ") + Formatting.WHITE + "/");
                     } else {
-                        info(Formatting.AQUA + "Нажми кнопку бинда.");
+                        info(Formatting.AQUA + (Utils.isRussianLanguage ? "Нажми кнопку бинда." : "Press any key."));
                         listening = true;
                         name = args[1];
                         command = com;
@@ -55,31 +56,31 @@ public class MacroCommand extends Command {
             case "remove" : {
                 if (Macros.contains(args[1])) {
                     Macros.remove(args[1]);
-                    info(Formatting.WHITE + args[1] + Formatting.YELLOW + " был удален из списка макросов.");
+                    info(Formatting.WHITE + args[1] + Formatting.YELLOW + (Utils.isRussianLanguage ? " был удален из списка макросов!" : " was deleted!"));
                 } else {
-                    info(Formatting.WHITE + args[1] + Formatting.RED + " не находиться в списке макросов.");
+                    info(Formatting.WHITE + args[1] + Formatting.RED + (Utils.isRussianLanguage ? " не находиться в списке макросов!" : " is not in Macros list!"));
                 }
                 break;
 
             }
             case "list" : {
                 if (Macros.macros.isEmpty()) {
-                    error(Text.of("Список макросов пуст."));
+                    error(Text.of(Utils.isRussianLanguage ? "Список макросов пуст." : "Macros list is empty."));
                 } else {
-                    info(Text.of(Formatting.AQUA + "Список макросов:"));
+                    info(Text.of(Formatting.AQUA + (Utils.isRussianLanguage ? "Список макросов:" : "Macros list:")));
                     for (Macro macro : Macros.macros) {
                         String names = macro.name;
                         String keys = InputUtils.getKeyName(macro.button);
                         String command = macro.command;
 
-                        info(Text.of(Formatting.GRAY + "Имя: " + Formatting.WHITE + names + (Formatting.GRAY + " Бинд: " + Formatting.WHITE + keys + (Formatting.GRAY + " Команда: " + Formatting.WHITE + ("/" + command)))));
+                        info(Text.of(Formatting.GRAY + (Utils.isRussianLanguage ? "Имя: " : "Name: ") + Formatting.WHITE + names + (Formatting.GRAY + (Utils.isRussianLanguage ? " Бинд: " : " Key: ") + Formatting.WHITE + keys + (Formatting.GRAY + (Utils.isRussianLanguage ? " Команда: " : " Action command: ") + Formatting.WHITE + ("/" + command)))));
                     }
                 }
                 break;
             }
             case "clear" : {
                 Macros.clear();
-                warning("Список макросов был очищен.");
+                warning(Utils.isRussianLanguage ? "Список макросов был очищен." : "Macros list was cleared.");
                 break;
             }
             default:
@@ -90,8 +91,8 @@ public class MacroCommand extends Command {
 
     @Override
     public void error() {
-        warning("Некорректное использование команды!");
-        info(".macro add <имя> <кнопка> <комманда>");
+        warning(Utils.isRussianLanguage ? "Некорректное использование команды!" : "Incorrect use of command!");
+        info(Utils.isRussianLanguage ? ".macro add <имя> <кнопка> <комманда>" : ".macro add <name> <key> <action command>");
         info(".macro remove <имя>");
         info(".macro clear");
         info(".macro list");

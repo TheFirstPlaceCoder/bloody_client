@@ -8,6 +8,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.client.particle.AnimatedParticle;
 import net.minecraft.client.particle.TotemParticle;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -22,12 +23,15 @@ public abstract class TotemParticleMixin extends AnimatedParticle {
         super(world, x, y, z, spriteProvider, upwardsAcceleration);
     }
 
+    @Unique
+    private Ambience customPops;
+
     @Inject(
             method = "<init>",
             at = @At("TAIL")
     )
     private void onPop(ClientWorld world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, SpriteProvider spriteProvider, CallbackInfo ci) {
-        Ambience customPops = Objects.requireNonNull(FunctionManager.get(Ambience.class));
+        if (customPops == null) customPops = FunctionManager.get(Ambience.class);
         if (customPops.isEnabled() && customPops.totemParticles.get().equals("Изменить")) {
             this.scale(customPops.particlesSize.get().floatValue());
             Color color = customPops.colorMode.get().equals("Статичный") ? customPops.colorParticles.get() : Colors.getColor(new Random().nextInt(360));

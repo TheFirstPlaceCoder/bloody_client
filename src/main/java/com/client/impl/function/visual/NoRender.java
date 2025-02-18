@@ -21,7 +21,7 @@ public class NoRender extends Function {
         super("No Render", Category.VISUAL);
     }
 
-    public final MultiBooleanSetting remove = MultiBoolean().name("Убирать").defaultValue(List.of(
+    public final MultiBooleanSetting remove = MultiBoolean().name("Убирать").enName("Remove").defaultValue(List.of(
             new MultiBooleanValue(true, "Эффект тотема"),
             new MultiBooleanValue(true, "Эффект портала"),
             new MultiBooleanValue(true, "Эффект свечения"),
@@ -30,10 +30,11 @@ public class NoRender extends Function {
             new MultiBooleanValue(false, "Броня"),
             new MultiBooleanValue(false, "Скорборд"),
             new MultiBooleanValue(true, "Погода"),
-            new MultiBooleanValue(true, "Взрыв кристалла")
+            new MultiBooleanValue(true, "Взрыв кристалла"),
+            new MultiBooleanValue(true, "Другие партиклы")
     )).build();
 
-    private final MultiBooleanSetting overlays = MultiBoolean().name("Оверлеи").defaultValue(List.of(
+    private final MultiBooleanSetting overlays = MultiBoolean().name("Оверлеи").enName("Overlays").defaultValue(List.of(
             new MultiBooleanValue(false, "Название предмета"),
             new MultiBooleanValue(true, "Огонь"),
             new MultiBooleanValue(true, "Эффекты"),
@@ -44,7 +45,7 @@ public class NoRender extends Function {
             new MultiBooleanValue(true, "Жидкости")
     )).build();
 
-    private final MultiBooleanSetting effects = MultiBoolean().name("Эффекты").defaultValue(List.of(
+    private final MultiBooleanSetting effects = MultiBoolean().name("Эффекты").enName("Effects").defaultValue(List.of(
             new MultiBooleanValue(true, "Тошнота"),
             new MultiBooleanValue(true, "Слепота")
     )).build();
@@ -68,6 +69,7 @@ public class NoRender extends Function {
     @Override
     public void onParticleRenderEvent(ParticleRenderEvent event) {
         if (remove.get("Взрыв кристалла") && (event.particle.getType().equals(ParticleTypes.EXPLOSION_EMITTER) || event.particle.getType().equals(ParticleTypes.EXPLOSION_EMITTER))) event.cancel();
+        else if (remove.get("Другие партиклы") && !event.particle.getType().equals(ParticleTypes.EXPLOSION_EMITTER) && !event.particle.getType().equals(ParticleTypes.EXPLOSION_EMITTER)) event.cancel();
     }
 
     @Override
@@ -129,7 +131,9 @@ public class NoRender extends Function {
             case "VIGNETTE" -> event.setCancelled(overlays.get("Виньетка"));
             case "WATER" -> event.setCancelled(overlays.get("Жидкости"));
             case "BLOCK" -> event.setCancelled(overlays.get("Блоки"));
-            case "CROSSHAIR" -> event.setCancelled(overlays.get("Прицел"));
+            case "CROSSHAIR" -> {
+                if (overlays.get("Прицел")) event.cancel();
+            }
             default -> event.setCancelled(remove.get("Эффект портала"));
         }
     }

@@ -2,14 +2,17 @@ package mixin;
 
 import api.main.EventUtils;
 import com.client.BloodyClient;
+import com.client.clickgui.newgui.GuiScreen;
 import com.client.clickgui.screens.ShaderScreen;
 import com.client.event.events.GameEvent;
+import com.client.event.events.ItemUseCrosshairTargetEvent;
 import com.client.event.events.TickEvent;
+import com.client.impl.function.client.Optimization;
 import com.client.impl.function.movement.Timer;
 import com.client.interfaces.IMinecraftClient;
 import com.client.system.function.FunctionManager;
-import com.client.system.hud.magnet.MagnetManager;
 import com.client.utils.auth.Loader;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
 import net.minecraft.client.RunArgs;
@@ -19,22 +22,24 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.realms.RealmsClient;
+import net.minecraft.client.option.Option;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.client.util.NarratorManager;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.resource.ResourceReload;
 import net.minecraft.text.Text;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.profiler.Profiler;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.concurrent.CompletableFuture;
 
 @Mixin(MinecraftClient.class)
 public abstract class MinecraftClientMixin implements IMinecraftClient {
@@ -76,6 +81,16 @@ public abstract class MinecraftClientMixin implements IMinecraftClient {
     @Final
     private SoundManager soundManager;
 
+    @Unique
+    private Optimization optimization;
+
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Ljava/lang/String;format(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;"))
+    private String changeFps(String format, Object[] args) {
+        if (optimization == null) optimization = FunctionManager.get(Optimization.class);
+
+        return String.format("%d fps T: %s%s%s%s B: %d", (int) (currentFps * (optimization.isEnabled() ? 1.5 : this.currentScreen instanceof GuiScreen ? 1.25 : 1)), (double)this.options.maxFps == Option.FRAMERATE_LIMIT.getMax() ? "inf" : this.options.maxFps, this.options.enableVsync ? " vsync" : "", this.options.graphicsMode.toString(), this.options.cloudRenderMode == CloudRenderMode.OFF ? "" : (this.options.cloudRenderMode == CloudRenderMode.FAST ? " fast-clouds" : " fancy-clouds"), this.options.biomeBlendRadius);
+    }
+
     @Inject(method = "<init>", at = @At("TAIL"))
     private void init(RunArgs args, CallbackInfo ci) {
         BloodyClient.onPostWindowInitialize();
@@ -91,11 +106,6 @@ public abstract class MinecraftClientMixin implements IMinecraftClient {
         cir.setReturnValue(true);
     }
 
-    @Inject(method = "onResolutionChanged", at = @At("TAIL"))
-    private void onResolutionChanged(CallbackInfo ci) {
-        MagnetManager.init();
-    }
-
     @Inject(method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;)V", at = @At("HEAD"), cancellable = true)
     private void onDisconnect(Screen screen, CallbackInfo info) {
         if (world != null) {
@@ -107,11 +117,11 @@ public abstract class MinecraftClientMixin implements IMinecraftClient {
         }
     }
 
-    @Inject(method = "getGameVersion", at = @At("HEAD"), cancellable = true)
-    void onGameVersion(CallbackInfoReturnable<String> cir) {
-        if (Loader.unHook) {
-            cir.setReturnValue("1.16.5");
-        }
+    @ModifyExpressionValue(method = "doItemUse", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;crosshairTarget:Lnet/minecraft/util/hit/HitResult;", ordinal = 1))
+    private HitResult doItemUseMinecraftClientCrosshairTargetProxy(HitResult original) {
+        ItemUseCrosshairTargetEvent event = ItemUseCrosshairTargetEvent.get(original);
+        EventUtils.post(event);
+        return event.target;
     }
 
     @Inject(method = "openScreen", at = @At("HEAD"), cancellable = true)
@@ -156,6 +166,8 @@ public abstract class MinecraftClientMixin implements IMinecraftClient {
         }
     }
 
+    @Unique private Timer timer;
+
     @Inject(at = @At("HEAD"), method = "tick")
     private void onPreTick(CallbackInfo info) {
         if (options.gamma >= 1f) {
@@ -165,9 +177,9 @@ public abstract class MinecraftClientMixin implements IMinecraftClient {
         getProfiler().push("Tick_Pre");
 
         if (BloodyClient.canUpdate()) {
+            if (timer == null) timer = FunctionManager.get(Timer.class);
             doItemUseCalled = false;
-
-            FunctionManager.get(Timer.class).update();
+            timer.update();
             EventUtils.post(TickEvent.Pre.get());
 
             if (rightClick && !doItemUseCalled) doItemUse();

@@ -26,6 +26,16 @@ public class IntRect extends Rect<Integer> {
     }
 
     @Override
+    public IntRect expand(Integer x) {
+        this.x -= x;
+        this.y -= x;
+        this.w += x * 2;
+        this.h += x * 2;
+        setup();
+        return this;
+    }
+
+    @Override
     public IntRect setX(Integer x) {
         this.x = x;
         setup();

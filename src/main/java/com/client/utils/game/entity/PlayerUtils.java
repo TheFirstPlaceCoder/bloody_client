@@ -1,5 +1,6 @@
 package com.client.utils.game.entity;
 
+import com.client.impl.function.combat.AntiBot;
 import com.client.impl.function.movement.Timer;
 import com.client.system.function.Function;
 import com.client.utils.misc.FunctionUtils;
@@ -86,7 +87,7 @@ public class PlayerUtils {
         if (!mc.isInSingleplayer() && mc.getNetworkHandler() != null && !mc.getNetworkHandler().getPlayerList().isEmpty()) {
             flag = (new ArrayList<>(mc.getNetworkHandler().getPlayerList()).get(0).getGameMode().getName().equals(ent.getEntityName()));
         }
-        return flag || !ent.getUuid().equals(UUID.nameUUIDFromBytes(("OfflinePlayer:" + ent.getName().getString()).getBytes(StandardCharsets.UTF_8))) && ent instanceof OtherClientPlayerEntity || EntityUtils.getGameMode(ent) == null;
+        return flag || AntiBot.isBot(ent) || !ent.getUuid().equals(UUID.nameUUIDFromBytes(("OfflinePlayer:" + ent.getName().getString()).getBytes(StandardCharsets.UTF_8))) && ent instanceof OtherClientPlayerEntity || EntityUtils.getGameMode(ent) == null;
     }
 
     public static float getMaxHealth(PlayerEntity entity) {

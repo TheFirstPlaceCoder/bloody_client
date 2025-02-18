@@ -4,10 +4,13 @@ import com.client.impl.command.StaffCommand;
 import com.client.impl.function.client.Hud;
 import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudFunction;
+import com.client.system.hud.HudManager;
+import com.client.system.textures.DownloadImage;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.math.Pair;
 import com.client.utils.math.animation.AnimationUtils;
 import com.client.utils.math.rect.FloatRect;
+import com.client.utils.render.DrawMode;
 import com.client.utils.render.ItemsColor;
 import com.client.utils.render.TagUtils;
 import com.client.utils.render.wisetree.font.main.IFont;
@@ -16,6 +19,7 @@ import com.client.utils.render.wisetree.render.render2d.main.TextureGL;
 import com.client.utils.render.wisetree.render.render2d.utils.PlayerHeadTexture;
 import com.client.utils.render.wisetree.render.render2d.utils.ScissorUtils;
 import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -34,7 +38,7 @@ public class StaffHud extends HudFunction {
         super(new FloatRect(248, 4, 100, 16), "Staff-Hud");
     }
 
-    private final List<String> STAFF_TAG = new ArrayList<>() {{
+    private static final List<String> STAFF_TAG = new ArrayList<>() {{
         add("сотрудник");
         add("стажер");
         add("стажёр");
@@ -58,7 +62,6 @@ public class StaffHud extends HudFunction {
     }};
 
     public FloatRect staffRect = new FloatRect();
-    public Identifier staff = new Identifier("bloody-client", "hud/staff.png");
 
     @Override
     public void draw(float alpha) {
@@ -73,11 +76,11 @@ public class StaffHud extends HudFunction {
 
         drawNewClientRect(new FloatRect(rect.getX(), rect.getY(), rect.getW(), 16));
 
-        GL11.glPushMatrix();
-        GL11.glScalef(1f, 1f, 1f);
-        GL11.glTranslatef(rect.getX() + 1, rect.getY(), 0);
-        GL.drawRoundedTexture(staff, 0, 0, 16, 16, 0);
-        GL11.glPopMatrix();
+        postTask.add(() -> {
+            HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
+            HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.STAFF), new TextureGL.TextureRegion(rect.getX() + 1, rect.getY(), 16, 16), Color.WHITE);
+            HudManager.MB.end();
+        });
 
         IFont.drawCenteredXY(IFont.MONTSERRAT_BOLD, "Staff Statistic", rect.getCenteredX(), rect.getY() + 8, Color.WHITE, 9);
 
@@ -90,11 +93,13 @@ public class StaffHud extends HudFunction {
             IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, (e.getA().getA().toUpperCase()), rect.getX() + 16, y + (float) 12 / 2, inject(ColorUtils.injectAlpha(ItemsColor.getPlayerColor(e.getB().getA().getDisplayName()), 255), 1f), 7);
             IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, e.getA().getB(), rect.getX() + 16 + IFont.getWidth(IFont.MONTSERRAT_BOLD, e.getA().getA().toUpperCase() + " ", 7), y + (float) 12 / 2, inject(ColorUtils.injectAlpha(Color.WHITE, 255), 1f), 7);
 
-            MatrixStack stack = new MatrixStack();
-            stack.translate(staffRect.getX2() - 8, y + (double) 12 / 2, 0);
-            stack.scale(1f, 1f, 1f);
-
-            TextureGL.create().bind(new Identifier("bloody-client", "/client/glow_circle.png")).draw(stack, new TextureGL.TextureRegion(12, 12), true, inject(e.getB().getB(), 1f));
+            float finalY = y;
+            postTask.add(() -> {
+                HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
+                HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.GLOW_CIRCLE), new TextureGL.TextureRegion(staffRect.getX2() - 8, finalY + 12 / 2f, 12, 12), inject(e.getB().getB(), 1f));
+                HudManager.MB.end();
+            });
+            //TextureGL.create().bind(DownloadImage.getGlId(DownloadImage.GLOW_CIRCLE)).draw(stack, new TextureGL.TextureRegion(12, 12), true, inject(e.getB().getB(), 1f));
 
             GL11.glPushMatrix();
             GL11.glScalef(1f, 1f, 1f);
@@ -117,7 +122,7 @@ public class StaffHud extends HudFunction {
         ScissorUtils.disableScissor();
     }
 
-    public List<Pair<Pair<String, String>, Pair<PlayerListEntry, Color>>> getStaffList() {
+    public static List<Pair<Pair<String, String>, Pair<PlayerListEntry, Color>>> getStaffList() {
         List<Pair<Pair<String, String>, Pair<PlayerListEntry, Color>>> list = new ArrayList<>();
         if (mc.isInSingleplayer() || mc.getCurrentServerEntry() == null) return list;
 
@@ -157,6 +162,43 @@ public class StaffHud extends HudFunction {
 
             list.add(new Pair<>(new Pair<>(prefix.toLowerCase(), player.getProfile().getName()), new Pair<>(player, color)));
         }
+        return list;
+    }
+
+    public static List<String> getStaffNicknames() {
+        List<String> list = new ArrayList<>();
+        if (mc.isInSingleplayer() || mc.getCurrentServerEntry() == null) return list;
+
+        for (PlayerListEntry player : mc.getNetworkHandler().getPlayerList()) {
+            if (player.getDisplayName() == null) continue;
+
+            String prefix = "";
+
+            try {
+                prefix = TagUtils.replace(TagUtils.replaceFormattings(player.getScoreboardTeam().getPrefix().getString())).toLowerCase().replace(" ", "");
+            } catch (Exception ignored) {
+            }
+
+            if (StaffCommand.staff.contains(player.getProfile().getName())) {
+                list.add(player.getProfile().getName());
+                continue;
+            }
+
+            if (prefix.isEmpty()) continue;
+
+            boolean next = true;
+            for (String s : STAFF_TAG) {
+                if (prefix.toLowerCase().contains(s.replace(" ", ""))) {
+                    next = false;
+                    break;
+                }
+            }
+
+            if (next) continue;
+
+            list.add(player.getProfile().getName());
+        }
+
         return list;
     }
 }

@@ -20,10 +20,10 @@ public class AutoClicker extends Function {
         super("Auto Clicker", Category.MISC);
     }
 
-    private final ListSetting button = List().name("Кнопка").defaultValue("ЛКМ").list(List.of("ПКМ", "ЛКМ", "Обе")).build();
-    private final BooleanSetting checkTarget = Boolean().name("Проверять таргет").visible(() -> !button.get().equals("ПКМ")).defaultValue(false).build();
-    private final ListSetting mode =  List().name("Режим").defaultValue("Нажать").list(List.of("Зажать", "Нажать")).build();
-    private final IntegerSetting delay = Integer().name("Задержа").defaultValue(16).min(0).max(100).visible(() -> mode.get().equals("Нажать")).build();
+    private final ListSetting button = List().name("Кнопка").enName("Button").defaultValue("ЛКМ").list(List.of("ПКМ", "ЛКМ", "Обе")).build();
+    private final BooleanSetting checkTarget = Boolean().name("Проверять таргет").enName("Check Target").visible(() -> !button.get().equals("ПКМ")).defaultValue(false).build();
+    private final ListSetting mode =  List().name("Режим").enName("Mode").defaultValue("Нажать").list(List.of("Зажать", "Нажать")).build();
+    private final IntegerSetting delay = Integer().name("Задержа").enName("Delay").defaultValue(16).min(0).max(100).visible(() -> mode.get().equals("Нажать")).build();
 
     private final Timer timer = new Timer();
 

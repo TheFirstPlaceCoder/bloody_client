@@ -12,6 +12,8 @@ public class IFont {
     public static final int COMFORTAA = 3;
     public static final int COMFORTAAB = 4;
     public static final int Greycliff = 5;
+    public static final int NEVERLOSE = 6;
+    public static final int NEVERLOSE_BOLD = 7;
 
 
     private static final HashMap<Integer, FontContainer> MAP = new HashMap<>();
@@ -32,6 +34,8 @@ public class IFont {
         MAP.put(COMFORTAA, new FontContainer(DownloadLink.COMFORTAA));
         MAP.put(COMFORTAAB, new FontContainer(DownloadLink.ComfortaaBold));
         MAP.put(Greycliff, new FontContainer(DownloadLink.Greycliff));
+        MAP.put(NEVERLOSE, new FontContainer(DownloadLink.Neverlose));
+        MAP.put(NEVERLOSE_BOLD, new FontContainer(DownloadLink.NeverloseBold));
     //    MAP.put(DROID_SANS_BOLD, new FontContainer(DownloadLink.DROID_SANS_BOLD));
         init = true;
     }

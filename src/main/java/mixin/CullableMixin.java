@@ -7,12 +7,14 @@ import com.client.utils.optimization.interfaces.Cullable;
 import net.minecraft.entity.Entity;
 import net.minecraft.block.entity.BlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 
 @Mixin({Entity.class, BlockEntity.class})
 public class CullableMixin implements Cullable {
     private long lasttime = 0L;
     private boolean culled = false;
     private boolean outOfCamera = false;
+    @Unique private Optimization optimization;
 
     public void setTimeout() {
         this.lasttime = System.currentTimeMillis() + 1000L;
@@ -30,7 +32,9 @@ public class CullableMixin implements Cullable {
     }
 
     public boolean isCulled() {
-        return (!FunctionManager.get(Optimization.class).isEnabled() || !FunctionManager.get(Optimization.class).rayTrace.get()) ? false : this.culled;
+        if (optimization == null) optimization = FunctionManager.get(Optimization.class);
+
+        return (!optimization.isEnabled() || !optimization.rayTrace.get()) ? false : this.culled;
     }
 
     public void setOutOfCamera(boolean value) {
@@ -38,6 +42,8 @@ public class CullableMixin implements Cullable {
     }
 
     public boolean isOutOfCamera() {
-        return (!FunctionManager.get(Optimization.class).isEnabled() || !FunctionManager.get(Optimization.class).rayTrace.get()) ? false : this.outOfCamera;
+        if (optimization == null) optimization = FunctionManager.get(Optimization.class);
+
+        return (!optimization.isEnabled() || !optimization.rayTrace.get()) ? false : this.outOfCamera;
     }
 }

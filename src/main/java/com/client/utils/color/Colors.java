@@ -1,19 +1,22 @@
 package com.client.utils.color;
 
-import com.client.impl.function.client.ClickGui;
-import com.client.system.function.FunctionManager;
 import net.minecraft.util.math.MathHelper;
 
 import java.awt.*;
 
 public class Colors {
+    public static int speed;
+    public static boolean isAstolfo = false, isRainbow = false;
     private static Color first = new Color(26, 232, 130, 255), second = new Color(41, 183, 213, 255);
 
     public static Color getFirst() {
+        if (isAstolfo || isRainbow) return getColor(0);
         return first;
     }
 
     public static Color getSecond() {
+        if (isAstolfo || isRainbow) return getColor(180);
+
         return second;
     }
 
@@ -34,14 +37,16 @@ public class Colors {
     }
 
     public static Color getColor(boolean two) {
-        return getColor(two ? 270 : 0, 51 - FunctionManager.get(ClickGui.class).speed.get());
+        return getColor(two ? 270 : 0, 51 - speed);
     }
 
     public static Color getColor(int index) {
-        return getColor(index, 51 - FunctionManager.get(ClickGui.class).speed.get());
+        return getColor(index, 51 - speed);
     }
 
     public static Color getColor(int index, int speed) {
+        if (isRainbow) return rainbow(index, speed);
+        if (isAstolfo) return astolfo(index, speed);
         return new Color(gradient(index, speed));
     }
 
@@ -61,6 +66,17 @@ public class Colors {
         hsb[1] = Math.min(hsb[1], 1.0f);
 
         return new Color(Color.HSBtoRGB(hsb[0], hsb[1], hsb[2])).getRGB();
+    }
+
+    public static Color astolfo(int index, int speed) {
+        int angle = (int) ((System.currentTimeMillis() / speed + index) % 360);
+        return Color.getHSBColor((double) ((float) ((angle %= 360) / 360.0)) < 0.5 ? -((float) (angle / 360.0)) : (float) (angle / 360.0), 0.5F, 1.0F);
+    }
+
+    public static Color rainbow(int index, int speed) {
+        int angle = (int) ((System.currentTimeMillis() / speed + index) % 360);
+        float hue = angle / 360.0f;
+        return Color.getHSBColor(hue, 1.0f, 1.0f);
     }
 
     private static int interpolate(int start, int end, float value) {

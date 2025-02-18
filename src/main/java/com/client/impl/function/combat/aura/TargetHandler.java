@@ -1,5 +1,6 @@
 package com.client.impl.function.combat.aura;
 
+import com.client.system.companion.DumboOctopusEntity;
 import com.client.system.friend.FriendManager;
 import com.client.system.function.FunctionManager;
 import com.client.system.setting.settings.multiboolean.MultiBooleanSetting;
@@ -27,12 +28,13 @@ public class TargetHandler {
     private static Entity TARGET;
 
     public static void handle(MultiBooleanSetting setting, double range, boolean attackThroughWalls) {
-        boolean playerFlag = setting.get(0);
-        boolean invisibleFlag = setting.get(1);
-        boolean nakedsFlag = setting.get(2);
-        boolean monsterFlag = setting.get(3);
-        boolean animalsFlag = setting.get(4);
-        boolean allFlag = setting.get(5);
+        boolean playerFlag = setting.get("Игроки");
+        boolean invisibleFlag = setting.get("Инвизы");
+        boolean nakedsFlag = setting.get("Голые");
+        boolean botsFlag = setting.get("Боты");
+        boolean monsterFlag = setting.get("Монстры");
+        boolean animalsFlag = setting.get("Животные");
+        boolean allFlag = setting.get("Все");
 
         STACK.clear();
 
@@ -40,7 +42,7 @@ public class TargetHandler {
 
         if (!playerFlag || players.isEmpty()) {
             for (Entity entity : mc.world.getEntities()) {
-                if (entity instanceof ArmorStandEntity) continue;
+                if (entity instanceof ArmorStandEntity || entity instanceof DumboOctopusEntity) continue;
                 if (entity == mc.player) continue;
 
                 if (!(entity instanceof LivingEntity) || PlayerUtils.distanceTo(entity) > range || ((LivingEntity) entity).isDead())
@@ -73,7 +75,7 @@ public class TargetHandler {
 
         STACK.addAll(players.stream().filter(player -> {
             if (player.isDead()) return false;
-            if (PlayerUtils.isBot(player)) return false;
+            if (!botsFlag && PlayerUtils.isBot(player)) return false;
             if (EntityUtils.getGameMode(player) == GameMode.CREATIVE) return false;
             if (!attackThroughWalls && !EntityUtils.canSee(player)) return false;
             if (!FriendManager.isAttackable(player)) return false;

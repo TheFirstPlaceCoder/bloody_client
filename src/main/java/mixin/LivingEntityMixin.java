@@ -2,11 +2,9 @@ package mixin;
 
 import com.client.event.events.PlayerJumpEvent;
 import com.client.impl.function.combat.aura.rotate.RotationHandler;
-import com.client.impl.function.movement.LiquidMovement;
 import com.client.impl.function.visual.SwingAnimation;
 import com.client.interfaces.ILivingEntity;
 import com.client.system.function.FunctionManager;
-import com.client.utils.auth.Loader;
 import com.client.utils.render.wisetree.render.render3d.Renderer3D;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -15,12 +13,9 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.predicate.entity.EntityPredicates;
-import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -93,69 +88,20 @@ public abstract class LivingEntityMixin extends Entity implements ILivingEntity 
         }
     }
 
-    @Redirect(
-            method = {"travel"},
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/entity/LivingEntity;isTouchingWater()Z"
-            )
-    )
-    private boolean travelIsTouchingWaterProxy(LivingEntity self) {
-        return Loader.isDev() && self.isTouchingWater() && FunctionManager.get(LiquidMovement.class).shouldTrue() ? false : self.isTouchingWater();
-    }
-
-    @Redirect(
-            method = {"tickMovement"},
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/entity/LivingEntity;isInLava()Z"
-            )
-    )
-    private boolean tickMovementIsInLavaProxy(LivingEntity self) {
-        if (Loader.isDev() && self.isInLava() && FunctionManager.get(LiquidMovement.class).shouldTrue()) {
-            return false;
-        } else {
-            return self.isInLava();
-        }
-    }
-
-    @Redirect(
-            method = {"tickMovement"},
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/entity/LivingEntity;isTouchingWater()Z"
-            )
-    )
-    private boolean tickIsTouchingWaterProxy(LivingEntity self) {
-        return Loader.isDev() && self.isTouchingWater() && FunctionManager.get(LiquidMovement.class).shouldTrue() ? false : self.isTouchingWater();
-    }
-
-    @Redirect(
-            method = {"travel"},
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/entity/LivingEntity;isInLava()Z"
-            )
-    )
-    private boolean travelIsInLavaProxy(LivingEntity self) {
-        if (Loader.isDev() && self.isInLava() && FunctionManager.get(LiquidMovement.class).shouldTrue()) {
-            return false;
-        } else {
-            return self.isInLava();
-        }
-    }
-
     @Inject(method = "travel", at = @At("HEAD"))
     private void travel(Vec3d movementInput, CallbackInfo ci) {
         move.removeIf(s -> System.currentTimeMillis() > s.getLeft() + 100L);
         move.add(new Pair<>(System.currentTimeMillis() + 340L, Renderer3D.getSmoothPos(this)));
     }
 
+    @Unique private SwingAnimation swingAnimation;
+
     @Inject(method = "getHandSwingDuration", at = @At("HEAD"), cancellable = true)
     private void getHandSwingDuration(CallbackInfoReturnable<Integer> cir) {
-        SwingAnimation module = FunctionManager.get(SwingAnimation.class);
-        if (module.animation() && this.equals(mc.player)) {
-            cir.setReturnValue(module.swingPower.get());
+        if (swingAnimation == null) swingAnimation = FunctionManager.get(SwingAnimation.class);
+
+        if (swingAnimation.animation() && this.equals(mc.player)) {
+            cir.setReturnValue(swingAnimation.swingPower.get());
         }
     }
 

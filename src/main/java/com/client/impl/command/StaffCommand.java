@@ -2,6 +2,7 @@ package com.client.impl.command;
 
 import com.client.system.command.Command;
 import com.client.system.friend.FriendManager;
+import com.client.utils.Utils;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -55,28 +56,28 @@ public class StaffCommand extends Command {
         switch (args[0]) {
             case "add" : {
                 if (staff.contains(args[1])) {
-                    info(Formatting.WHITE + args[1] + Formatting.RED + " уже есть в списке.");
+                    info(Formatting.WHITE + args[1] + Formatting.RED + (Utils.isRussianLanguage ? " уже есть в списке!" : " already is in Staff list!"));
                 } else {
                     staff.add(args[1]);
-                    info(Formatting.WHITE + args[1] + Formatting.AQUA + " был добавлен в список.");
+                    info(Formatting.WHITE + args[1] + Formatting.AQUA + (Utils.isRussianLanguage ? " был добавлен в список!" : " was added to Staff list!"));
                 }
                 break;
             }
             case "remove" : {
                 if (staff.contains(args[1])) {
                     staff.remove(args[1]);
-                    info(Formatting.WHITE + args[1] + Formatting.YELLOW + " был удален из списка.");
+                    info(Formatting.WHITE + args[1] + Formatting.YELLOW + (Utils.isRussianLanguage ? " был удален из списка!" : " was deleted from Staff list!"));
                 } else {
-                    info(Formatting.WHITE + args[1] + Formatting.RED + " не находиться в списке.");
+                    info(Formatting.WHITE + args[1] + Formatting.RED + (Utils.isRussianLanguage ? " не находиться в списке!" : " is not in Staff list!"));
                 }
                 break;
 
             }
             case "list" : {
                 if (staff.isEmpty()) {
-                    error(Text.of("Список персонала пуст."));
+                    error(Text.of(Utils.isRussianLanguage ? "Список персонала пуст!" : "Staff list is empty!"));
                 } else {
-                    info(Text.of(Formatting.AQUA + "Список персонала:"));
+                    info(Text.of(Formatting.AQUA + (Utils.isRussianLanguage ? "Список персонала:" : "Staff list:")));
                     for (String name : staff) {
                         info(Text.of(Formatting.WHITE + name));
                     }
@@ -85,7 +86,7 @@ public class StaffCommand extends Command {
             }
             case "clear" : {
                 staff.clear();
-                warning("Список персонала был очищен.");
+                warning(Utils.isRussianLanguage ? "Список персонала был очищен." : "Staff list was cleared.");
                 break;
             }
             default:
@@ -96,7 +97,7 @@ public class StaffCommand extends Command {
 
     @Override
     public void error() {
-        warning("Некорректное использование команды!");
+        warning(Utils.isRussianLanguage ? "Некорректное использование команды!" : "Incorrect use of command!");
         info(".staff remove <ник>");
         info(".staff add <ник>");
         info(".staff clear");

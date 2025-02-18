@@ -11,6 +11,8 @@ public interface ISettings<T> {
 
     String getName();
 
+    String getEnName();
+
     Object name(String name);
 
     IVisible isVisible();

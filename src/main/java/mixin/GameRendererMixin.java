@@ -200,9 +200,12 @@ public abstract class GameRendererMixin implements IGameRenderer {
         }
     }
 
+    @Unique
+    private Freecam freecam;
+
     @Inject(method = "updateTargetedEntity", at = @At("HEAD"), cancellable = true)
     private void updateTargetedEntityInvoke(float tickDelta, CallbackInfo info) {
-        Freecam freecam = FunctionManager.get(Freecam.class);
+        if (freecam == null) freecam = FunctionManager.get(Freecam.class);
 
         if ((freecam.isEnabled()) && client.getCameraEntity() != null && !freecamSet) {
             info.cancel();

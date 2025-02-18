@@ -7,20 +7,30 @@ import com.client.system.function.FunctionManager;
 import com.client.utils.Utils;
 import com.client.utils.auth.Loader;
 import com.client.utils.math.animation.Direction;
+import com.client.utils.render.DrawMode;
+import com.client.utils.render.MeshBuilder;
+import net.minecraft.client.render.VertexFormats;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.client.BloodyClient.mc;
 
 public class HudManager {
     private static final List<HudFunction> HUD_FUNCTIONS = new ArrayList<>();
     private static final List<HudFunction> ENABLED_UNHOOK = new ArrayList<>();
+    public static MeshBuilder MB;
+
+    static {
+        MB = new MeshBuilder();
+        MB.texture = true;
+    }
 
     public static void init() {
         register(new ArmorHud());
         register(new CoordsHud());
-        register(new FpsHud());
+        //register(new FpsHud());
         register(new FunctionListHud());
         register(new KeybindHud());
         register(new MusicHud());
@@ -82,9 +92,12 @@ public class HudManager {
         if (!FunctionManager.get(Hud.class).isEnabled() || Loader.unHook) return;
 
         getHudFunctions().forEach(hudFunction -> {
+            CompletableFuture.runAsync(hudFunction::tick).join();
             Utils.rescaling(() -> {
                 if (!hudFunction.isEnabled()) hudFunction.alpha_anim.setDirection(Direction.FORWARDS);
                 hudFunction.draw(hudFunction.isEnabled() ? 1f : hudFunction.getAlpha());
+                hudFunction.postTask.forEach(Runnable::run);
+                hudFunction.postTask.clear();
             });
             hudFunction.handle((int) (mc.mouse.getX() / 2), (int) (mc.mouse.getY() / 2));
         });

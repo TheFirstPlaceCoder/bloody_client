@@ -2,16 +2,12 @@ package com.client.impl.hud;
 
 import com.client.impl.function.combat.aura.AttackAura;
 import com.client.impl.function.misc.NameProtect;
-import com.client.impl.hud.TargetHudParticle;
 import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudFunction;
-import com.client.system.hud.setting.HudValue;
 import com.client.utils.color.ColorUtils;
-import com.client.utils.game.chat.ChatUtils;
 import com.client.utils.game.entity.PlayerUtils;
 import com.client.utils.math.MathUtils;
 import com.client.utils.math.animation.Animation;
-import com.client.utils.math.animation.AnimationUtils;
 import com.client.utils.math.animation.Direction;
 import com.client.utils.math.animation.impl.EaseBackIn;
 import com.client.utils.math.rect.FloatRect;
@@ -33,8 +29,6 @@ public class TargetHud extends HudFunction {
         super(new FloatRect(208, 23, 100, 35), "Target-Hud");
     }
 
-    private final HudValue particle = create("Партиклы", true);
-
     private final List<TargetHudParticle> particles = new ArrayList<>();
     private final Animation animation = new EaseBackIn(400, 1, 1);
 
@@ -44,7 +38,10 @@ public class TargetHud extends HudFunction {
     private float pulse;
     private int alpha;
 
-    private double healthBarWidth = 0;
+    private double healthBarWidth = 0, sc;
+    private NameProtect nameProtect;
+    private com.client.impl.function.hud.TargetHud targetHud;
+    private AttackAura attackAura;
 
     @Override
     public void onEnable() {
@@ -54,12 +51,15 @@ public class TargetHud extends HudFunction {
     }
 
     @Override
-    public void draw(float a) {
+    public void tick() {
+        if (nameProtect == null) nameProtect = FunctionManager.get(NameProtect.class);
+        if (targetHud == null) targetHud = FunctionManager.get(com.client.impl.function.hud.TargetHud.class);
+
         updateTarget();
 
         animation.setDirection(!has ? Direction.BACKWARDS : Direction.FORWARDS);
 
-        double sc = animation.getOutput();
+        sc = animation.getOutput();
 
         if (sc <= 0.0f) {
             target = null;
@@ -90,7 +90,7 @@ public class TargetHud extends HudFunction {
                 pulse += 0.3f;
             }
 
-            if (particle.get() && target.age % 4 == 0) {
+            if (targetHud.particles.get() && target.age % 4 == 0) {
                 for (int i = 0; i < MathUtils.random(2, 3); i++) {
                     particles.add(new TargetHudParticle(rect));
                 }
@@ -102,6 +102,14 @@ public class TargetHud extends HudFunction {
         while (particles.size() > 100) {
             particles.remove(particles.get(0));
         }
+    }
+
+    @Override
+    public void draw(float a) {
+        if (nameProtect == null) nameProtect = FunctionManager.get(NameProtect.class);
+        if (targetHud == null) targetHud = FunctionManager.get(com.client.impl.function.hud.TargetHud.class);
+
+        if (target == null) return;
 
         startScale(sc);
 
@@ -116,7 +124,7 @@ public class TargetHud extends HudFunction {
         RenderSystem.color4f(1f, 1f, 1f, 1f);
         GL.drawRoundedRect(rect.getX() + 2 + pulse, rect.getY() + 2f + pulse, 31f - pulse * 2f, 31f - pulse * 2, 4, inject(ColorUtils.injectAlpha(Color.RED, MathHelper.clamp(alpha, 0, 255)), a));
 
-        String name = replaceString(FunctionManager.get(NameProtect.class).replace(target.getEntityName()), rect.getW() - 40);
+        String name = replaceString(nameProtect.replace(target.getEntityName()), rect.getW() - 40);
         IFont.draw(IFont.COMFORTAAB, name, rect.getX() + 37, rect.getY() + 3, inject(Color.WHITE, a), 9);
 
         String healthString = "HP: " + Math.round(getWidth(100F, PlayerUtils.getHealth(target)) * 100.0) / 100.0 + "%";
@@ -167,9 +175,10 @@ public class TargetHud extends HudFunction {
     }
 
     private void updateTarget() {
-        Entity auraTarget = FunctionManager.get(AttackAura.class).target;
+        if (attackAura == null) attackAura = FunctionManager.get(AttackAura.class);
+        Entity auraTarget = attackAura.target;
 
-        if (auraTarget instanceof PlayerEntity && PlayerUtils.isInRange(auraTarget, FunctionManager.get(AttackAura.class).gerRadius())) {
+        if (auraTarget instanceof PlayerEntity && PlayerUtils.isInRange(auraTarget, attackAura.gerRadius())) {
             target = (PlayerEntity) auraTarget;
             has = true;
             return;

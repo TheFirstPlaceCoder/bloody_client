@@ -6,6 +6,7 @@ import com.client.event.events.Render3DEvent;
 import com.client.event.events.TickEvent;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
+import com.client.system.setting.settings.IntegerSetting;
 import com.client.system.setting.settings.multiboolean.MultiBooleanSetting;
 import com.client.system.setting.settings.multiboolean.MultiBooleanValue;
 import com.client.utils.math.MathUtils;
@@ -29,21 +30,24 @@ public class Particles extends Function {
     public Particles() {
         super("Particles", Category.VISUAL);
     }
-    public final MultiBooleanSetting type = MultiBoolean().name("Партиклы").defaultValue(List.of(
+    public final MultiBooleanSetting type = MultiBoolean().name("Партиклы").enName("Particles").defaultValue(List.of(
             new MultiBooleanValue(false, "Звездочки"),
             new MultiBooleanValue(false, "Сердечки"),
-            new MultiBooleanValue(false, "Снежинки")
+            new MultiBooleanValue(false, "Снежинки"),
+            new MultiBooleanValue(false, "Треугольники"),
+            new MultiBooleanValue(false, "Кружки")
     )).build();
 
-    private final MultiBooleanSetting add = MultiBoolean().name("Добавлять").defaultValue(List.of(
+    private final MultiBooleanSetting add = MultiBoolean().name("Добавлять").enName("Add when").defaultValue(List.of(
             new MultiBooleanValue(false, "При потери тотема"),
-            new MultiBooleanValue(false, "Если AFK"),
             new MultiBooleanValue(false, "При ходьбе"),
             new MultiBooleanValue(false, "При атаке"),
             new MultiBooleanValue(false, "К жемчугу"),
             new MultiBooleanValue(false, "К трезубцу"),
             new MultiBooleanValue(false, "К стреле")
     )).build();
+
+    private final IntegerSetting multiplier = Integer().name("Количество").defaultValue(3).min(1).max(5).build();
 
     private final List<Particle> particles = new ArrayList<>();
     private long lastHit = 0;
@@ -62,7 +66,7 @@ public class Particles extends Function {
     @Override
     public void onLostOfTotemEvent(LostOfTotemEvent event) {
         if (add.get("При потери тотема")) {
-            for (int i = 0; i < 50; i++) {
+            for (int i = 0; i < (50 * multiplier.get()); i++) {
                 Vec3d pos = event.entity.getPos();
                 Particle particle = new Particle(pos.x, pos.y + 0.2F + (new Random().nextFloat() * (mc.player.getHeight() - 0.2F)), pos.z, 5F, false);
                 particle.factor = 15F;
@@ -75,7 +79,7 @@ public class Particles extends Function {
     public void onAttackEntityEvent(AttackEntityEvent.Post event) {
         if (add.get("При атаке") && event.entity instanceof LivingEntity && System.currentTimeMillis() > lastHit) {
             Vec3d pos = event.entity.getPos();
-            for (int i = 0; i < 20; i++) {
+            for (int i = 0; i < (20 * multiplier.get()); i++) {
                 float x = event.entity.getMovementDirection().getOpposite().getOffsetX() * (event.entity.getWidth() / 2);
                 float z = event.entity.getMovementDirection().getOpposite().getOffsetZ() * (event.entity.getWidth() / 2);
                 Particle particle = new Particle(pos.x + x, pos.y + event.entity.getHeight() / 2, pos.z + z, 15, true);
@@ -88,23 +92,10 @@ public class Particles extends Function {
 
     @Override
     public void onRender3D(Render3DEvent event) {
-        if (add.get("Если AFK")) {
-            if (mc.player.age % 12 == 0) {
-                Vec3d pos = mc.player.getPos();
-                for (int i = 0; i < 3; i++) {
-                    float rad = (float) Math.toRadians(new Random().nextFloat() * 360F);
-                    float offsetX = (float) (Math.cos(rad) * 8F);
-                    float offsetY = 6F + MathUtils.offset(2F);
-                    float offsetZ = (float) (Math.sin(rad) * 8F);
-                    particles.add(new Particle(pos.x + offsetX, pos.y + mc.player.getHeight() / 2 + offsetY, pos.z - offsetZ, 100F, false));
-                }
-            }
-        }
-
         if (add.get("При ходьбе")) {
             if ((mc.player.prevX != mc.player.getX() || mc.player.prevZ != mc.player.getZ() || mc.player.prevY != mc.player.getY()) && mc.player.age % 2 == 0 && !mc.options.getPerspective().equals(Perspective.FIRST_PERSON)) {
                 Vec3d pos = mc.player.getPos();
-                for (int i = 0; i < 2; i++) {
+                for (int i = 0; i < (2 * multiplier.get()); i++) {
                     float x = mc.player.getMovementDirection().getOpposite().getOffsetX() * (mc.player.getWidth() / 2);
                     float z = mc.player.getMovementDirection().getOpposite().getOffsetZ() * (mc.player.getWidth() / 2);
                     particles.add(new Particle(pos.x + x, pos.y + 0.2F + (new Random().nextFloat() * (mc.player.getHeight() - 0.2F)), pos.z + z, 70F, false));
@@ -114,17 +105,8 @@ public class Particles extends Function {
 
         if (add.get("К жемчугу")) {
             for (Entity entity : mc.world.getEntities()) {
-                if (entity instanceof EnderPearlEntity) {
-                    Vec3d pos = entity.getPos();
-                    particles.add(new Particle(pos.x, pos.y + entity.getHeight() / 2, pos.z, 50F, false));
-                }
-            }
-        }
-
-        if (add.get("К трезубцу")) {
-            for (Entity entity : mc.world.getEntities()) {
-                if (entity instanceof TridentEntity tridentEntity) {
-                    if (tridentEntity.getX() != tridentEntity.prevX || tridentEntity.getY() != tridentEntity.prevY || tridentEntity.getZ() != tridentEntity.prevZ) {
+                for (int i = 0; i < multiplier.get(); i++) {
+                    if (entity instanceof EnderPearlEntity) {
                         Vec3d pos = entity.getPos();
                         particles.add(new Particle(pos.x, pos.y + entity.getHeight() / 2, pos.z, 50F, false));
                     }
@@ -132,12 +114,27 @@ public class Particles extends Function {
             }
         }
 
+        if (add.get("К трезубцу")) {
+            for (Entity entity : mc.world.getEntities()) {
+                for (int i = 0; i < multiplier.get(); i++) {
+                    if (entity instanceof TridentEntity tridentEntity) {
+                        if (tridentEntity.getX() != tridentEntity.prevX || tridentEntity.getY() != tridentEntity.prevY || tridentEntity.getZ() != tridentEntity.prevZ) {
+                            Vec3d pos = entity.getPos();
+                            particles.add(new Particle(pos.x, pos.y + entity.getHeight() / 2, pos.z, 50F, false));
+                        }
+                    }
+                }
+            }
+        }
+
         if (add.get("К стреле")) {
             for (Entity entity : mc.world.getEntities()) {
-                if (entity instanceof ArrowEntity arrowEntity) {
-                    if (arrowEntity.getX() != arrowEntity.prevX || arrowEntity.getY() != arrowEntity.prevY || arrowEntity.getZ() != arrowEntity.prevZ) {
-                        Vec3d pos = entity.getPos();
-                        particles.add(new Particle(pos.x, pos.y + entity.getHeight() / 2, pos.z, 50F, false));
+                for (int i = 0; i < multiplier.get(); i++) {
+                    if (entity instanceof ArrowEntity arrowEntity) {
+                        if (arrowEntity.getX() != arrowEntity.prevX || arrowEntity.getY() != arrowEntity.prevY || arrowEntity.getZ() != arrowEntity.prevZ) {
+                            Vec3d pos = entity.getPos();
+                            particles.add(new Particle(pos.x, pos.y + entity.getHeight() / 2, pos.z, 50F, false));
+                        }
                     }
                 }
             }

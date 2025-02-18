@@ -19,8 +19,8 @@ public class Friends extends Function {
         super("Friends", Category.CLIENT);
     }
 
-    public ColorSetting friendsColor = Color().name("Цвет").defaultValue(Color.GREEN).build();
-    public BooleanSetting dontAttack = Boolean().name("Не атаковать").defaultValue(true).build();
+    public ColorSetting friendsColor = Color().name("Цвет").enName("Color").defaultValue(Color.GREEN).build();
+    public BooleanSetting dontAttack = Boolean().name("Не атаковать").enName("Don't Attack").defaultValue(true).build();
 
     @EventHandler
     private void onPacketEvent(PacketEvent.Send event) {

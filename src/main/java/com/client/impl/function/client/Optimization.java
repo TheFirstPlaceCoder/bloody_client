@@ -18,15 +18,15 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class Optimization extends Function {
-    private final ListSetting mode = List().name("Режим").list(List.of("Дистанция", "Количество")).defaultValue("Дистанция").build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Дистанция", "Количество")).defaultValue("Дистанция").build();
 
-    private final IntegerSetting range = Integer().name("Дистанция до игроков").defaultValue(18).min(0).max(40).visible(() -> mode.get().equals("Дистанция")).build();
-    private final IntegerSetting count = Integer().name("Количество игроков").defaultValue(10).min(0).max(30).visible(() -> !mode.get().equals("Дистанция")).build();
-    private final IntegerSetting rangeItem = Integer().name("Дистанция до предметов").defaultValue(5).min(0).max(8).visible(() -> mode.get().equals("Дистанция")).build();
-    private final IntegerSetting countItem = Integer().name("Количество предметов").defaultValue(10).min(0).max(50).visible(() -> !mode.get().equals("Дистанция")).build();
+    private final IntegerSetting range = Integer().name("Дистанция до игроков").enName("Players Distance").defaultValue(18).min(0).max(40).visible(() -> mode.get().equals("Дистанция")).build();
+    private final IntegerSetting count = Integer().name("Количество игроков").enName("Players Count").defaultValue(10).min(0).max(30).visible(() -> !mode.get().equals("Дистанция")).build();
+    private final IntegerSetting rangeItem = Integer().name("Дистанция до предметов").enName("Items Distance").defaultValue(5).min(0).max(8).visible(() -> mode.get().equals("Дистанция")).build();
+    private final IntegerSetting countItem = Integer().name("Количество предметов").enName("Items Count").defaultValue(10).min(0).max(50).visible(() -> !mode.get().equals("Дистанция")).build();
 
-    public final BooleanSetting rayTrace = Boolean().name("Оптимизация рендера сущностей").defaultValue(false).build();
-    private final IntegerSetting delay = Integer().name("Задержка").defaultValue(10).min(0).max(100).visible(rayTrace::get).build();
+    public final BooleanSetting rayTrace = Boolean().name("Оптимизация рендера сущностей").enName("Render Optimization").defaultValue(false).build();
+    private final IntegerSetting delay = Integer().name("Задержка").enName("Delay").defaultValue(10).min(0).max(100).visible(rayTrace::get).build();
 
     public Optimization() {
         super("Optimization", Category.CLIENT);

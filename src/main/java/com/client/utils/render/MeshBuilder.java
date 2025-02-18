@@ -2,6 +2,7 @@ package com.client.utils.render;
 
 import com.client.utils.color.ColorUtils;
 import com.client.utils.render.texture.TextureRegion;
+import com.client.utils.render.wisetree.render.render2d.main.TextureGL;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.*;
@@ -172,118 +173,6 @@ public class MeshBuilder {
 
     // Quads, 2 dimensional, top left to bottom right
 
-    public void closeButton(double fromX, double fromY, double toX, double toY) {
-        pos(fromX, fromY, 0).color(Color.WHITE).endVertex();
-        pos(toX, toY, 0).color(Color.WHITE).endVertex();
-        pos(fromX, toY, 0).color(Color.WHITE).endVertex();
-        pos(toX, fromY, 0).color(Color.WHITE).endVertex();
-    }
-
-    public void loginButton(double fromX, double fromY, double toX, double toY) {
-        pos(fromX, fromY + (toY - fromY) / 2 + 2, 0).color(Color.WHITE).endVertex();
-        pos(fromX + (toX - fromX) / 2, toY - (toX - fromY) / 4, 0).color(Color.WHITE).endVertex();
-        pos(fromX + (toX - fromX) / 2, toY, 0).color(Color.WHITE).endVertex();
-        pos(toX, fromY, 0).color(Color.WHITE).endVertex();
-    }
-
-    public void roundedQuad(double fromX, double fromY, double toX, double toY, double radC1, double samples, Color color, Color color1) {
-        double[][] map = new double[][]{new double[]{toX - radC1, toY - radC1, radC1}, new double[]{toX - radC1, fromY + radC1, radC1}, new double[]{fromX + radC1, fromY + radC1, radC1}, new double[]{fromX + radC1, toY - radC1, radC1}};
-
-        for (int i = 0; i < 4; i++) {
-            double[] current = map[i];
-            double rad = current[2];
-            for (double r = i * 90; r < (90 + i * 90); r += (90 / samples)) {
-                float rad1 = (float) Math.toRadians(r);
-                float sin = (float) (Math.sin(rad1) * rad);
-                float cos = (float) (Math.cos(rad1) * rad);
-                switch (i) {
-                    case 0, 1 -> pos((float) current[0] + sin, (float) current[1] + cos, 0.0F).color(color).endVertex();
-                    default -> pos((float) current[0] + sin, (float) current[1] + cos, 0.0F).color(color1).endVertex();
-                }
-            }
-        }
-    }
-
-    public void renderRoundedShadow(Color one, Color two, double fromX, double fromY, double toX, double toY, double rad, double wid) {
-        double toX1 = toX - rad;
-        double toY1 = toY - rad;
-        double fromX1 = fromX + rad;
-        double fromY1 = fromY + rad;
-        double[][] map = new double[][] { new double[] { toX1, toY1 }, new double[] { toX1, fromY1 }, new double[] { fromX1, fromY1 },
-                new double[] { fromX1, toY1 } };
-        for (int i = 0; i < map.length; i++) {
-            double[] current = map[i];
-            for (double r = i * 90; r < (90 + i * 90); r += 10) {
-                float rad1 = (float) Math.toRadians(r);
-                float sin = (float) (Math.sin(rad1) * rad);
-                float cos = (float) (Math.cos(rad1) * rad);
-                switch (i) {
-                    case 0, 3 -> pos((float) current[0] + sin, (float) current[1] + cos, 0.0F).color(one).endVertex();
-                    default -> pos( (float) current[0] + sin, (float) current[1] + cos, 0.0F).color(two).endVertex();
-                }
-
-
-                float sin1 = (float) (sin + Math.sin(rad1) * wid);
-                float cos1 = (float) (cos + Math.cos(rad1) * wid);
-                switch (i) {
-                    case 0, 3 -> pos( (float) current[0] + sin1, (float) current[1] + cos1, 0.0F).color(ColorUtils.injectAlpha(one, 0)).endVertex();
-                    default -> pos( (float) current[0] + sin1, (float) current[1] + cos1, 0.0F).color(ColorUtils.injectAlpha(two, 0)).endVertex();
-                }
-                //bufferBuilder.vertex(matrix, (float) current[0] + sin1, (float) current[1] + cos1, 0.0F).color(cr, cg, cb, 0f).next();
-            }
-        }
-        {
-            double[] current = map[0];
-            float rad1 = (float) Math.toRadians(0);
-            float sin = (float) (Math.sin(rad1) * rad);
-            float cos = (float) (Math.cos(rad1) * rad);
-            pos( (float) current[0] + sin, (float) current[1] + cos, 0.0F).color(one).endVertex();
-            float sin1 = (float) (sin + Math.sin(rad1) * wid);
-            float cos1 = (float) (cos + Math.cos(rad1) * wid);
-            pos( (float) current[0] + sin1, (float) current[1] + cos1, 0.0F).color(ColorUtils.injectAlpha(one, 0)).endVertex();
-        }
-    }
-
-    public void renderRoundedOutline(Color one, Color two, double fromX, double fromY, double toX, double toY, double rad, double wid) {
-        double toX1 = toX - rad;
-        double toY1 = toY - rad;
-        double fromX1 = fromX + rad;
-        double fromY1 = fromY + rad;
-        double[][] map = new double[][] { new double[] { toX1, toY1 }, new double[] { toX1, fromY1 }, new double[] { fromX1, fromY1 },
-                new double[] { fromX1, toY1 } };
-        for (int i = 0; i < map.length; i++) {
-            double[] current = map[i];
-            for (double r = i * 90; r < (90 + i * 90); r += 10) {
-                float rad1 = (float) Math.toRadians(r);
-                float sin = (float) (Math.sin(rad1) * rad);
-                float cos = (float) (Math.cos(rad1) * rad);
-                switch (i) {
-                    case 0, 1 -> pos((float) current[0] + sin, (float) current[1] + cos, 0.0F).color(one).endVertex();
-                    default -> pos( (float) current[0] + sin, (float) current[1] + cos, 0.0F).color(two).endVertex();
-                }
-
-
-                float sin1 = (float) (sin + Math.sin(rad1) * wid);
-                float cos1 = (float) (cos + Math.cos(rad1) * wid);
-                switch (i) {
-                    case 0, 1 -> pos( (float) current[0] + sin1, (float) current[1] + cos1, 0.0F).color(one).endVertex();
-                    default -> pos( (float) current[0] + sin1, (float) current[1] + cos1, 0.0F).color(two).endVertex();
-                }
-                //bufferBuilder.vertex(matrix, (float) current[0] + sin1, (float) current[1] + cos1, 0.0F).color(cr, cg, cb, 0f).next();
-            }
-        }
-        {
-            double[] current = map[0];
-            float rad1 = (float) Math.toRadians(0);
-            float sin = (float) (Math.sin(rad1) * rad);
-            float cos = (float) (Math.cos(rad1) * rad);
-            pos( (float) current[0] + sin, (float) current[1] + cos, 0.0F).color(one).endVertex();
-            float sin1 = (float) (sin + Math.sin(rad1) * wid);
-            float cos1 = (float) (cos + Math.cos(rad1) * wid);
-            pos( (float) current[0] + sin1, (float) current[1] + cos1, 0.0F).color(one).endVertex();
-        }
-    }
-
     public void quad(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3, double x4, double y4, double z4, Color topLeft, Color topRight, Color bottomRight, Color bottomLeft) {
         pos(x1, y1, z1).color(topLeft).endVertex();
         pos(x2, y2, z2).color(topRight).endVertex();
@@ -344,6 +233,32 @@ public class MeshBuilder {
         pos(x, y, 0).color(color).texture(tex.x1, tex.y1).endVertex();
         pos(x + width, y + height, 0).color(color).texture(tex.x2, tex.y2).endVertex();
         pos(x, y + height, 0).color(color).texture(tex.x1, tex.y2).endVertex();
+    }
+
+    public void texQuad(int textureId, TextureGL.TextureRegion region, Color color) {
+        GlStateManager.bindTexture(textureId);
+
+        float x = region.x();
+        float x1 = region.x1();
+        float y = region.y();
+        float y1 = region.y1();
+
+        float textureWidth = region.textureWidth();
+        float textureHeight = region.textureHeight();
+
+        float u = region.u();
+        float v = region.v();
+
+        float regionWidth = region.regionWidth();
+        float regionHeight = region.regionHeight();
+
+        pos(x, y, 0).color(color).texture((u + 0.0F) / textureWidth, (v + 0.0F) / textureHeight).endVertex();
+        pos(x1, y, 0).color(color).texture((u + regionWidth) / textureWidth, (v + 0.0F) / textureHeight).endVertex();
+        pos(x1, y1, 0).color(color).texture((u + regionWidth) / textureWidth, (v + regionHeight) / textureHeight).endVertex();
+
+        pos(x, y, 0).color(color).texture((u + 0.0F) / textureWidth, (v + 0.0F) / textureHeight).endVertex();
+        pos(x1, y1, 0).color(color).texture((u + regionWidth) / textureWidth, (v + regionHeight) / textureHeight).endVertex();
+        pos(x, y1, 0).color(color).texture((u + 0.0F) / textureWidth, (v + regionHeight) / textureHeight).endVertex();
     }
 
     // TRIANGLES

@@ -37,7 +37,7 @@ import net.minecraft.util.math.Vec3d;
 import java.util.List;
 
 public class Spider extends Function {
-    private final ListSetting mode = List().name("Режим").list(List.of("Блоки", "Matrix", "Vulcan", "FunTime")).defaultValue("Matrix").build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Блоки", "Matrix", "Vulcan", "FunTime")).defaultValue("Matrix").build();
 
     public Spider() {
         super("Spider", Category.MOVEMENT);
@@ -114,58 +114,6 @@ public class Spider extends Function {
                 block = false;
                 startY = mc.player.getPos().y;
                 start = false;
-            }
-        }
-    }
-
-    private boolean work1() {
-        ClientPlayerEntity player = mc.player;
-        assert player != null;
-        FindItemResult elytra = InvUtils.find(Items.ELYTRA);
-        if (elytra.found()) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    private void clip() {
-        if (blocks != 0) {
-            ClientPlayerEntity player = mc.player;
-            assert player != null;
-            switch (ticks) {
-                case 0: {
-                    FindItemResult elytra = InvUtils.find(Items.ELYTRA);
-                    slot = elytra.slot();
-                    InvUtils.move().from(slot).toArmor(2);
-                    ticks++;
-                }
-                case 1: {
-                    mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookOnly(mc.player.yaw, mc.player.pitch, false));
-                    ticks++;
-                }
-                case 2: {
-                    mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookOnly(mc.player.yaw, mc.player.pitch, false));
-                    ticks++;
-                }
-                case 3: {
-                    mc.player.networkHandler.sendPacket(new ClientCommandC2SPacket(mc.player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
-                    ticks++;
-                }
-                case 4: {
-                    player.setPosition(player.getX(), player.getY() + blocks, player.getZ());
-                    mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.PositionOnly(player.getX(), player.getY() + blocks, player.getZ(), false));
-                    ticks++;
-                }
-                case 5: {
-                    mc.player.networkHandler.sendPacket(new ClientCommandC2SPacket(mc.player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
-                    ticks++;
-                }
-                case 6: {
-                    ticks = 0;
-                    blocks = 0;
-                    InvUtils.move().fromArmor(2).to(slot);
-                }
             }
         }
     }
@@ -365,5 +313,10 @@ public class Spider extends Function {
             }
         }
         return new Pair<>(false, Direction.DOWN);
+    }
+
+    @Override
+    public String getHudPrefix() {
+        return mode.get();
     }
 }

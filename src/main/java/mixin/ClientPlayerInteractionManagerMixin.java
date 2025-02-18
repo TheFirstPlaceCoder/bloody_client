@@ -6,7 +6,7 @@ import com.client.event.events.InteractItemEvent;
 import com.client.event.events.ReachEvent;
 import com.client.event.events.StartBreakingBlockEvent;
 import com.client.impl.function.misc.NoBreakDelay;
-import com.client.impl.function.misc.NoInteract;
+import com.client.impl.function.player.NoInteract;
 import com.client.interfaces.IClickSlotC2SPacket;
 import com.client.interfaces.IClientPlayerInteractionManager;
 import com.client.system.friend.FriendManager;
@@ -31,6 +31,7 @@ import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -44,9 +45,13 @@ public abstract class ClientPlayerInteractionManagerMixin implements IClientPlay
     @Shadow
     private int blockBreakingCooldown;
 
+    @Unique private NoBreakDelay noBreakDelay;
+
     @Redirect(method = "updateBlockBreakingProgress", at = @At(value = "FIELD", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;blockBreakingCooldown:I", opcode = Opcodes.PUTFIELD))
     private void onMethod_2902SetField_3716Proxy(ClientPlayerInteractionManager interactionManager, int value) {
-        if (FunctionManager.get(NoBreakDelay.class).isEnabled()) value = 0;
+        if (noBreakDelay == null) noBreakDelay = FunctionManager.get(NoBreakDelay.class);
+
+        if (noBreakDelay.isEnabled()) value = 0;
         blockBreakingCooldown = value;
     }
 
@@ -80,10 +85,14 @@ public abstract class ClientPlayerInteractionManagerMixin implements IClientPlay
         if (event.isCancelled()) info.cancel();
     }
 
+    @Unique private NoInteract noInteract;
+
     @Inject(method = "interactBlock", at = @At("HEAD"), cancellable = true)
     private void interactBlock(ClientPlayerEntity player, ClientWorld world, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {
+        if (noInteract == null) noInteract = FunctionManager.get(NoInteract.class);
+
         Block bs = mc.world.getBlockState(hitResult.getBlockPos()).getBlock();
-        if (FunctionManager.get(NoInteract.class).isEnabled() && FunctionManager.get(NoInteract.class).isValid(bs)) {
+        if (noInteract.isEnabled() && noInteract.isValid(bs)) {
             cir.setReturnValue(ActionResult.PASS);
         }
     }

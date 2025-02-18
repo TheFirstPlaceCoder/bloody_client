@@ -19,6 +19,7 @@ import com.client.utils.game.inventory.SlotUtils;
 import com.client.utils.math.animation.Direction;
 import com.client.utils.math.animation.impl.SmoothStepAnimation;
 import com.client.utils.math.rect.FloatRect;
+import com.client.utils.render.DrawMode;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -32,6 +33,7 @@ import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.gui.hud.PlayerListHud;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.option.AttackIndicator;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -64,6 +66,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.client.BloodyClient.mc;
@@ -111,9 +114,9 @@ public abstract class InGameHudMixin extends DrawableHelper implements IInGameHu
     @Shadow
     @Final
     private MinecraftClient client;
-    @Shadow
-    @Final
-    private PlayerListHud playerListHud;
+//    @Shadow
+//    @Final
+//    private PlayerListHud playerListHud;
     @Shadow @Final private static Identifier WIDGETS_TEXTURE;
 
     @Shadow protected abstract void renderHotbarItem(int x, int y, float tickDelta, PlayerEntity player, ItemStack stack);
@@ -124,9 +127,12 @@ public abstract class InGameHudMixin extends DrawableHelper implements IInGameHu
     @Unique
     private float y = 0;
 
+    @Unique private DamageTint damageTint;
+
     @Inject(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;interactionManager:Lnet/minecraft/client/network/ClientPlayerInteractionManager;", ordinal = 0))
     private void renderVignette(MatrixStack context, float tickDelta, CallbackInfo ci) {
-        FunctionManager.get(DamageTint.class).draw();
+        if (damageTint == null) damageTint = FunctionManager.get(DamageTint.class);
+        damageTint.draw();
     }
 
     @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/InGameHud;renderStatusEffectOverlay(Lnet/minecraft/client/util/math/MatrixStack;)V", shift = At.Shift.BEFORE))
@@ -152,20 +158,23 @@ public abstract class InGameHudMixin extends DrawableHelper implements IInGameHu
                 for (HudFunction hudFunction : HudManager.getHudFunctions()) {
                     if (!(mc.currentScreen instanceof ChatScreen)) {
                         boolean b = !FunctionManager.get(Hud.class).isEnabled() || !hudFunction.isEnabled();
+                        CompletableFuture.runAsync(hudFunction::tick).join();
                         Utils.rescaling(() -> {
                             if (!b) {
                                 hudFunction.draw(1f);
+                                hudFunction.postTask.forEach(Runnable::run);
                             } else {
                                 hudFunction.alpha_anim.setDirection(Direction.BACKWARDS);
                                 float a = hudFunction.getAlpha();
-                                if (a > 0) hudFunction.draw(a);
+                                if (a > 0) {
+                                    hudFunction.draw(a);
+                                    hudFunction.postTask.forEach(Runnable::run);
+                                }
                             }
+
+                            hudFunction.postTask.clear();
                         });
                     }
-
-                    Utils.rescaling(() -> {
-                        hudFunction.drawPanel();
-                    });
                 }
             }
 
@@ -326,8 +335,12 @@ public abstract class InGameHudMixin extends DrawableHelper implements IInGameHu
         }
     }
 
+    @Unique private Hud hud;
+
     @Inject(method = "renderHotbar", at = @At("HEAD"), cancellable = true)
      private void renderHotbar(float tickDelta, MatrixStack matrices, CallbackInfo ci) {
+        if (hud == null) hud = FunctionManager.get(Hud.class);
+
         if (client.currentScreen instanceof ChatScreen) {
             animation.setDirection(Direction.FORWARDS);
         } else {
@@ -338,7 +351,7 @@ public abstract class InGameHudMixin extends DrawableHelper implements IInGameHu
 
         ci.cancel();
 
-        if (!FunctionManager.get(Hud.class).drawHotbar() || Loader.unHook) {
+        if (!hud.drawHotbar() || Loader.unHook) {
             renderHotbar(titleFadeInTicks, matrices);
             return;
         }
@@ -348,7 +361,7 @@ public abstract class InGameHudMixin extends DrawableHelper implements IInGameHu
         float y = client.getWindow().getScaledHeight() - 22 - this.y;
 
         FloatRect rect = new FloatRect(x - w / 2, y, w, 20);
-        HudFunction.drawRectHotbar(rect);
+        HudFunction.drawRectGui(rect, 1);
 
         boolean bl = !client.player.getOffHandStack().isEmpty();
         boolean right = client.player.getMainArm().equals(Arm.RIGHT);
@@ -373,7 +386,7 @@ public abstract class InGameHudMixin extends DrawableHelper implements IInGameHu
         if (bl) {
             float xOffhand = right ? x - w / 2 - 30 : x + w / 2 + 10;
             FloatRect offhand = new FloatRect(xOffhand, y, 20, 20);
-            HudFunction.drawRectHotbar(offhand);
+            HudFunction.drawRectGui(offhand, 1);
             GL11.glPushMatrix();
             GL11.glTranslated(xOffhand + 2, y + 2, 0);
             client.getItemRenderer().renderInGui(client.player.getOffHandStack(), 0, 0);

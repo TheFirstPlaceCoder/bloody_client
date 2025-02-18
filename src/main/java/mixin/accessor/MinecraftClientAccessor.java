@@ -13,6 +13,9 @@ public interface MinecraftClientAccessor {
     @Accessor("itemUseCooldown")
     void setItemUseCooldown(int set);
 
+    @Accessor("itemUseCooldown")
+    int getItemUseCooldown();
+
     @Mutable
     @Accessor("session")
     void setSession(Session session);

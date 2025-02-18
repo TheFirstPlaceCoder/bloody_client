@@ -12,13 +12,13 @@ import net.minecraft.item.Items;
 import java.util.List;
 
 public class AutoGApple extends Function {
-    public final MultiBooleanSetting listSetting = MultiBoolean().name("Предметы").defaultValue(List.of(
+    public final MultiBooleanSetting listSetting = MultiBoolean().name("Предметы").enName("Items").defaultValue(List.of(
             new MultiBooleanValue(true, "Гэплы"),
             new MultiBooleanValue(true, "Чарки")
     )).build();
 
-    public final IntegerSetting health = Integer().name("Здоровье").defaultValue(10).min(0).max(36).build();
-    public final BooleanSetting absortion = Boolean().name("Золотые сердца").defaultValue(true).build();
+    public final IntegerSetting health = Integer().name("Здоровье").enName("Health").defaultValue(10).min(0).max(36).build();
+    public final BooleanSetting absortion = Boolean().name("Золотые сердца").enName("Golden Points").defaultValue(true).build();
 
     public AutoGApple() {
         super("Auto GApple", Category.COMBAT);
@@ -55,5 +55,9 @@ public class AutoGApple extends Function {
     public void stopEating() {
         mc.options.keyUse.setPressed(false);
         this.isEating = false;
+    }
+
+    public boolean isEating() {
+        return isEnabled() && isEating;
     }
 }

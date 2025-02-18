@@ -1,19 +1,20 @@
 package com.client.system.notification;
 
 
+import com.client.system.textures.DownloadImage;
 import net.minecraft.util.Identifier;
 
 import java.awt.*;
 
 public enum NotificationType {
-    ENABLE(new Identifier("bloody-client", "/client/circle.png"), Color.GREEN),
-    DISABLE(new Identifier("bloody-client", "/client/circle.png"), Color.RED),
-    CLIENT(new Identifier("bloody-client", "/client/client.png"), Color.WHITE);
+    ENABLE(DownloadImage.getGlId(DownloadImage.CIRCLE), Color.GREEN),
+    DISABLE(DownloadImage.getGlId(DownloadImage.CIRCLE), Color.RED),
+    CLIENT(DownloadImage.getGlId(DownloadImage.CIRCLE), Color.WHITE);
 
-    public final Identifier id;
+    public final int id;
     public final Color color;
 
-    NotificationType(Identifier id, Color color) {
+    NotificationType(int id, Color color) {
         this.id = id;
         this.color = color;
     }
@@ -22,7 +23,7 @@ public enum NotificationType {
         return color;
     }
 
-    public Identifier getTexture() {
+    public int getTexture() {
         return id;
     }
 }

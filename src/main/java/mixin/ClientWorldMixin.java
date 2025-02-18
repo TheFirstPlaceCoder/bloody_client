@@ -3,17 +3,24 @@ package mixin;
 import com.client.event.events.EntityEvent;
 import com.client.impl.function.client.Optimization;
 import com.client.system.function.FunctionManager;
+import com.client.utils.files.SoundManager;
 import com.client.utils.optimization.ConfigVariables;
 import com.client.utils.optimization.EntityCullingBase;
 import com.client.utils.optimization.interfaces.Cullable;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.vehicle.AbstractMinecartEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -24,13 +31,16 @@ public abstract class ClientWorldMixin {
 
     private MinecraftClient mc = MinecraftClient.getInstance();
 
+    @Unique private Optimization optimization;
+
     @Inject(
             method = {"tickEntity(Lnet/minecraft/entity/Entity;)V"},
             at = {@At("HEAD")},
             cancellable = true
     )
     public void tickEntity(Entity entity, CallbackInfo info) {
-        if (!FunctionManager.get(Optimization.class).isEnabled() || !FunctionManager.get(Optimization.class).rayTrace.get()) return;
+        if (optimization == null) optimization = FunctionManager.get(Optimization.class);
+        if (!optimization.isEnabled() || !optimization.rayTrace.get()) return;
 
         if (!ConfigVariables.tickCulling) {
             ++EntityCullingBase.instance.tickedEntities;
@@ -66,7 +76,6 @@ public abstract class ClientWorldMixin {
                 --((LivingEntity)entity).hurtTime;
             }
         }
-
     }
 
     @Inject(method = "addEntity", at = @At("HEAD"), cancellable = true)

@@ -1,5 +1,6 @@
 package com.client.clickgui;
 
+import com.client.utils.Utils;
 import com.client.utils.math.Timer;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.render.wisetree.font.main.IFont;
@@ -10,7 +11,6 @@ import org.lwjgl.glfw.GLFW;
 import java.awt.*;
 
 import static com.client.BloodyClient.mc;
-import static com.client.clickgui.GuiScreen.getStringIgnoreLastChar;
 
 public class PrintBar implements Impl {
     public final FloatRect data;
@@ -90,7 +90,7 @@ public class PrintBar implements Impl {
         if (write) {
             if (key == GLFW.GLFW_KEY_BACKSPACE) {
                 if (!search.isEmpty()) {
-                    search = getStringIgnoreLastChar(search);
+                    search = Utils.getStringIgnoreLastChar(search);
                     runTask();
                 } else {
                     write = false;

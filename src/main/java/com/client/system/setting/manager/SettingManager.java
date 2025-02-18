@@ -41,6 +41,11 @@ public class SettingManager {
         }
 
         @Override
+        public String getEnName() {
+            return "";
+        }
+
+        @Override
         public IVisible isVisible() {
             return () -> true;
         }

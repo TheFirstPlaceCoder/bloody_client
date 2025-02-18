@@ -11,6 +11,7 @@ import com.client.system.command.CommandManager;
 import com.client.system.function.Function;
 import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudFunction;
+import com.client.system.textures.DownloadImage;
 import com.client.utils.auth.Loader;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.game.entity.EntityUtils;
@@ -68,7 +69,7 @@ public abstract class HandleScreenMixin<T extends ScreenHandler> extends Screen 
 
     @Unique private final ItemScroller itemScroller = FunctionManager.get(ItemScroller.class);
     @Unique private final ShulkerPreview shulkerPreview = FunctionManager.get(ShulkerPreview.class);
-    @Unique private final Identifier texture = new Identifier("bloody-client", "/client/container.png");
+    @Unique private final Identifier texture = DownloadImage.getIdentifier(DownloadImage.CONTAINER);
 
     @Shadow @Nullable protected abstract Slot getSlotAt(double xPosition, double yPosition);
     @Shadow protected abstract void onMouseClick(Slot slot, int invSlot, int clickData, SlotActionType actionType);

@@ -2,6 +2,7 @@ package com.client.impl.hud;
 
 import com.client.impl.function.visual.particles.Particles;
 import com.client.system.function.FunctionManager;
+import com.client.system.textures.DownloadImage;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
 import com.client.utils.math.MathUtils;
@@ -26,7 +27,8 @@ public class TargetHudParticle {
     private float div;
     private final int color;
     private final float angle;
-    private final Identifier texture;
+    private int texture;
+    private static Particles particles = FunctionManager.get(Particles.class);
 
     public TargetHudParticle(FloatRect data) {
         vector = new V2D(MathUtils.offset(1.25f), MathUtils.offset(1.25f));
@@ -34,22 +36,25 @@ public class TargetHudParticle {
         angle = MathUtils.RANDOM.nextFloat() * 360F;
         color = (int) (MathUtils.RANDOM.nextFloat() * 360F);
         div = 0.8f;
-        List<String> id = new ArrayList<>();
 
-        if (FunctionManager.get(Particles.class).type.get(0)) id.add("star.png");
-        if (FunctionManager.get(Particles.class).type.get(2)) id.add("snow.png");
-        if (FunctionManager.get(Particles.class).type.get(1)) id.add("heart.png");
+        List<Integer> id = new ArrayList<>();
+
+        if (particles.type.get(0)) id.add(DownloadImage.getGlId(DownloadImage.STAR));
+        if (particles.type.get(1)) id.add(DownloadImage.getGlId(DownloadImage.HEART));
+        if (particles.type.get(2)) id.add(DownloadImage.getGlId(DownloadImage.SNOW));
+        if (particles.type.get(3)) id.add(DownloadImage.getGlId(DownloadImage.TRIANGLE_GLOW));
+        if (particles.type.get(4)) id.add(DownloadImage.getGlId(DownloadImage.CIRCLE));
 
         if (id.isEmpty()) {
-            texture = null;
+            texture = -1;
             return;
         }
 
-        this.texture = new Identifier("bloody-client", "/client/" + id.get(new Random().nextInt(id.size())));
+        this.texture = id.get(new Random().nextInt(id.size()));
     }
 
     public void draw() {
-        if (texture == null) return;
+        if (texture == -1) return;
         alpha = MathHelper.clamp(alpha, 0, 255);
 
         pos.a += vector.a * MathHelper.clamp(div, 0.4f, 0.8f);

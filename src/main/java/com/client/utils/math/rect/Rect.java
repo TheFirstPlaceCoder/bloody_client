@@ -40,6 +40,7 @@ public abstract class Rect<T> {
         return "x:" + x + ", y:" + y + ", w:" + w + ", h:" + h;
     }
 
+    public abstract Rect<?> expand(T x);
     public abstract Rect<?> setX(T x);
     public abstract Rect<?> addX(T x);
     public abstract Rect<?> setY(T y);

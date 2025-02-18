@@ -4,6 +4,7 @@ import com.client.utils.auth.Loader;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
 import com.client.utils.math.rect.FloatRect;
+import com.client.utils.render.wisetree.font.main.IFont;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
@@ -20,6 +21,8 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+
+import java.awt.*;
 
 @Mixin(ClickableWidget.class)
 public abstract class ClickableWidgetMixin extends DrawableHelper implements Drawable, Element {
@@ -68,7 +71,7 @@ public abstract class ClickableWidgetMixin extends DrawableHelper implements Dra
         TextRenderer textRenderer = minecraftClient.textRenderer;
         if (!Loader.unHook) {
             FloatRect rect = new FloatRect(this.x, this.y, this.width, this.height);
-            int alphach = rect.intersect(mouseX, mouseY) ? 140 : 110;
+            int alphach = rect.intersect(mouseX, mouseY) ? 200 : 110;
             GL.prepare();
             GL.drawRoundedGradientRect(rect, 3, ColorUtils.injectAlpha(Colors.getColor(0, 13), alphach),
                     ColorUtils.injectAlpha(Colors.getColor(90, 13), alphach),
@@ -83,7 +86,8 @@ public abstract class ClickableWidgetMixin extends DrawableHelper implements Dra
             GL.end();
 
             int j = this.active ? 16777215 : 10526880;
-            drawCenteredText(matrices, textRenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
+            IFont.drawCenteredXY(IFont.NEVERLOSE, this.getMessage().getString(), this.x + this.width / 2, this.y + this.height / 2, new Color(j | MathHelper.ceil(this.alpha * 255.0F) << 24), 10);
+            //drawCenteredText(matrices, textRenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
         } else {
             minecraftClient.getTextureManager().bindTexture(WIDGETS_TEXTURE);
             RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);

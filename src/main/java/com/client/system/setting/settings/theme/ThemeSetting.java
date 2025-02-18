@@ -60,6 +60,15 @@ public class ThemeSetting extends AbstractSettings<ThemeContainer> {
         return this;
     }
 
+    public String getEnName() {
+        return enName;
+    }
+
+    public ThemeSetting enName(String name) {
+        this.enName = name;
+        return this;
+    }
+
     public boolean isPremium() {
         return isPremium;
     }

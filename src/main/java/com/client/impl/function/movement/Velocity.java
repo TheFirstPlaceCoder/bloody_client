@@ -1,154 +1,123 @@
 package com.client.impl.function.movement;
 
+import com.client.event.events.AttackEntityEvent;
 import com.client.event.events.PacketEvent;
 import com.client.event.events.TickEvent;
-import com.client.interfaces.IEntityVelocityUpdateS2CPacket;
-import com.client.interfaces.IExplosionS2CPacket;
+import com.client.impl.function.movement.velocity.VelocityMode;
+import com.client.impl.function.movement.velocity.aac.AAC;
+import com.client.impl.function.movement.velocity.grim.GrimPosition;
+import com.client.impl.function.movement.velocity.grim.NewGrim;
+import com.client.impl.function.movement.velocity.grim.OldGrim;
+import com.client.impl.function.movement.velocity.grim.StandartGrim;
+import com.client.impl.function.movement.velocity.intave.Intave;
+import com.client.impl.function.movement.velocity.matrix.MatrixReduce;
+import com.client.impl.function.movement.velocity.matrix.OldMatrix;
+import com.client.impl.function.movement.velocity.other.Jump;
+import com.client.impl.function.movement.velocity.other.Vanilla;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.setting.settings.BooleanSetting;
+import com.client.system.setting.settings.DoubleSetting;
+import com.client.system.setting.settings.IntegerSetting;
 import com.client.system.setting.settings.ListSetting;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.network.packet.c2s.query.QueryPingC2SPacket;
-import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
-import net.minecraft.network.packet.s2c.play.ExplosionS2CPacket;
-import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 
 import java.util.List;
 
 public class Velocity extends Function {
-    private final ListSetting mode = List().name("Режим").list(List.of("Matrix", "Grim", "New Grim", "HolyWorld", "Легитный", "Прыжок", "Ванильный")).defaultValue("Ванильный").build();
-    public final BooleanSetting pauseInFluids = Boolean().name("Пауза в жидкостях").defaultValue(true).build();
-    public final BooleanSetting fire = Boolean().name("Пауза в огне").defaultValue(true).build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("AAC", "Matrix", "Grim", "Intave", "Прыжок", "Ванильный")).defaultValue("Ванильный").callback(this::onChangeSpeedMode).build();
+
+    private final ListSetting modeGrim = List().name("Режим Grim").enName("Grim Mode").list(List.of("Old", "Standart", "New", "Teleport")).defaultValue("New").visible(() -> mode.get().equals("Grim")).callback(e -> onChangeSpeedMode(mode.get())).build();
+    public final IntegerSetting delay = Integer().name("delay").defaultValue(4).min(0).max(10).visible(() -> mode.get().equals("Grim") && modeGrim.get().equals("New")).build();
+    public final IntegerSetting repeats = Integer().name("Повторения").enName("Repeats").defaultValue(4).min(1).max(5).visible(() -> mode.get().equals("Grim") && modeGrim.get().equals("New")).build();
+
+    private final ListSetting modeMatrix = List().name("Режим Matrix").enName("Matrix Mode").list(List.of("Old", "Reduce")).defaultValue("Reduce").visible(() -> mode.get().equals("Matrix")).callback(e -> onChangeSpeedMode(mode.get())).build();
+
+    public final DoubleSetting reducing = Double().name("Множитель").enName("Velocity Reduce").defaultValue(0.62).min(0).max(1).c(2).visible(() -> mode.get().equals("AAC") || mode.get().equals("Intave")).build();
+
+    public final BooleanSetting beforeJump = Boolean().name("Перед прыжком").enName("Reset Before Jump").defaultValue(true).visible(() -> mode.get().equals("Прыжок")).build();
+
+    public final BooleanSetting pauseInFluids = Boolean().name("Пауза в жидкостях").enName("Liquid Pause").defaultValue(true).build();
+    public final BooleanSetting fire = Boolean().name("Пауза в огне").enName("Fire Pause").defaultValue(true).build();
 
     public Velocity() {
         super("Velocity", Category.MOVEMENT);
     }
 
-    private boolean flag;
-    private int grimTicks, ccCooldown;
-    boolean damaged;
+    public VelocityMode currentVelocityMode;
 
     @Override
     public void onEnable() {
-        grimTicks = 0;
-        damaged = false;
-        ccCooldown = 0;
+        this.onChangeSpeedMode(mode.get());
     }
 
     @Override
     public void onPacket(PacketEvent.Receive e) {
-        if(mc.player != null && (mc.player.isTouchingWater() || mc.player.isSubmergedInWater() || mc.player.isInLava()) && pauseInFluids.get())
+        if (mc.player != null && (mc.player.isTouchingWater() || mc.player.isSubmergedInWater() || mc.player.isInLava()) && pauseInFluids.get())
             return;
 
-        if(mc.player != null && mc.player.isOnFire() && fire.get() && (mc.player.hurtTime > 0)){
-            return;
-        }
-
-        if (ccCooldown > 0) {
-            ccCooldown--;
+        if (mc.player != null && mc.player.isOnFire() && fire.get() && (mc.player.hurtTime > 0)) {
             return;
         }
 
-        if (e.packet instanceof EntityVelocityUpdateS2CPacket pac) {
-            if (pac.getId() == mc.player.getEntityId()) {
-                switch (mode.get()) {
-                    case "Matrix" -> {
-                        if (!flag) {
-                            e.setCancelled(true);
-                            flag = true;
-                        } else {
-                            flag = false;
-                            ((IEntityVelocityUpdateS2CPacket) pac).setX(((int) ((double) pac.getVelocityX() * -0.1)));
-                            ((IEntityVelocityUpdateS2CPacket) pac).setZ(((int) ((double) pac.getVelocityZ() * -0.1)));
-                        }
-                    }
-                    case "Ванильный" -> {
-                        e.setCancelled(true);
-                    }
-                    case "Grim" -> {
-                        e.setCancelled(true);
-                        grimTicks = 6;
-                    }
-                    case "New Grim" -> {
-                        e.setCancelled(true);
-                        flag = true;
-                    }
-                    case "Легитный" -> {
-                        e.setCancelled(true);
-                        flag = true;
-                        mc.options.keySneak.setPressed(true);
-                    }
-                    case "Прыжок" -> {
-                        //e.setCancelled(true);
-                        mc.player.jump();
-                        //mc.player.setVelocity(0, -1, 0);
-                    }
-                    case "HolyWorld" -> {
-                        ((IEntityVelocityUpdateS2CPacket) pac).setX((int) ((double) pac.getVelocityX() * 0.666f));
-                        ((IEntityVelocityUpdateS2CPacket) pac).setZ((int) ((double) pac.getVelocityZ() * 0.666f));
-                    }
-                }
-            }
+        currentVelocityMode.onPacket(e);
+    }
+
+    @Override
+    public void onPacket(PacketEvent.Send e) {
+        if (mc.player != null && (mc.player.isTouchingWater() || mc.player.isSubmergedInWater() || mc.player.isInLava()) && pauseInFluids.get())
+            return;
+
+        if (mc.player != null && mc.player.isOnFire() && fire.get() && (mc.player.hurtTime > 0)) {
+            return;
         }
 
-        if (e.packet instanceof ExplosionS2CPacket explosion) {
-            switch (mode.get()) {
-                case "Ванильный" -> {
-                    ((IExplosionS2CPacket) explosion).setVelocityX(0);
-                    ((IExplosionS2CPacket) explosion).setVelocityY(0);
-                    ((IExplosionS2CPacket) explosion).setVelocityZ(0);
-                }
-                case "Новый Grim" -> {
-                    e.setCancelled(true);
-                    flag = true;
-                }
-            }
-        }
-
-        if (mode.get().equals("Grim")) {
-            if (e.packet instanceof QueryPingC2SPacket && grimTicks > 0) {
-                e.setCancelled(true);
-                grimTicks--;
-            }
-        }
-
-        if (e.packet instanceof PlayerPositionLookS2CPacket) {
-            if (mode.get().equals("Новый Grim")) ccCooldown = 5;
-        }
+        currentVelocityMode.onPacket(e);
     }
 
     @Override
     public void tick(TickEvent.Pre event) {
-        if (mc.player != null && (mc.player.isTouchingWater() || mc.player.isSubmergedInWater()) && pauseInFluids.get())
+        if (mc.player != null && (mc.player.isTouchingWater() || mc.player.isSubmergedInWater() || mc.player.isInLava()) && pauseInFluids.get())
             return;
 
-        if (mode.get().equals("Matrix")) {
-            if (mc.player.hurtTime > 0 && !mc.player.isOnGround()) {
-                double var3 = mc.player.yaw * 0.017453292F;
-                double var5 = Math.sqrt(mc.player.getVelocity().x * mc.player.getVelocity().x + mc.player.getVelocity().z * mc.player.getVelocity().z);
-                mc.player.setVelocity(-Math.sin(var3) * var5, mc.player.getVelocity().y, Math.cos(var3) * var5);
-                mc.player.setSprinting(mc.player.age % 2 != 0);
-            }
-        } else if (mode.get().equals("New Grim")) {
-            if (flag) {
-                if(ccCooldown <= 0) {
-                    mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.Both(mc.player.getX(), mc.player.getY(), mc.player.getZ(), mc.player.yaw, mc.player.pitch, mc.player.isOnGround()));
-                    mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, new BlockPos(mc.player.getPos().x, mc.player.getPos().y, mc.player.getPos().z), Direction.DOWN));
-                }
-                flag = false;
-            }
-        } else if (mode.get().equals("Легитный")) {
-            if (flag) {
-                mc.options.keySneak.setPressed(false);
-                flag = false;
-            }
+        if (mc.player != null && mc.player.isOnFire() && fire.get() && (mc.player.hurtTime > 0)) {
+            return;
         }
 
-        if (grimTicks > 0)
-            grimTicks--;
+        currentVelocityMode.tick(event);
+    }
+
+    @Override
+    public void onAttackEntityEvent(AttackEntityEvent.Pre event) {
+        currentVelocityMode.onAttack(event);
+    }
+
+    public void onChangeSpeedMode(String name) {
+        switch (name) {
+            case "AAC": currentVelocityMode = new AAC(); break;
+            case "Matrix":
+                switch (modeMatrix.get()) {
+                    case "Old" -> currentVelocityMode = new OldMatrix();
+                    default -> currentVelocityMode = new MatrixReduce();
+                }
+                break;
+            case "Grim":
+                switch (modeGrim.get()) {
+                    case "Old" -> currentVelocityMode = new OldGrim();
+                    case "Standart" -> currentVelocityMode = new StandartGrim();
+                    case "New" -> currentVelocityMode = new NewGrim();
+                    default -> currentVelocityMode = new GrimPosition();
+                }
+                break;
+            case "Intave": currentVelocityMode = new Intave(); break;
+            case "Прыжок": currentVelocityMode = new Jump(); break;
+            default: currentVelocityMode = new Vanilla(); break;
+        }
+
+        currentVelocityMode.onEnable();
+    }
+
+    @Override
+    public String getHudPrefix() {
+        return mode.get();
     }
 }

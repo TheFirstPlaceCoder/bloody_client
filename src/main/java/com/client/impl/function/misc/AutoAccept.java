@@ -9,8 +9,8 @@ import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 
 public class AutoAccept extends Function {
-    private final BooleanSetting onlyFriends = Boolean().name("Только от друзей").defaultValue(true).build();
-    private final BooleanSetting nickname = Boolean().name("Учитывать никнейм").defaultValue(false).build();
+    private final BooleanSetting onlyFriends = Boolean().name("Только от друзей").enName("Only Friends").defaultValue(true).build();
+    private final BooleanSetting nickname = Boolean().name("Учитывать никнейм").enName("Include Nickname").defaultValue(false).build();
 
     public AutoAccept() {
         super("Auto Accept", Category.MISC);

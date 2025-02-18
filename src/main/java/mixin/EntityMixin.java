@@ -120,16 +120,23 @@ public abstract class EntityMixin {
         }
     }
 
+    @Unique private HitBox hitBox;
+
     @Inject(method = "getTargetingMargin", at = @At("HEAD"), cancellable = true)
     private void onGetTargetingMargin(CallbackInfoReturnable<Float> info) {
-        double v = FunctionManager.get(HitBox.class).getEntityValue((Entity) (Object) this);
+        if (hitBox == null) hitBox = FunctionManager.get(HitBox.class);
+
+        double v = hitBox.getEntityValue((Entity) (Object) this);
         if (v != 0) info.setReturnValue((float) v);
     }
+
+    @Unique private Freecam freecam;
 
     @Inject(method = "changeLookDirection", at = @At("HEAD"), cancellable = true)
     private void changeLook(double cursorDeltaX, double cursorDeltaY, CallbackInfo ci) {
         if (this.equals(mc.player)) {
-            Freecam freecam = FunctionManager.get(Freecam.class);
+            if (freecam == null) freecam = FunctionManager.get(Freecam.class);
+
             if (freecam.isEnabled()) {
                 freecam.changeLookDirection(cursorDeltaX * 0.15, cursorDeltaY * 0.15);
                 ci.cancel();
@@ -191,16 +198,22 @@ public abstract class EntityMixin {
         }
     }
 
+    @Unique private Shaders shaders;
+
     @Inject(method = "getTeamColorValue", at = @At("HEAD"), cancellable = true)
     private void onGetTeamColorValue(CallbackInfoReturnable<Integer> info) {
         if (Outlines.renderingOutlines) {
-            info.setReturnValue(Utils.fromRGBA(FunctionManager.get(Shaders.class).getColor((Entity) (Object) this)));
+            if (shaders == null) shaders = FunctionManager.get(Shaders.class);
+
+            info.setReturnValue(Utils.fromRGBA(shaders.getColor((Entity) (Object) this)));
         }
     }
 
+    @Unique private NoPush noPush;
+
     @ModifyArgs(method = "pushAwayFrom", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;addVelocity(DDD)V"))
     public void pushAwayFromHook(Args args) {
-        NoPush noPush = FunctionManager.get(NoPush.class);
+        if (noPush == null) noPush = FunctionManager.get(NoPush.class);
 
         //Condition '...' is always 'false' is a lie!!! do not delete
         if ((Object) this == MinecraftClient.getInstance().player && noPush.isEnabled() && noPush.entity.get()) {
@@ -213,7 +226,8 @@ public abstract class EntityMixin {
     @Redirect(method = "updateMovementInFluid", at = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FluidState;getVelocity(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/util/math/Vec3d;"))
     private Vec3d updateMovementInFluid(FluidState state, BlockView world, BlockPos pos) {
         Vec3d vec = state.getVelocity(world, pos);
-        NoPush noPush = FunctionManager.get(NoPush.class);
+        if (noPush == null) noPush = FunctionManager.get(NoPush.class);
+
         if (noPush.isEnabled() && noPush.liquids.get()) {
             vec = vec.multiply(0f, 0f, 0f);
         }

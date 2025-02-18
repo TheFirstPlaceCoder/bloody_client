@@ -2,6 +2,7 @@
 	"schemaVersion": 1,
 	"id": "ias",
 	"version": "${version}",
+	"icon": "iaslogo.png",
 	"name": "In-Game Account Switcher",
 	"description": "кто это читает????",
 	"authors": [

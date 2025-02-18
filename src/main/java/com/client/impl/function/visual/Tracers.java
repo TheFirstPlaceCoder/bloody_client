@@ -20,15 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Tracers extends Function {
-    public final MultiBooleanSetting filter = MultiBoolean().name("Рисовать к").defaultValue(List.of(
+    public final MultiBooleanSetting filter = MultiBoolean().name("Рисовать к").enName("Draw at").defaultValue(List.of(
             new MultiBooleanValue(true, "Игрокам"),
             new MultiBooleanValue(true, "Друзьям"),
             new MultiBooleanValue(false, "Инвизам"),
             new MultiBooleanValue(false, "Предметам")
     )).build();
 
-    public final ColorSetting colorSetting = Color().name("Цвет игроков").defaultValue(Color.CYAN).build();
-    public final ColorSetting colorSettingItems = Color().name("Цвет предметов").defaultValue(Color.CYAN).build();
+    public final ColorSetting colorSetting = Color().name("Цвет игроков").enName("Players Color").defaultValue(Color.CYAN).build();
+    public final ColorSetting colorSettingItems = Color().name("Цвет предметов").enName("Items Color").defaultValue(Color.CYAN).build();
 
     public Tracers() {
         super("Tracers", Category.VISUAL);

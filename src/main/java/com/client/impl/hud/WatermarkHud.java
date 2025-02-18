@@ -1,27 +1,19 @@
 package com.client.impl.hud;
 
-import com.client.impl.function.client.Hud;
 import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudFunction;
+import com.client.system.hud.HudManager;
+import com.client.system.textures.DownloadImage;
+import com.client.utils.Utils;
 import com.client.utils.auth.Loader;
 import com.client.utils.math.rect.FloatRect;
+import com.client.utils.render.DrawMode;
 import com.client.utils.render.wisetree.font.api.FontRenderer;
 import com.client.utils.render.wisetree.font.main.IFont;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
-import com.client.utils.render.wisetree.render.render2d.utils.PlayerHeadTexture;
-import com.mojang.blaze3d.systems.RenderSystem;
-import mixin.accessor.MinecraftClientAccessor;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.Tessellator;
+import com.client.utils.render.wisetree.render.render2d.main.TextureGL;
 import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Matrix4f;
-import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 
@@ -31,46 +23,70 @@ public class WatermarkHud extends HudFunction {
         draggable = false;
     }
 
-    public Identifier star = new Identifier("bloody-client", "hud/star.png");
-    public Identifier group = new Identifier("bloody-client", "hud/group.png");
-    public Identifier planet = new Identifier("bloody-client", "hud/planet.png");
-    public Identifier account = new Identifier("bloody-client", "hud/account.png");
-    public Identifier computer = new Identifier("bloody-client", "hud/computer.png");
+    public FloatRect rect2, rect3, rect4;
+
+    public com.client.impl.function.hud.WatermarkHud watermarkHud;
 
     @Override
     public void draw(float alpha) {
+        if (watermarkHud == null) {
+            watermarkHud = FunctionManager.get(com.client.impl.function.hud.WatermarkHud.class);
+        }
+
         drawClientInfo();
 
-        FloatRect rect2 = new FloatRect(rect.getX().floatValue(), rect.getY2() + 2f, 15 + 2 + IFont.getWidth(IFont.MONTSERRAT_BOLD, "Group: " + getRole(), 7) + 5, IFont.getHeight(IFont.MONTSERRAT_BOLD, "AAA123", 8) + 5);
-        drawNewClientRect(rect2);
-        GL11.glPushMatrix();
-        GL11.glScalef(1f, 1f, 1f);
-        GL11.glTranslatef(rect2.getX() + 2.5f, rect2.getCenteredY() - 6.25f, 0);
-        GL.drawRoundedTexture(group, 0, 0, 12.5, 12.5, 0);
-        GL11.glPopMatrix();
+        float lastY = rect.getY2();
 
-        IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, "Group: " + getRole(), rect2.getX() + 15 + 2, rect2.getCenteredY(), Color.WHITE, 7);
+        if (watermarkHud.getGroup()) {
+            rect2 = new FloatRect(rect.getX().floatValue(),
+                    lastY + 2f,
+                    15 + 2 + IFont.getWidth(IFont.MONTSERRAT_BOLD, "Group: " + getRole(), 7) + 5,
+                    IFont.getHeight(IFont.MONTSERRAT_BOLD, "AAA123", 8) + 5);
 
-        FloatRect rect4 = new FloatRect(rect.getX().floatValue(), rect2.getY2() + 2f, 15 + 2 + IFont.getWidth(IFont.MONTSERRAT_BOLD, "Premium: " + getPremium(), 7) + 5, IFont.getHeight(IFont.MONTSERRAT_BOLD, "AAA123", 8) + 5);
-        drawNewClientRect(rect4);
-        GL11.glPushMatrix();
-        GL11.glScalef(1f, 1f, 1f);
-        GL11.glTranslatef(rect4.getX() + 2.5f, rect4.getCenteredY() - 6.25f, 0);
-        GL.drawRoundedTexture(star, 0, 0, 12.5, 12.5, 0);
-        GL11.glPopMatrix();
+            drawNewClientRect(rect2);
+            postTask.add(() -> {
+                HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
+                HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.GROUP), new TextureGL.TextureRegion(rect2.getX() + 2.5f, rect2.getCenteredY() - 6.25f, 12.5f, 12.5f), Color.WHITE);
+                HudManager.MB.end();
+            });
 
-        IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, "Premium: " + getPremium(), rect4.getX() + 15 + 2, rect4.getCenteredY(), Color.WHITE, 7);
+            IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, "Group: " + getRole(), rect2.getX() + 15 + 2, rect2.getCenteredY(), Color.WHITE, 7);
 
-        //if (!mc.isInSingleplayer() && mc.getCurrentServerEntry() != null) {
-        FloatRect rect3 = new FloatRect(rect.getX().floatValue(), rect4.getY2() + 2f, IFont.getWidth(IFont.MONTSERRAT_BOLD, "  IP: " + ((!mc.isInSingleplayer() && mc.getCurrentServerEntry() != null) ? mc.getCurrentServerEntry().address : "Unknown") + "  ", 7) + 15, IFont.getHeight(IFont.MONTSERRAT_BOLD, "  IP: " + ((!mc.isInSingleplayer() && mc.getCurrentServerEntry() != null) ? mc.getCurrentServerEntry().address : "Unknown") + "  ", 8) + 5);
-        drawNewClientRect(rect3);
-        GL11.glPushMatrix();
-        GL11.glScalef(1f, 1f, 1f);
-        GL11.glTranslatef(rect3.getX() + 2.5f, rect3.getCenteredY() - 5, 0);
-        GL.drawRoundedTexture(planet, 0, 0, 10, 10, 0);
-        GL11.glPopMatrix();
-        IFont.drawCenteredXY(IFont.MONTSERRAT_BOLD, "IP: " + ((!mc.isInSingleplayer() && mc.getCurrentServerEntry() != null) ? mc.getCurrentServerEntry().address : "Unknown"), rect3.getCenteredX() + 5, rect3.getCenteredY(), Color.WHITE, 7);
-        //}
+            lastY = rect2.getY2();
+        }
+
+        if (watermarkHud.getPremium()) {
+            rect3 = new FloatRect(rect.getX().floatValue(),
+                    lastY + 2f,
+                    15 + 2 + IFont.getWidth(IFont.MONTSERRAT_BOLD, "Premium: " + getPremium(), 7) + 5,
+                    IFont.getHeight(IFont.MONTSERRAT_BOLD, "AAA123", 8) + 5);
+
+            drawNewClientRect(rect3);
+            postTask.add(() -> {
+                HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
+                HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.STAR), new TextureGL.TextureRegion(rect3.getX() + 2.5f, rect3.getCenteredY() - 6.25f, 12.5f, 12.5f), Color.WHITE);
+                HudManager.MB.end();
+            });
+
+            IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, "Premium: " + getPremium(), rect3.getX() + 15 + 2, rect3.getCenteredY(), Color.WHITE, 7);
+
+            lastY = rect3.getY2();
+        }
+
+        if (watermarkHud.getIP()) {
+            rect4 = new FloatRect(rect.getX().floatValue(),
+                    lastY + 2f,
+                    IFont.getWidth(IFont.MONTSERRAT_BOLD, "  IP: " + getServerIP() + "  ", 7) + 15,
+                    IFont.getHeight(IFont.MONTSERRAT_BOLD, "  IP: " + getServerIP() + "  ", 8) + 5);
+
+            drawNewClientRect(rect4);
+            postTask.add(() -> {
+                HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
+                HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.PLANET), new TextureGL.TextureRegion(rect4.getX() + 2.5f, rect4.getCenteredY() - 5, 10, 10), Color.WHITE);
+                HudManager.MB.end();
+            });
+            IFont.drawCenteredXY(IFont.MONTSERRAT_BOLD, "IP: " + getServerIP(), rect4.getCenteredX() + 5, rect4.getCenteredY(), Color.WHITE, 7);
+        }
     }
 
     public void drawClientInfo() {
@@ -78,7 +94,7 @@ public class WatermarkHud extends HudFunction {
         String accountName = Loader.getAccountName();
         String uid = "UID: " + Loader.getUID();
 
-        float width = (IFont.getWidth(IFont.MONTSERRAT_BOLD, "  ", 7) * 2) + IFont.getWidth(IFont.MONTSERRAT_BOLD, clientName, 8) + 5 + 12.5f + 2 + IFont.getWidth(IFont.MONTSERRAT_BOLD, accountName, 7) + 5 + 12.5f + 2 + IFont.getWidth(IFont.MONTSERRAT_BOLD, uid, 7) + 3;
+        float width = (IFont.getWidth(IFont.MONTSERRAT_BOLD, "  ", 7) * 2) + IFont.getWidth(IFont.MONTSERRAT_BOLD, clientName, 8) + getOffset(accountName, true) + getOffset(uid, false) + 3;
 
         rect.setW(width);
         rect.setH(IFont.getHeight(IFont.MONTSERRAT_BOLD, "ABC123", 8) + 5);
@@ -88,33 +104,45 @@ public class WatermarkHud extends HudFunction {
         IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, clientName, rect.getX() + IFont.getWidth(IFont.MONTSERRAT_BOLD, "  ", 7), rect.getCenteredY(), Color.WHITE, 8);
         FontRenderer.color(false);
 
-        GL11.glPushMatrix();
-        GL11.glScalef(1f, 1f, 1f);
-        GL11.glTranslatef(rect.getX() + IFont.getWidth(IFont.MONTSERRAT_BOLD, "  ", 7) + IFont.getWidth(IFont.MONTSERRAT_BOLD, clientName, 8) + 5, rect.getCenteredY() - 6.25f, 0);
-        GL.drawRoundedTexture(account, 0, 0, 12.5, 12.5, 0);
-        GL11.glPopMatrix();
+        if (watermarkHud.getAccountName()) {
+            postTask.add(() -> {
+                HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
+                HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.ACCOUNT), new TextureGL.TextureRegion(rect.getX() + IFont.getWidth(IFont.MONTSERRAT_BOLD, "  ", 7) + IFont.getWidth(IFont.MONTSERRAT_BOLD, clientName, 8) + 5, rect.getCenteredY() - 6.25f, 12.5f, 12.5f), Color.WHITE);
+                HudManager.MB.end();
+            });
 
-        IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, accountName, rect.getX() + IFont.getWidth(IFont.MONTSERRAT_BOLD, "  ", 7) + IFont.getWidth(IFont.MONTSERRAT_BOLD, clientName, 8) + 5 + 12.5f + 2, rect.getCenteredY(), Color.WHITE, 7);
+            IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, accountName, rect.getX() + IFont.getWidth(IFont.MONTSERRAT_BOLD, "  ", 7) + IFont.getWidth(IFont.MONTSERRAT_BOLD, clientName, 8) + 5 + 12.5f + 2, rect.getCenteredY(), Color.WHITE, 7);
+        }
 
-        GL11.glPushMatrix();
-        GL11.glScalef(1f, 1f, 1f);
-        GL11.glTranslatef(rect.getX() + IFont.getWidth(IFont.MONTSERRAT_BOLD, "  ", 7) + IFont.getWidth(IFont.MONTSERRAT_BOLD, clientName, 8) + 5 + 12.5f + 2 + IFont.getWidth(IFont.MONTSERRAT_BOLD, accountName, 7) + 5, rect.getCenteredY() - 6.25f, 0);
-        GL.drawRoundedTexture(computer, 0, 0, 12.5, 12.5, 0);
-        GL11.glPopMatrix();
+        if (watermarkHud.getUid()) {
+            postTask.add(() -> {
+                HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
+                HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.COMPUTER), new TextureGL.TextureRegion(rect.getX() + IFont.getWidth(IFont.MONTSERRAT_BOLD, "  ", 7) + IFont.getWidth(IFont.MONTSERRAT_BOLD, clientName, 8) + getOffset(accountName, true) + 5, rect.getCenteredY() - 6.25f, 12.5f, 12.5f), Color.WHITE);
+                HudManager.MB.end();
+            });
 
-        IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, uid, rect.getX() + IFont.getWidth(IFont.MONTSERRAT_BOLD, "  ", 7) + IFont.getWidth(IFont.MONTSERRAT_BOLD, clientName, 8) + 5 + 12.5f + 2 + IFont.getWidth(IFont.MONTSERRAT_BOLD, accountName, 7) + 5 + 12.5f + 2, rect.getCenteredY(), Color.WHITE, 7);
+            IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, uid, rect.getX() + IFont.getWidth(IFont.MONTSERRAT_BOLD, "  ", 7) + IFont.getWidth(IFont.MONTSERRAT_BOLD, clientName, 8) + getOffset(accountName, true) + 5 + 12.5f + 2, rect.getCenteredY(), Color.WHITE, 7);
+        }
     }
 
     public String getPremium() {
-        if (Loader.isPremium()) return Formatting.GREEN + "Активен";
-        else return Formatting.RED + "Неактивен";
+        if (Loader.isPremium()) return Formatting.GREEN + (Utils.isRussianLanguage ? "Активен" : "Active");
+        else return Formatting.RED + (Utils.isRussianLanguage ? "Неактивен" : "Not active");
     }
 
     public String getRole() {
         if (Loader.isDev()) return Formatting.RED + "Разработчик";
         if (Loader.isModer()) return Formatting.DARK_AQUA + "Модератор";
-        if (Loader.isHelper()) return Formatting.GOLD + "Хелпер";
+        if (Loader.isHelper()) return Formatting.GOLD + (Utils.isRussianLanguage ? "Хелпер" : "Helper");
         if (Loader.isYouTube()) return Formatting.WHITE + "You" + Formatting.DARK_RED + "Tube";
-        return Formatting.WHITE + "Пользователь";
+        return Formatting.WHITE + (Utils.isRussianLanguage ? "Пользователь" : "User");
+    }
+
+    public String getServerIP() {
+        return ((!mc.isInSingleplayer() && mc.getCurrentServerEntry() != null) ? mc.getCurrentServerEntry().address : "Unknown");
+    }
+
+    public float getOffset(String str, boolean isName) {
+        return isName ? (watermarkHud.getAccountName() ? 19.5f + IFont.getWidth(IFont.MONTSERRAT_BOLD, str, 7) : 0) : (watermarkHud.getUid() ? 19.5f + IFont.getWidth(IFont.MONTSERRAT_BOLD, str, 7) : 0);
     }
 }

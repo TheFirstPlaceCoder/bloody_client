@@ -19,9 +19,9 @@ public class AutoLeave extends Function {
         super("Auto Leave", Category.MISC);
     }
 
-    private final ListSetting mode = List().name("Тип").list(List.of("Отключение", "Домой", "Спавн", "Хаб")).defaultValue("Отключение").build();
-    private final IntegerSetting range = Integer().name("Дистанция").defaultValue(120).min(0).max(150).build();
-    private final BooleanSetting alsoNude = Boolean().name("Ливать от голых").defaultValue(true).build();
+    private final ListSetting mode = List().name("Тип").enName("Mode").list(List.of("Отключение", "Домой", "Спавн", "Хаб")).defaultValue("Отключение").build();
+    private final IntegerSetting range = Integer().name("Дистанция").enName("Distance").defaultValue(120).min(0).max(150).build();
+    private final BooleanSetting alsoNude = Boolean().name("Ливать от голых").enName("Include Naked").defaultValue(true).build();
 
     @Override
     public void tick(TickEvent.Pre event) {
@@ -45,6 +45,6 @@ public class AutoLeave extends Function {
             default -> mc.player.sendChatMessage("/hub");
         }
 
-        toggle();
+        this.toggle();
     }
 }

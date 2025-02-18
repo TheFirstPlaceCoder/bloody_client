@@ -23,7 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Strafe extends Function {
-    private final ListSetting mode = List().name("Режим").list(List.of("Обычный", "Matrix", "Grim")).defaultValue("Grim").build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Обычный", "Matrix", "Grim")).defaultValue("Grim").build();
 
     public Strafe() {
         super("Strafe", Category.MOVEMENT);
@@ -202,5 +202,10 @@ public class Strafe extends Function {
         if (e.packet instanceof PlayerPositionLookS2CPacket) {
             oldSpeed = 0;
         }
+    }
+
+    @Override
+    public String getHudPrefix() {
+        return mode.get();
     }
 }

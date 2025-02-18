@@ -63,41 +63,59 @@ public class AttackAura extends Function {
         RotationHandler.register(this);
     }
 
-    public final DoubleSetting range = Double().name("Дистанция").defaultValue(3.0).min(1).max(6).build();
+    public final DoubleSetting range = Double().name("Дистанция").enName("Attack Range").defaultValue(3.0).min(1).max(6).build();
 
-    public final ListSetting bypass = List().name("Обход").list(List.of(
-            "FunTime", "HolyWorld", "ReallyWorld", "HvH"
+    public final ListSetting bypass = List().name("Обход").enName("Bypass").list(List.of(
+            "FunTime", "Snap", "HvH", "Interpolate", "Vulcan/Grim", "Grim Combat", "Custom Linear"
     )).defaultValue("FunTime").build();
 
-    public final ListSetting boostMode = List().name("Ускорение ротации").list(List.of(
+    public final ListSetting interpolate = List().name("Интерполяция").enName("Interpolate").list(List.of(
+            "Back Ease Out", "Cubic Ease Out",
+            "Circ Ease Out", "Elastic Ease Out", "Quad Ease Out",
+            "Quint Ease Out"
+    )).defaultValue("Линейное").visible(() -> bypass.get().equals("Interpolate")).build();
+
+    public final IntegerSetting pitchSpeed = Integer().name("Скорость Pitch").enName("Pitch Speed").defaultValue(2).min(0).max(10).visible(() -> bypass.get().equals("Interpolate")).build();
+
+    public final DoubleSetting speedYaw = Double().name("Горизонтальная скорость").enName("Horizontal Speed").defaultValue(0.2).min(0).max(1).c(2).visible(() -> bypass.get().equals("Custom Linear")).build();
+    public final DoubleSetting speedPitch = Double().name("Вертикальная скорость").enName("Vertical Speed").defaultValue(0.7).min(0).max(1).c(2).visible(() -> bypass.get().equals("Custom Linear")).build();
+    public final DoubleSetting randCoef = Double().name("Коэфициент рандома").enName("Random offset").defaultValue(0.30).min(0).max(0.4).c(2).visible(() -> bypass.get().equals("Custom Linear")).build();
+    public final BooleanSetting onlyNotLook = Boolean().name("Pitch только когда не смотришь").enName("Pitch Only When Not Look").defaultValue(true).visible(() -> bypass.get().equals("Custom Linear")).build();
+
+    public final ListSetting boostMode = List().name("Ускорение ротации").enName("Rotation Boost").list(List.of(
             "Линейное", "Синусоидальное", "Экспоненциальное"
     )).defaultValue("Линейное").visible(() -> bypass.get().equals("FunTime")).build();
 
-    public final IntegerSetting tick = Integer().name("Тик ротации").max(5).min(1).defaultValue(3).visible(() -> bypass.get().equals("ReallyWorld")).build();
+    public final IntegerSetting tick = Integer().name("Тик ротации").enName("Rotation Tick").max(5).min(1).defaultValue(3).visible(() -> bypass.get().equals("Snap")).build();
 
-    public final ListSetting moveFix = List().name("Корекция").list(List.of("Обычная", "Сфокусированная", "Нет")).defaultValue("Обычная").visible(() -> !bypass.get().equals("ReallyWorld")).build();
-    public final DoubleSetting rangeFollow = Double().name("Дистанция преследования").defaultValue(3.0).min(1).max(8).visible(() -> moveFix.get().equals("Сфокусированная")).build();
+    public final ListSetting moveFix = List().name("Корекция").enName("Movement Correction").list(List.of("Обычная", "Сфокусированная", "Нет")).defaultValue("Обычная").visible(() -> !bypass.get().equals("Snap")).build();
+    public final DoubleSetting rangeFollow = Double().name("Дистанция преследования").enName("Follow Distance").defaultValue(3.0).min(1).max(8).visible(() -> moveFix.get().equals("Сфокусированная")).build();
 
-    private final BooleanSetting elytraPvp = Boolean().name("Элитра таргет").defaultValue(true).build();
-    public final DoubleSetting elytraRange = Double().name("Дистанция в полете").defaultValue(30.0).min(1).max(100).visible(elytraPvp::get).build();
+    private final BooleanSetting elytraPvp = Boolean().name("Элитра таргет").enName("Elytra Mode").defaultValue(true).build();
+    public final DoubleSetting elytraRange = Double().name("Дистанция в полете").enName("Elytra Distance").defaultValue(30.0).min(1).max(100).visible(elytraPvp::get).build();
 
-    public final ListSetting sortMode = List().name("Сортировка").list(List.of("Дистанция", "Здоровье", "FOV", "Всему")).defaultValue("Дистанция").build();
+    public final ListSetting sortMode = List().name("Сортировка").enName("Sort Mode").list(List.of("Дистанция", "Здоровье", "FOV", "Всему")).defaultValue("Дистанция").build();
 
-    private final MultiBooleanSetting targets = MultiBoolean().name("Цели").defaultValue(List.of(
+    private final MultiBooleanSetting targets = MultiBoolean().name("Цели").enName("Targets").defaultValue(List.of(
             new MultiBooleanValue(true, "Игроки"),
             new MultiBooleanValue(false, "Инвизы"),
             new MultiBooleanValue(false, "Голые"),
+            new MultiBooleanValue(false, "Боты"),
             new MultiBooleanValue(false, "Монстры"),
             new MultiBooleanValue(false, "Животные"),
             new MultiBooleanValue(false, "Все")
     )).build();
 
-    private final BooleanSetting criticals = Boolean().name("Только криты").defaultValue(true).build();
-    private final BooleanSetting smartCriticals = Boolean().name("Умные криты").defaultValue(true).visible(criticals::get).build();
+    private final BooleanSetting oldMode = Boolean().name("Режим 1.8").enName("1.8 Mode").defaultValue(true).build();
 
-    private final ListSetting shield = List().name("Щит").defaultValue("Ломать").list(List.of("Ломать", "Ждать", "Игнорировать")).build();
+    private final BooleanSetting criticals = Boolean().name("Только криты").enName("Only Crits").defaultValue(true).build();
+    private final BooleanSetting smartCriticals = Boolean().name("Умные криты").enName("Smart Crits").defaultValue(true).visible(criticals::get).build();
 
-    private final MultiBooleanSetting settings = MultiBoolean().name("Настройки").defaultValue(List.of(
+    private final ListSetting shield = List().name("Щит").enName("Shield Mode").defaultValue("Ломать").list(List.of("Ломать", "Ждать", "Игнорировать")).build();
+
+    public final IntegerSetting hitChance = Integer().name("Шанс удара").enName("Hit Chance").max(100).min(1).defaultValue(100).build();
+
+    private final MultiBooleanSetting settings = MultiBoolean().name("Настройки").enName("Settings").defaultValue(List.of(
             new MultiBooleanValue(true, "Сброс спринта"),
             new MultiBooleanValue(true, "Случайные удары"),
             new MultiBooleanValue(true, "Случайная задержка"),
@@ -150,6 +168,8 @@ public class AttackAura extends Function {
     }
 
     private void attack(boolean isMiss) {
+        if (Math.random() > hitChance.get() / 100f) return;
+
         boolean bl = mc.player.isSprinting() && settings.get("Сброс спринта");
         boolean bl2 = false;
 
@@ -194,7 +214,7 @@ public class AttackAura extends Function {
                 || mc.player.isSubmergedInWater() && mc.world.getBlockState(mc.player.getBlockPos()).getBlock() instanceof FluidBlock || mc.player.isRiding()
                 || mc.player.abilities.flying || mc.player.isFallFlying();
 
-        if (mc.player.getAttackCooldownProgress(1.5F) < (settings.get("Случайная задержка") ? Utils.random(0.92, 1) : 0.92)) return false;
+        if (!oldMode.get() && mc.player.getAttackCooldownProgress(1.5F) < (settings.get("Случайная задержка") ? Utils.random(0.92, 1) : 0.92)) return false;
 
         boolean jump = !smartCriticals.get() || mc.options.keyJump.isPressed();
 
@@ -261,5 +281,10 @@ public class AttackAura extends Function {
         Matcher m = p.matcher(ROTATION_PATTERN.pattern());
 
         return m.matches();
+    }
+
+    @Override
+    public String getHudPrefix() {
+        return bypass.get() + (target == null || !(target instanceof PlayerEntity p) ? "" : ", " + p.getGameProfile().getName());
     }
 }

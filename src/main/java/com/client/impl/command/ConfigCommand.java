@@ -14,6 +14,7 @@ import com.client.system.setting.manager.SettingManager;
 import com.client.system.setting.settings.*;
 import com.client.system.setting.settings.multiboolean.MultiBooleanSetting;
 import com.client.system.setting.settings.theme.ThemeSetting;
+import com.client.utils.Utils;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.lwjgl.glfw.GLFW;
@@ -32,7 +33,7 @@ public class ConfigCommand extends Command {
         switch (args[0]) {
             case "load":
                 if (!dir.exists()) {
-                    error("Папка с конфигами не найдена!");
+                    error(Utils.isRussianLanguage ? "Папка с конфигами не найдена!" : "Config folder doesn't exist!");
                 }
 
                 String cfg_load = args[1];
@@ -46,9 +47,9 @@ public class ConfigCommand extends Command {
                 int load1 = ConfigSystem.load(cfg_load);
 
                 if (load1 == ConfigSystem.SUCCESSFUL_LOAD) {
-                    info(Formatting.AQUA + "Конфиг (" + Formatting.WHITE + cfg_load + Formatting.AQUA + ") успешно загружен.");
+                    info(Formatting.AQUA + (Utils.isRussianLanguage ? "Конфиг" : "Config") + " (" + Formatting.WHITE + cfg_load + Formatting.AQUA + ") " + (Utils.isRussianLanguage ? "успешно загружен!" : "successful loaded!"));
                 } else if (load1 == ConfigSystem.NO_CONFIG_FILE_EXCEPTION) {
-                    info(Formatting.RED + "Конфиг (" + Formatting.WHITE + cfg_load + Formatting.RED + ") не найден!");
+                    info(Formatting.RED + (Utils.isRussianLanguage ? "Конфиг" : "Config") + " (" + Formatting.WHITE + cfg_load + Formatting.RED + ") " + (Utils.isRussianLanguage ? "не найден!" : "not found!"));
                 }
 
                 break;
@@ -57,35 +58,35 @@ public class ConfigCommand extends Command {
                 String cfg_name = args[1];
 
                 ConfigSystem.save(cfg_name);
-                info(Formatting.AQUA + "Конфиг (" + Formatting.WHITE + cfg_name + Formatting.AQUA + ") был сохранен.");
+                info(Formatting.AQUA + (Utils.isRussianLanguage ? "Конфиг" : "Config") + " (" + Formatting.WHITE + cfg_name + Formatting.AQUA + ") " + (Utils.isRussianLanguage ? "был сохранен." : "saved."));
                 break;
             case "delete":
                 String cfg = args[1];
                 if (!dir.exists()) {
-                    error("Папка с конфигами не найдена!");
+                    error(Utils.isRussianLanguage ? "Папка с конфигами не найдена!" : "Config folder doesn't exist!");
                 }
 
                 File fileToDelete = new File(dir.getAbsolutePath() + "/" + cfg);
 
                 if (fileToDelete.exists()) {
                     fileToDelete.delete();
-                    info(Formatting.YELLOW + "Конфиг (" + Formatting.WHITE + cfg + Formatting.YELLOW + ") был удален.");
+                    info(Formatting.YELLOW + (Utils.isRussianLanguage ? "Конфиг" : "Config") + " (" + Formatting.WHITE + cfg + Formatting.YELLOW + ") " + (Utils.isRussianLanguage ? "был удален." : "was deleted."));
                 } else {
-                    info(Formatting.RED + "Конфиг (" + Formatting.WHITE + cfg + Formatting.RED + ") не найден!");
+                    info(Formatting.RED + (Utils.isRussianLanguage ? "Конфиг" : "Config") + " (" + Formatting.WHITE + cfg + Formatting.RED + ") " + (Utils.isRussianLanguage ? "не найден!" : "not found."));
                 }
                 break;
 
             case "list":
                 if (!dir.exists()) {
-                    error("Папка конфигов не найдена.");
+                    error(Utils.isRussianLanguage ? "Папка с конфигами не найдена!" : "Config folder doesn't exist!");
                 }
 
                 List<File> files = List.of(dir.listFiles());
 
                 if (files.isEmpty()) {
-                    error(Text.of("Список конфигов пуст."));
+                    error(Text.of(Utils.isRussianLanguage ? "Список конфигов пуст." : "Config list is empty."));
                 } else {
-                    info(Text.of(Formatting.AQUA + "Список конфигов:"));
+                    info(Text.of(Formatting.AQUA + (Utils.isRussianLanguage ? "Список конфигов:" : "Config list:")));
                     for (File file : files) {
                         info(Text.of(Formatting.WHITE + file.getName()));
                     }
@@ -142,7 +143,7 @@ public class ConfigCommand extends Command {
                 }
                 GpsManager.clear();
                 FriendManager.clear();
-                warning("Конфиг сброшен.");
+                warning(Utils.isRussianLanguage ? "Конфиг сброшен." : "Configs was reset!");
                 break;
             default:
                 error();
@@ -152,7 +153,7 @@ public class ConfigCommand extends Command {
 
     @Override
     public void error() {
-        warning("Некорректное использование команды!");
+        warning(Utils.isRussianLanguage ? "Некорректное использование команды!" : "Incorrect use of command!");
         info(".cfg load <название>");
         info(".cfg save <название>");
         info(".cfg delete <название>");

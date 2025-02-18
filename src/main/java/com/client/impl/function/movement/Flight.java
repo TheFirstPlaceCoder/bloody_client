@@ -6,11 +6,14 @@ import com.client.event.events.TickEvent;
 import com.client.interfaces.IVec3d;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
+import com.client.system.setting.settings.BooleanSetting;
 import com.client.system.setting.settings.DoubleSetting;
 import com.client.system.setting.settings.ListSetting;
 import com.client.utils.game.movement.MovementUtils;
+import mixin.accessor.PlayerMoveC2SPacketAccessor;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket;
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
 import net.minecraft.util.math.Vec3d;
@@ -19,9 +22,11 @@ import java.util.List;
 import java.util.Random;
 
 public class Flight extends Function {
-    private final ListSetting mode = List().name("Тип полета").list(List.of("Ванильный", "Матрикс", "Скольжение", "Лодка")).defaultValue("Ванильный").build();
-    public final DoubleSetting horizontalSpeed = Double().name("Скорость").defaultValue(0.5).min(0).max(5).build();
-    public final DoubleSetting verticalSpeed = Double().name("Скорость по Y").defaultValue(0.5).min(0).max(5).build();
+    private final ListSetting mode = List().name("Тип полета").enName("Mode").list(List.of("Ванильный", "Матрикс", "Скольжение", "Лодка", "Прыжки", "Grim")).defaultValue("Ванильный").build();
+    public final DoubleSetting horizontalSpeed = Double().name("Скорость").enName("Horizontal Speed").defaultValue(0.5).min(0).max(5).visible(() -> !mode.get().equals("Grim") && !mode.get().equals("Прыжки")).build();
+    public final DoubleSetting verticalSpeed = Double().name("Скорость по Y").enName("Vertical Speed").defaultValue(0.5).min(0).max(5).visible(() -> !mode.get().equals("Grim") && !mode.get().equals("Прыжки")).build();
+    private final BooleanSetting autoJump = Boolean().name("Авто Прыжки").enName("Auto Jump").defaultValue(true).visible(() -> mode.get().equals("Прыжки")).build();
+    private final BooleanSetting sendOnGroundPacket = Boolean().name("Дополнительный пакет").enName("Ground Packet").defaultValue(true).visible(() -> mode.get().equals("Прыжки")).build();
 
     public Flight() {
         super("Flight", Category.MOVEMENT);
@@ -29,7 +34,6 @@ public class Flight extends Function {
 
     private boolean start = false;
     private int timer;
-    private int currentTick = 0;
 
     private boolean sprintFlag, flyFlag, groundFlag, set;
 
@@ -83,12 +87,25 @@ public class Flight extends Function {
                 mc.player.setVelocity(mc.player.getVelocity().x, -0.003, mc.player.getVelocity().z);
             }
 
+            case "Прыжки" -> {
+                if (mc.options.keyJump.isPressed()) {
+                    if (mc.player.isOnGround()) break;
+
+                    mc.player.setOnGround(true);
+                    if (!sendOnGroundPacket.get()) break;
+                    mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionOnly(mc.player.getX(), mc.player.getY(), mc.player.getZ(), true));
+                    break;
+                }
+                if (!autoJump.get() || !(mc.player.getVelocity().getY() < -0.44) || mc.player.isOnGround()) break;
+                mc.player.jump();
+                if (!sendOnGroundPacket.get()) break;
+                mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionOnly(mc.player.getX(), mc.player.getY(), mc.player.getZ(), true));
+            }
+
             default -> { // GrimAC
             }
         }
     }
-
-    private float y = 0;
 
     @Override
     public void onPacket(PacketEvent.Receive e) {
@@ -103,6 +120,19 @@ public class Flight extends Function {
                 mc.getNetworkHandler().sendPacket(new TeleportConfirmC2SPacket(p.getTeleportId()));
                 e.setCancelled(true);
                 toggle();
+            }
+        }
+    }
+
+    @Override
+    public void onPacket(PacketEvent.Send e) {
+        if (mc.player == null || mc.world == null)
+            return;
+
+        if (mode.get().equals("Grim")) {
+            if (e.packet instanceof PlayerMoveC2SPacket p) {
+                ((PlayerMoveC2SPacketAccessor) p).setX(mc.player.getX() + 1000);
+                ((PlayerMoveC2SPacketAccessor) p).setZ(mc.player.getZ() + 1000);
             }
         }
     }
@@ -179,5 +209,10 @@ public class Flight extends Function {
     private double getMotionY() {
         return mc.options.keySneak.isPressed() ? -verticalSpeed.get()
                 : mc.options.keyJump.isPressed() ? verticalSpeed.get() : 0;
+    }
+
+    @Override
+    public String getHudPrefix() {
+        return mode.get();
     }
 }

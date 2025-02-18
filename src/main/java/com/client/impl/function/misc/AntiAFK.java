@@ -20,7 +20,7 @@ public class AntiAFK extends Function {
         super("Anti AFK", Category.MISC);
     }
 
-    private final MultiBooleanSetting filter = MultiBoolean().name("Использовать").defaultValue(List.of(
+    private final MultiBooleanSetting filter = MultiBoolean().name("Использовать").enName("Use").defaultValue(List.of(
             new MultiBooleanValue(true, "Клик"),
             new MultiBooleanValue(true, "Прыжок"),
             new MultiBooleanValue(true, "Команды"),
