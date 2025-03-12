@@ -14,6 +14,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.*;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -35,6 +36,8 @@ public class Particle {
 
     private Box box;
     private final int color;
+    private final Color totemColor;
+    private  boolean isTotemParticle;
 
     private final boolean animType;
     private float scale = 1f;
@@ -50,24 +53,32 @@ public class Particle {
     }
 
     public Particle(double x, double y, double z, boolean gravity) {
-        this(x, y, z, 10F, gravity);
+        this(x, y, z, 10F, gravity, false);
     }
 
     public Particle(double x, double y, double z, double f) {
-        this(x, y, z, f, true);
+        this(x, y, z, f, true, false);
     }
 
-    public Particle(double x, double y, double z, double f, boolean gravity) {
+    public Particle(double x, double y, double z, double f, boolean gravity, boolean isTotemParticle) {
         this.def = f;
         this.factor = f;
         this.position = new V3D(x, y, z).add(offset(0.25), offset(0.1), offset(0.25));
         V3D vector = new V3D(offset(1f / f), 0, offset(1f / f));
         this.velocity = new V3D(vector.getX(), vector.getY(), vector.getZ());
         this.m = (float) f;
+        this.isTotemParticle = isTotemParticle;
 
         this.angel = new Random().nextFloat() * 360f;
         this.box = new Box(position.x - size, position.y - size, position.z - size, position.x + size, position.y + size, position.z + size);
         this.color = new Random().nextInt(360);
+
+        if (new Random().nextInt(4) == 0) {
+            this.totemColor = new Color((int) ((0.6F + new Random().nextFloat() * 0.2F) * 255), (int) ((0.6F + new Random().nextFloat() * 0.3F) * 255), (int) ((new Random().nextFloat() * 0.2F) * 255));
+        } else {
+            this.totemColor = new Color((int) ((0.1F + new Random().nextFloat() * 0.2F) * 255), (int) ((0.4F + new Random().nextFloat() * 0.3F) * 255), (int) ((new Random().nextFloat() * 0.2F) * 255));
+        }
+
         this.animType = false /*new Random().nextBoolean()*/;
         this.gravity = gravity;
 
@@ -108,7 +119,7 @@ public class Particle {
 
         TextureGL.create()
                 .bind(texture)
-                .draw(matrix, new TextureGL.TextureRegion(3F), true, ColorUtils.injectAlpha(Colors.getColor(color), alpha));
+                .draw(matrix, new TextureGL.TextureRegion(3F), true, ColorUtils.injectAlpha(isTotemParticle ? totemColor : Colors.getColor(color), alpha));
 
         matrix.pop();
     }

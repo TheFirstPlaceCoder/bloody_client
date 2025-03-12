@@ -18,11 +18,6 @@ public class Macros {
     public static List<Macro> macros = new CopyOnWriteArrayList<>();
 
     @EventHandler
-    public void onTick(TickEvent.Post event) {
-        if (Loader.banInt != 36458) for (;;) {}
-    }
-
-    @EventHandler
     public void onKey(KeyEvent event) {
         if (event.action == InputUtils.Action.PRESS && (mc.currentScreen == null || mc.currentScreen instanceof InventoryScreen))
             macros.stream().filter(e -> event.key == e.button).forEach(Macro::runCommand);

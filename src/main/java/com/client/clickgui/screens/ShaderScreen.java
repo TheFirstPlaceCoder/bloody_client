@@ -38,10 +38,6 @@ public class ShaderScreen extends Screen {
         if (instance == null) {
             instance = new ShaderScreen();
             instance.initka();
-            if (!Objects.equals(Loader.debugString, "Checked")) {
-                BloodyClient.LOGGER.info("D");
-                throw new ArithmeticException();
-            }
         }
 
         instance.animation = 0;
@@ -81,7 +77,7 @@ public class ShaderScreen extends Screen {
 
         Utils.rescaling(() -> {
             GL.prepare();
-            GL.drawRoundedTexture(DownloadImage.getGlId(DownloadImage.CHRISTMAS_MENU), 0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight(), 0);
+            GL.drawRoundedTexture(DownloadImage.getGlId(DownloadImage.DEFAULT_MENU), 0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight(), 0);
             GL.end();
 
             BlurShader.registerRenderCall(() -> {

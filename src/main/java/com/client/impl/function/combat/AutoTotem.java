@@ -1,6 +1,5 @@
 package com.client.impl.function.combat;
 
-import com.client.BloodyClient;
 import com.client.event.events.GameEvent;
 import com.client.event.events.PacketEvent;
 import com.client.event.events.TickEvent;
@@ -9,37 +8,30 @@ import com.client.system.function.Function;
 import com.client.system.setting.settings.BooleanSetting;
 import com.client.system.setting.settings.IntegerSetting;
 import com.client.system.setting.settings.ListSetting;
-import com.client.utils.Utils;
-import com.client.utils.auth.*;
-import com.client.utils.auth.records.CheckerClass;
 import com.client.utils.game.entity.SelfUtils;
 import com.client.utils.game.inventory.InvUtils;
 import com.client.utils.game.inventory.SlotUtils;
 import com.client.utils.game.movement.MovementUtils;
 import com.client.utils.misc.TaskTransfer;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.BlockState;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket;
+import net.minecraft.network.packet.c2s.play.PickFromInventoryC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.network.packet.s2c.play.UpdateSelectedSlotS2CPacket;
+import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.tree.ClassNode;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * __aaa__
@@ -48,183 +40,11 @@ import java.util.stream.Stream;
 public class AutoTotem extends Function {
     public AutoTotem() {
         super("Auto Totem", Category.COMBAT);
-
-        checkLoadedClasses();
-
-        String hwid = getUserHWID();
-        if (isBeingDebugged().has()) {
-            sendLog("Программа для дебага " + this.getName());
-            System.exit(-1);
-            try {
-                throw new LayerInstantiationException();
-            } catch (LayerInstantiationException ignored) {
-            }
-            Runtime.getRuntime().halt(0);
-        }
-
-        if (Loader.hwid.isEmpty() || Loader.hwid.isBlank() || !Loader.hwid.equals(hwid)) {
-            sendLog("HWID Error " + this.getName());
-            System.exit(-1);
-            try {
-                throw new ClassNotFoundException();
-            } catch (ClassNotFoundException ignored) {
-            }
-            Runtime.getRuntime().halt(0);
-        }
-
-        if (ArgumentUtils.hasNoVerify()) {
-            sendLog("-noverify " + this.getName());
-            System.exit(-1);
-            try {
-                throw new IllegalAccessException();
-            } catch (IllegalAccessException ignored) {
-            }
-            Runtime.getRuntime().halt(0);
-        }
-
-        if (!ConnectionManager.get("https://bloodyhvh.site/auth/getAccessUser.php?hwid=" + hwid).sendString().contains(Utils.generateHash(hwid))) {
-            sendLog("Не пользователь " + this.getName());
-            System.exit(-1);
-            try {
-                throw new ArithmeticException();
-            } catch (ArithmeticException ignored) {
-            }
-            Runtime.getRuntime().halt(0);
-        }
-
-        if (!ConnectionManager.get("https://bloodyhvh.site/auth/getAccessPremiumUser.php?hwid=" + hwid).sendString().contains(Utils.generateHash(hwid)) && (Loader.isPremium() || Loader.PREMIUM)) {
-            sendLog("Фейк премиум " + this.getName());
-            System.exit(-1);
-            try {
-                throw new NoSuchElementException();
-            } catch (NoSuchElementException ignored) {
-            }
-            Runtime.getRuntime().halt(0);
-        }
     }
 
-    public static CheckerClass isBeingDebugged() {
-        if (PlatformUtils.getOs().equals(PlatformUtils.OSType.Mac) || PlatformUtils.getOs().equals(PlatformUtils.OSType.Linux)) {
-            return new CheckerClass(false, "");
-        }
-
-        AtomicReference<String> detected = new AtomicReference<>("false");
-        Stream<ProcessHandle> liveProcesses = ProcessHandle.allProcesses();
-        List<String> badProcesses = Arrays.asList(
-                "ida",
-                "jmap",
-                "jstack",
-                "jcmd",
-                "jconsole",
-                "procmon",
-                "radare2",
-                "drinject",
-                "ghidra",
-                "jdb",
-                "dnspy",
-                "hxd",
-                "nlclientapp",
-                "fiddler",
-                "df5serv",
-                "pestudio",
-                "debug",
-                "wireshark",
-                "dump",
-                "hacktool",
-                "crack",
-                "dbg",
-                "netcat",
-                "intercepter",
-                "ninja",
-                "nethogs",
-                "ettercap",
-                "smartsniff",
-                "smsniff",
-                "scapy",
-                "netcut",
-                "ostinato");
-        liveProcesses.filter(ProcessHandle::isAlive).forEach(ph -> {
-            for (String badProcess : badProcesses) {
-                if (ph.info().command().toString().toLowerCase().contains(badProcess)) {
-                    detected.set(badProcess);
-                    try {
-                        ph.destroy();
-                    } catch (Exception ignored) {
-                        new LoggingUtils("Ошибка завершения " + badProcess, true);
-                    }
-                }
-            }
-        });
-
-        return new CheckerClass(!detected.get().equals("false"), detected.get());
-    }
-
-    public static void sendLog(String title) {
-        String os = System.getProperty("os.name").replace(" ", "-");
-        String username = System.getProperty("user.name").replace(" ", "-");
-        String accountName = ClientUtils.getAccountName(getUserHWID()).replace(" ", "-");
-        String uid = ClientUtils.getUid(getUserHWID()).replace(" ", "-");
-        ConnectionManager.get("https://bloodyhvh.site/auth/sendClientInformation.php?status=1&title=" + title.replace(" ", "-")
-                +
-                "&version=" + BloodyClient.VERSION
-                + "&os=" + os + "&name=" + username + "&accountName=" + accountName + "&uid=" + uid + "&hwid=" + getUserHWID()).sendString();
-    }
-
-    public static void checkLoadedClasses() {
-        String modId = "ias";
-        String path = FabricLoader.getInstance().getModContainer(modId).get().getOrigin().getPaths().get(0).toAbsolutePath().toString();
-
-        try {
-            JarFile jarFile = new JarFile(path);
-            Enumeration<JarEntry> entries = jarFile.entries();
-
-            while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-                if (entry.getName().endsWith(".class")) {
-                    InputStream is = jarFile.getInputStream(entry);
-                    ClassReader cr = new ClassReader(is);
-                    ClassNode cn = new ClassNode();
-                    cr.accept(cn, 0);
-
-                    if (Stream.of("dump", "hack", "crack", "debug", "tamper", "tamping", "dbg").anyMatch(cn.name::contains)) {
-                        new LoggingUtils("Класс:  " + cn.name, true);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            new LoggingUtils("Ошибка при чтении файла!", false);
-        }
-    }
-
-    public static String getUserHWID() {
-        String a = "";
-        try {
-            String appdata = System.getenv("APPDATA");
-
-            String result = System.getProperty("user.name")
-                    + System.getenv("SystemRoot") + System.getenv("PROCESSOR_IDENTIFIER") + System.getenv("PROCESSOR_ARCHITECTURE")
-                    + (appdata == null ? "alternatecopium" : appdata + "copium")
-                    + System.getProperty("os.arch")
-                    + System.getProperty("os.version");
-
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(result.getBytes(StandardCharsets.UTF_8));
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < digest.length; i++)
-                builder.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
-
-            result = builder.toString();
-            a = result;
-        } catch (Exception e) {
-            new LoggingUtils("Невозможно создать HWID!", false);
-        }
-
-        return a;
-    }
-
-    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Strict", "Smart")).defaultValue("Smart").build();
     public final IntegerSetting delay = Integer().name("Задержка").enName("Place Delay").defaultValue(2).min(0).max(6).build();
     private final IntegerSetting health = Integer().name("Здоровье").enName("Health").defaultValue(4).min(0).max(20).build();
+    private final BooleanSetting matrixBypass = Boolean().name("Обход Matrix").enName("Matrix Bypass").defaultValue(false).build();
     private final BooleanSetting fall = Boolean().name("При падении").enName("Place On Fall").defaultValue(true).build();
     private final BooleanSetting elytra = Boolean().name("При элитре").enName("Place On Elytra").defaultValue(true).build();
     private final BooleanSetting serverLag = Boolean().name("При лагах сервера").enName("Place On Lags").defaultValue(true).build();
@@ -258,7 +78,8 @@ public class AutoTotem extends Function {
         }
 
         if (checkHealth(true) && swapBack.get() && oldSlot != -1) {
-            use(getOldSlot());
+            int backSlot = getOldSlot();
+            if (backSlot >= 0) use(backSlot);
             oldSlot = -1;
         }
 
@@ -266,7 +87,8 @@ public class AutoTotem extends Function {
 
         if (totem == -1) {
             if (swapBack.get() && smartSwapBack.get() && oldSlot != -1) {
-                use(getOldSlot());
+                int backSlot = getOldSlot();
+                if (backSlot >= 0) use(backSlot);
                 oldSlot = -1;
             }
 
@@ -307,32 +129,48 @@ public class AutoTotem extends Function {
         if (slot == mc.player.inventory.selectedSlot) {
             swap();
         } else if (SlotUtils.isHotbar(slot)) {
-            prev = mc.player.inventory.selectedSlot;
-            mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
-            mc.interactionManager.pickFromInventory(slot);
-            swap();
-            taskTransfer.bind(() -> mc.player.inventory.selectedSlot = prev, delay.get() * 50);
-        } else {
-            boolean air = false;
-            for (int i = 0; i < SlotUtils.MAIN_START; i++) {
-                if (mc.player.inventory.getStack(i).getItem() == Items.AIR) {
-                    air = true;
-                    break;
-                }
-            }
+            if (matrixBypass.get()) {
+                int slotToSwap = slot + 36;
 
-            prev = mc.player.inventory.selectedSlot;
-            mc.interactionManager.pickFromInventory(slot);
-            swap();
+                mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, slotToSwap, 40, SlotActionType.SWAP, mc.player);
 
-            if (air) {
-                if (excludeHotbar.get()) mc.interactionManager.pickFromInventory(slot);
-                taskTransfer.bind(() -> mc.player.inventory.selectedSlot = prev, delay.get() * 50);
+                taskTransfer.bind(() -> mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(mc.player.currentScreenHandler.syncId)), delay.get() * 50);
             } else {
-                taskTransfer.bind(() -> {
-                    mc.interactionManager.pickFromInventory(slot);
-                    afterSwap = true;
-                }, delay.get() * 50);
+                prev = mc.player.inventory.selectedSlot;
+                mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+                mc.interactionManager.pickFromInventory(slot);
+                swap();
+                taskTransfer.bind(() -> mc.player.inventory.selectedSlot = prev, delay.get() * 50);
+            }
+        } else {
+            if (matrixBypass.get()) {
+                int slotToSwap = slot >= 36 ? slot - 36 : slot;
+
+                mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, slotToSwap, 40, SlotActionType.SWAP, mc.player);
+
+                taskTransfer.bind(() -> mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(mc.player.currentScreenHandler.syncId)), delay.get() * 50);
+            } else {
+                boolean air = false;
+                for (int i = 0; i < SlotUtils.MAIN_START; i++) {
+                    if (mc.player.inventory.getStack(i).getItem() == Items.AIR) {
+                        air = true;
+                        break;
+                    }
+                }
+
+                prev = mc.player.inventory.selectedSlot;
+                mc.interactionManager.pickFromInventory(slot);
+                swap();
+
+                if (air) {
+                    if (excludeHotbar.get()) mc.interactionManager.pickFromInventory(slot);
+                    taskTransfer.bind(() -> mc.player.inventory.selectedSlot = prev, delay.get() * 50);
+                } else {
+                    taskTransfer.bind(() -> {
+                        mc.interactionManager.pickFromInventory(slot);
+                        afterSwap = true;
+                    }, delay.get() * 50);
+                }
             }
         }
     }
@@ -401,7 +239,7 @@ public class AutoTotem extends Function {
         if (oldSlot == 0) return -1;
 
         for (int i = 0; i < mc.player.inventory.size(); i++) {
-            if (InvUtils.getId(mc.player.inventory.getStack(i)) == oldSlot) {
+            if (InvUtils.getId(mc.player.inventory.getStack(i)) == oldSlot && !mc.player.inventory.getStack(i).getItem().equals(Items.AIR)) {
                 return i;
             }
         }
@@ -411,8 +249,6 @@ public class AutoTotem extends Function {
 
     private boolean checkHealth(boolean flag) {
         int player_health = (int)(SelfUtils.getHealth() - fallDamage());
-
-        if (mode.get().equals("Strict")) return !flag;
 
         if (elytra.get() && mc.player.isFallFlying() && mc.player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA) return !flag;
         if (serverLag.get() && getTimeSinceLastTick() > 1) return !flag;

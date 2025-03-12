@@ -50,6 +50,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
         if (!RotationHandler.checkIdle() && entity.equals(mc.player)) {
             return RotationHandler.serverYaw;
         }
+
         return oldValue;
     }
 
@@ -58,6 +59,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
         if (!RotationHandler.checkIdle() && entity.equals(mc.player)) {
             return RotationHandler.serverPitch;
         }
+
         return oldValue;
     }
 

@@ -36,6 +36,7 @@ public class Shaders extends Function {
 
     private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Нормальный", "Градиент")).defaultValue("Нормальный").build();
     public final BooleanSetting glowMode = Boolean().name("Режим свечения").enName("Glow Mode").defaultValue(false).build();
+    public final BooleanSetting lighting = Boolean().name("Мигание").enName("Lighting").defaultValue(false).build();
     public final IntegerSetting lineWidth = Integer().name("Ширина обводки").enName("Outline Width").defaultValue(5).min(1).max(10).build();
     public final IntegerSetting glowPower = Integer().name("Сила").enName("Glow Power").defaultValue(4).min(1).max(10).visible(glowMode::get).build();
     public final DoubleSetting fadeDistance = Double().name("Дистанция убывания").enName("Fade Distance").defaultValue(2.0).min(0).max(12).build();
@@ -68,7 +69,7 @@ public class Shaders extends Function {
 
     public Color getColore(Entity entity) {
         if (checkEntity(entity)) {
-            return ColorUtils.injectAlpha(getColor(entity), getAlpha(entity));
+            return ColorUtils.injectAlpha(getColor(entity), lighting.get() ? getAlpha(getAlpha(entity)) : getAlpha(entity));
         }
 
         return null;
@@ -87,11 +88,31 @@ public class Shaders extends Function {
         return (int) (alpha * 255);
     }
 
+    public int getAlpha(float alphaVal) {
+        int period = 3 * 1000;
+        long currentTime = System.currentTimeMillis();
+        double timeInCycle = (currentTime % period); // Time within the current cycle
+        double halfPeriod = period / 2.0; // Half the period (fade-in or fade-out duration)
+
+        double alphaNormalized; // Normalized alpha value (0.0 to 1.0)
+
+        if (timeInCycle < halfPeriod) {
+            // Fade-in (0 to 1)
+            alphaNormalized = timeInCycle / halfPeriod;
+        } else {
+            // Fade-out (1 to 0)
+            alphaNormalized = 1.0 - ((timeInCycle - halfPeriod) / halfPeriod);
+        }
+
+        // Scale to the 0-255 range:
+        return (int) (alphaNormalized * alphaVal);
+    }
+
     public Color getColor(Entity entity) {
         if (entity instanceof ItemEntity) return (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : colorSettingItems.get());
         if (entity instanceof DumboOctopusEntity) return (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : colorSetting.get());
 
-        if (FriendManager.isFriend(entity)) return ((PlayerEntity) entity).hurtTime != 0 ? ColorUtils.injectAlpha(getColorHurt((PlayerEntity) entity, FriendManager.getFriendsColor()), (mode.get().equals("Градиент") ? (int) (fillOpacity.get() * 2.55f) : FriendManager.getFriendsColor().getAlpha())) : (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : FriendManager.getFriendsColor());
+        if (FriendManager.isFriend(entity)) return ((PlayerEntity) entity).hurtTime != 0 ? ColorUtils.injectAlpha(getColorHurt((PlayerEntity) entity, FriendManager.getFriendsColor()), (mode.get().equals("Градиент") ? (int) (fillOpacity.get() * 2.55f) : colorSetting.get().getAlpha())) : (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : ColorUtils.injectAlpha(FriendManager.getFriendsColor(), colorSetting.get().getAlpha()));
 
         return ((PlayerEntity) entity).hurtTime != 0 ? ColorUtils.injectAlpha(getColorHurt((PlayerEntity) entity, colorSetting.get()), (mode.get().equals("Градиент") ? (int) (fillOpacity.get() * 2.55f) : colorSetting.get().getAlpha())) : (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : colorSetting.get());
     }

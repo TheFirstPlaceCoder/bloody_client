@@ -1,8 +1,10 @@
 package com.client.utils.game.chat;
 
 import com.client.interfaces.IChatHud;
+import com.client.interfaces.IChatHudLine;
 import com.client.utils.color.Colors;
 import mixin.accessor.ChatHudAccessor;
+import mixin.accessor.StyleAccessor;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.ChatHudLine;
 import net.minecraft.client.util.ChatMessages;
@@ -11,7 +13,9 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.client.BloodyClient.mc;
 
@@ -37,36 +41,26 @@ public class ChatUtils {
     }
 
     public static void update() {
-        for (ChatHudLine<Text> message : ((ChatHudAccessor) mc.inGameHud.getChatHud()).getMessages()) {
-            if (message.getText().getString().startsWith(PREFIX)) {
-                MutableText prefix = (MutableText) message.getText().getSiblings().get(0);
-                List<MutableText> prefixSiblings = (List) prefix.getSiblings();
+        List<ChatHudLine<OrderedText>> messages = ((ChatHudAccessor) mc.inGameHud.getChatHud()).getVisibleMessages(); // Get the list
 
-                for (int j = 0; j < prefixSiblings.size(); j++) {
-                    prefixSiblings.get(j).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(Colors.getColor(Colors.getIndex(PREFIX.toCharArray().length - j, PREFIX.toCharArray().length * 2)).getRGB())));
-                }
+        for (ChatHudLine<OrderedText> message : messages) {
+            StringBuilder builder = new StringBuilder();
+
+            message.getText().accept((index, style, codePoint) -> {
+                builder.append((char) codePoint);
+                return builder.length() < PREFIX.length();
+            });
+
+            if (builder.toString().equals(PREFIX)) {
+                AtomicInteger integer = new AtomicInteger();
+                message.getText().accept((index, style, codePoint) -> {
+                    int andIncrement = integer.getAndIncrement();
+                    ((StyleAccessor) style).setColor(TextColor.fromRgb(Colors.getColor(Colors.getIndex(PREFIX.length() - andIncrement, PREFIX.length() * 2)).getRGB()));
+
+                    return andIncrement != PREFIX.length();
+                });
             }
         }
-
-        ((ChatHudAccessor) mc.inGameHud.getChatHud()).getVisibleMessages().clear();
-
-        for(int i = ((ChatHudAccessor) mc.inGameHud.getChatHud()).getMessages().size() - 1; i >= 0; --i) {
-            ChatHudLine<Text> chatHudLine = ((ChatHudAccessor) mc.inGameHud.getChatHud()).getMessages().get(i);
-            addMessage(chatHudLine.getText(), chatHudLine.getCreationTick(), chatHudLine.getId());
-        }
-    }
-
-    private static void addMessage(Text message, int ticks, int id) {
-        ChatHud hud = mc.inGameHud.getChatHud();
-
-        int i = MathHelper.floor((double)mc.inGameHud.getChatHud().getWidth() / mc.inGameHud.getChatHud().getChatScale());
-        List<OrderedText> list = ChatMessages.breakRenderedChatMessageLines(message, i, mc.textRenderer);
-
-        for(int j = 0; j < list.size(); ++j) {
-            OrderedText orderedText = list.get(j);
-            ((ChatHudAccessor) hud).getVisibleMessages().add(0, new ChatHudLine(ticks, orderedText, id));
-        }
-
     }
 
     private static BaseText getCustomPrefix(String prefixTitle, Formatting prefixColor) {

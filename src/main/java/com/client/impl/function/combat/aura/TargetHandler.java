@@ -75,7 +75,7 @@ public class TargetHandler {
 
         STACK.addAll(players.stream().filter(player -> {
             if (player.isDead()) return false;
-            if (!botsFlag && PlayerUtils.isBot(player)) return false;
+            if (!botsFlag && EntityUtils.isBot(player)) return false;
             if (EntityUtils.getGameMode(player) == GameMode.CREATIVE) return false;
             if (!attackThroughWalls && !EntityUtils.canSee(player)) return false;
             if (!FriendManager.isAttackable(player)) return false;

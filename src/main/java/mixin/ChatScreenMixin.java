@@ -46,7 +46,7 @@ public class ChatScreenMixin extends Screen implements IChatScreen {
 
         String string = chatField.getText().trim();
 
-        if ((string.contains("/l") || string.contains("/login") || string.contains("/reg") || string.contains("/register") || string.contains("/д") || string.contains("/куп") || string.contains("/дщпшт") || string.contains("/купшыеук")) && passHider.isEnabled() && !Loader.unHook) {
+        if (passHider.shouldBlur(string) && !Loader.unHook) {
             BlurShader.registerRenderCall(() -> GL.drawQuad(new FloatRect(0, client.getWindow().getScaledHeight() - 15, client.textRenderer.getTextHandler().getWidth(string) + 6, 15), Color.WHITE));
             BlurShader.draw(5);
         }

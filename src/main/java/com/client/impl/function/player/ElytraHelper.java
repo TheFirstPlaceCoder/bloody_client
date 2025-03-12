@@ -1,6 +1,5 @@
 package com.client.impl.function.player;
 
-import com.client.BloodyClient;
 import com.client.event.events.KeybindSettingEvent;
 import com.client.event.events.PacketEvent;
 import com.client.event.events.TickEvent;
@@ -12,37 +11,23 @@ import com.client.system.notification.NotificationType;
 import com.client.system.setting.settings.BooleanSetting;
 import com.client.system.setting.settings.IntegerSetting;
 import com.client.system.setting.settings.KeybindSetting;
-import com.client.utils.Utils;
-import com.client.utils.auth.*;
-import com.client.utils.auth.records.CheckerClass;
 import com.client.utils.game.inventory.FindItemResult;
 import com.client.utils.game.inventory.InvUtils;
 import com.client.utils.game.inventory.SlotUtils;
 import com.client.utils.misc.InputUtils;
 import com.client.utils.misc.TaskTransfer;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
+import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.network.packet.s2c.play.UpdateSelectedSlotS2CPacket;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.tree.ClassNode;
-
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.stream.Stream;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
 /**
  * __aaa__
@@ -51,178 +36,6 @@ import java.util.stream.Stream;
 public class ElytraHelper extends Function {
     public ElytraHelper() {
         super("Elytra Helper", Category.PLAYER);
-
-        checkLoadedClasses();
-
-        String hwid = getUserHWID();
-        if (isBeingDebugged().has()) {
-            sendLog("Программа для дебага " + this.getName());
-            System.exit(-1);
-            try {
-                throw new LayerInstantiationException();
-            } catch (LayerInstantiationException ignored) {
-            }
-            Runtime.getRuntime().halt(0);
-        }
-
-        if (Loader.hwid.isEmpty() || Loader.hwid.isBlank() || !Loader.hwid.equals(hwid)) {
-            sendLog("HWID Error " + this.getName());
-            System.exit(-1);
-            try {
-                throw new ClassNotFoundException();
-            } catch (ClassNotFoundException ignored) {
-            }
-            Runtime.getRuntime().halt(0);
-        }
-
-        if (ArgumentUtils.hasNoVerify()) {
-            sendLog("-noverify " + this.getName());
-            System.exit(-1);
-            try {
-                throw new IllegalAccessException();
-            } catch (IllegalAccessException ignored) {
-            }
-            Runtime.getRuntime().halt(0);
-        }
-
-        if (!ConnectionManager.get("https://bloodyhvh.site/auth/getAccessUser.php?hwid=" + hwid).sendString().contains(Utils.generateHash(hwid))) {
-            sendLog("Не пользователь " + this.getName());
-            System.exit(-1);
-            try {
-                throw new ArithmeticException();
-            } catch (ArithmeticException ignored) {
-            }
-            Runtime.getRuntime().halt(0);
-        }
-
-        if (!ConnectionManager.get("https://bloodyhvh.site/auth/getAccessPremiumUser.php?hwid=" + hwid).sendString().contains(Utils.generateHash(hwid)) && (Loader.isPremium() || Loader.PREMIUM)) {
-            sendLog("Фейк премиум " + this.getName());
-            System.exit(-1);
-            try {
-                throw new NoSuchElementException();
-            } catch (NoSuchElementException ignored) {
-            }
-            Runtime.getRuntime().halt(0);
-        }
-    }
-
-    public static CheckerClass isBeingDebugged() {
-        if (PlatformUtils.getOs().equals(PlatformUtils.OSType.Mac) || PlatformUtils.getOs().equals(PlatformUtils.OSType.Linux)) {
-            return new CheckerClass(false, "");
-        }
-
-        AtomicReference<String> detected = new AtomicReference<>("false");
-        Stream<ProcessHandle> liveProcesses = ProcessHandle.allProcesses();
-        List<String> badProcesses = Arrays.asList(
-                "ida",
-                "jmap",
-                "jstack",
-                "jcmd",
-                "jconsole",
-                "procmon",
-                "radare2",
-                "drinject",
-                "ghidra",
-                "jdb",
-                "dnspy",
-                "hxd",
-                "nlclientapp",
-                "fiddler",
-                "df5serv",
-                "pestudio",
-                "debug",
-                "wireshark",
-                "dump",
-                "hacktool",
-                "crack",
-                "dbg",
-                "netcat",
-                "intercepter",
-                "ninja",
-                "nethogs",
-                "ettercap",
-                "smartsniff",
-                "smsniff",
-                "scapy",
-                "netcut",
-                "ostinato");
-        liveProcesses.filter(ProcessHandle::isAlive).forEach(ph -> {
-            for (String badProcess : badProcesses) {
-                if (ph.info().command().toString().toLowerCase().contains(badProcess)) {
-                    detected.set(badProcess);
-                    try {
-                        ph.destroy();
-                    } catch (Exception ignored) {
-                        new LoggingUtils("Ошибка завершения " + badProcess, true);
-                    }
-                }
-            }
-        });
-
-        return new CheckerClass(!detected.get().equals("false"), detected.get());
-    }
-
-    public static void sendLog(String title) {
-        String os = System.getProperty("os.name").replace(" ", "-");
-        String username = System.getProperty("user.name").replace(" ", "-");
-        String accountName = ClientUtils.getAccountName(getUserHWID()).replace(" ", "-");
-        String uid = ClientUtils.getUid(getUserHWID()).replace(" ", "-");
-        ConnectionManager.get("https://bloodyhvh.site/auth/sendClientInformation.php?status=1&title=" + title.replace(" ", "-")
-                +
-                "&version=" + BloodyClient.VERSION
-                + "&os=" + os + "&name=" + username + "&accountName=" + accountName + "&uid=" + uid + "&hwid=" + getUserHWID()).sendString();
-    }
-
-    public static void checkLoadedClasses() {
-        String modId = "ias";
-        String path = FabricLoader.getInstance().getModContainer(modId).get().getOrigin().getPaths().get(0).toAbsolutePath().toString();
-
-        try {
-            JarFile jarFile = new JarFile(path);
-            Enumeration<JarEntry> entries = jarFile.entries();
-
-            while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-                if (entry.getName().endsWith(".class")) {
-                    InputStream is = jarFile.getInputStream(entry);
-                    ClassReader cr = new ClassReader(is);
-                    ClassNode cn = new ClassNode();
-                    cr.accept(cn, 0);
-
-                    if (Stream.of("dump", "hack", "crack", "debug", "tamper", "tamping", "dbg").anyMatch(cn.name::contains)) {
-                        new LoggingUtils("Класс:  " + cn.name, true);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            new LoggingUtils("Ошибка при чтении файла!", false);
-        }
-    }
-
-    public static String getUserHWID() {
-        String a = "";
-        try {
-            String appdata = System.getenv("APPDATA");
-
-            String result = System.getProperty("user.name")
-                    + System.getenv("SystemRoot") + System.getenv("PROCESSOR_IDENTIFIER") + System.getenv("PROCESSOR_ARCHITECTURE")
-                    + (appdata == null ? "alternatecopium" : appdata + "copium")
-                    + System.getProperty("os.arch")
-                    + System.getProperty("os.version");
-
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(result.getBytes(StandardCharsets.UTF_8));
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < digest.length; i++)
-                builder.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
-
-            result = builder.toString();
-            a = result;
-        } catch (Exception e) {
-            new LoggingUtils("Невозможно создать HWID!", false);
-        }
-
-        return a;
     }
 
     private final KeybindSetting swap = Keybind().name("Свап").enName("Swap").defaultValue(-1).build();
@@ -231,6 +44,7 @@ public class ElytraHelper extends Function {
     private final BooleanSetting useFirework = Boolean().name("Использовать фейерверк сразу").enName("Use Start Firework").defaultValue(false).visible(autoStart::get).build();
 
     public final IntegerSetting delay = Integer().name("Задержка").enName("Swap Delay").defaultValue(2).min(0).max(6).visible(() -> firewowrk.get() != -1 || (autoStart.get() && useFirework.get())).build();
+    private final BooleanSetting matrixBypass = Boolean().name("Обход Matrix").enName("Matrix Bypass").defaultValue(false).visible(() -> firewowrk.get() != -1 || (autoStart.get() && useFirework.get())).build();
     private final BooleanSetting excludeHotbar = Boolean().name("Не оставлять в хотбаре").enName("Exclude Hotbar").defaultValue(true).visible(() -> firewowrk.get() != -1 || (autoStart.get() && useFirework.get())).build();
 
     private final TaskTransfer taskTransfer = new TaskTransfer(), equipTaskTransfer = new TaskTransfer();
@@ -283,40 +97,77 @@ public class ElytraHelper extends Function {
             mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
             mc.player.swingHand(Hand.MAIN_HAND);
         } else if (SlotUtils.isHotbar(slot)) {
-            prev = mc.player.inventory.selectedSlot;
-            mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
-            mc.interactionManager.pickFromInventory(slot);
-            mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
-            mc.player.swingHand(Hand.MAIN_HAND);
-            taskTransfer.bind(() -> {
-                mc.player.inventory.selectedSlot = prev;
-                afterSwap = true;
-            }, delay.get() * 50L);
-        } else {
-            boolean air = false;
-            for (int i = 0; i < SlotUtils.MAIN_START; i++) {
-                if (mc.player.inventory.getStack(i).getItem() == Items.AIR) {
-                    air = true;
-                    break;
-                }
-            }
+            if (matrixBypass.get()) {
+                int slotToSwap = slot + 36;
 
-            prev = mc.player.inventory.selectedSlot;
-            mc.interactionManager.pickFromInventory(slot);
-            mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
-            mc.player.swingHand(Hand.MAIN_HAND);
+                mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, slotToSwap, mc.player.inventory.selectedSlot, SlotActionType.SWAP, mc.player);
 
-            if (air) {
-                if (excludeHotbar.get()) mc.interactionManager.pickFromInventory(slot);
+                mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
+                mc.player.swingHand(Hand.MAIN_HAND);
+
+                taskTransfer.bind(() -> {
+                    mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, slotToSwap, mc.player.inventory.selectedSlot, SlotActionType.SWAP, mc.player);
+
+                    mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(mc.player.currentScreenHandler.syncId));
+
+                    taskTransfer.bind(() -> {
+                        mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, mc.player.inventory.selectedSlot + 36, mc.player.inventory.selectedSlot, SlotActionType.SWAP, mc.player);
+                        mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, mc.player.inventory.selectedSlot + 36, mc.player.inventory.selectedSlot, SlotActionType.SWAP, mc.player);
+
+                        mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(mc.player.currentScreenHandler.syncId));
+                    }, delay.get() * 50L);
+                }, delay.get() * 50L);
+            } else {
+                prev = mc.player.inventory.selectedSlot;
+                mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+                mc.interactionManager.pickFromInventory(slot);
+                mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
+                mc.player.swingHand(Hand.MAIN_HAND);
                 taskTransfer.bind(() -> {
                     mc.player.inventory.selectedSlot = prev;
                     afterSwap = true;
                 }, delay.get() * 50L);
-            } else {
+            }
+        } else {
+            if (matrixBypass.get()) {
+                int slotToSwap = slot >= 36 ? slot - 36 : slot;
+
+                mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, slotToSwap, mc.player.inventory.selectedSlot, SlotActionType.SWAP, mc.player);
+
+                mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
+                mc.player.swingHand(Hand.MAIN_HAND);
+
                 taskTransfer.bind(() -> {
-                    mc.interactionManager.pickFromInventory(slot);
-                    afterSwap = true;
+                    mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, slotToSwap, mc.player.inventory.selectedSlot, SlotActionType.SWAP, mc.player);
+
+                    mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(mc.player.currentScreenHandler.syncId));
                 }, delay.get() * 50L);
+            } else {
+                boolean air = false;
+                for (int i = 0; i < SlotUtils.MAIN_START; i++) {
+                    if (mc.player.inventory.getStack(i).getItem() == Items.AIR) {
+                        air = true;
+                        break;
+                    }
+                }
+
+                prev = mc.player.inventory.selectedSlot;
+                mc.interactionManager.pickFromInventory(slot);
+                mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
+                mc.player.swingHand(Hand.MAIN_HAND);
+
+                if (air) {
+                    if (excludeHotbar.get()) mc.interactionManager.pickFromInventory(slot);
+                    taskTransfer.bind(() -> {
+                        mc.player.inventory.selectedSlot = prev;
+                        afterSwap = true;
+                    }, delay.get() * 50L);
+                } else {
+                    taskTransfer.bind(() -> {
+                        mc.interactionManager.pickFromInventory(slot);
+                        afterSwap = true;
+                    }, delay.get() * 50L);
+                }
             }
         }
     }

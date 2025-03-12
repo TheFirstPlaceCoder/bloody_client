@@ -13,4 +13,7 @@ public interface LivingEntityAccessor {
 
     @Accessor("jumpingCooldown")
     void setLastJumpCooldown(int val);
+
+    @Accessor("jumpingCooldown")
+    int getLastJumpCooldown();
 }

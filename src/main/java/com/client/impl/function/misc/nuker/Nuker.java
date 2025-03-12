@@ -1,5 +1,6 @@
 package com.client.impl.function.misc.nuker;
 
+import api.interfaces.EventHandler;
 import com.client.event.events.*;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
@@ -13,6 +14,7 @@ import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
 import com.client.utils.game.entity.EntityUtils;
 import com.client.utils.game.entity.PlayerUtils;
+import com.client.utils.game.movement.MovementUtils;
 import com.client.utils.math.MsTimer;
 import com.client.utils.render.wisetree.render.render3d.Renderer3D;
 import net.minecraft.block.Blocks;
@@ -43,7 +45,7 @@ public class Nuker extends Function {
             new MultiBooleanValue(true, "Игнорировать стены"),
             new MultiBooleanValue(false, "Избегать лаву"),
             new MultiBooleanValue(true, "На одном уровне"),
-            new MultiBooleanValue(true, "3x3 Enchant")
+            new MultiBooleanValue(true, "Зачар 3x3")
     )).build();
 
     public final ListSetting color = List().name("Режим цвета").enName("Color Mode").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
@@ -99,7 +101,7 @@ public class Nuker extends Function {
 
     @Override
     public void sendMovementPackets(SendMovementPacketsEvent e) {
-        if(rotationYaw != -999) {
+        if (rotationYaw != -999) {
             e.yaw = (rotationYaw);
             e.pitch = (rotationPitch);
             e.both = true;
@@ -107,6 +109,12 @@ public class Nuker extends Function {
         }
     }
 
+    @EventHandler
+    public void KeyboardInputEvent(KeyboardInputEvent e) {
+        if (rotationYaw != -999) {
+            MovementUtils.fixMovement(e, rotationYaw);
+        }
+    }
 
     @Override
     public void onPlayerUpdate(PlayerUpdateEvent e) {
@@ -159,7 +167,7 @@ public class Nuker extends Function {
         List<BlockPos> blocks_ = getCubePoses();
 
         for (BlockPos b : blocks_) {
-            if (settings.get("На одном уровне") && ((b.getY() < mc.player.getY()) || (settings.get("3x3 Enchant") && b.getY() <= mc.player.getY())))
+            if (settings.get("На одном уровне") && ((b.getY() < mc.player.getY()) || (settings.get("Зачар 3x3") && b.getY() <= mc.player.getY())))
                 continue;
             if (PlayerUtils.distanceTo(b) <= radius_mine.get()) {
                 if (settings.get("Избегать лаву") && checkLava(b))

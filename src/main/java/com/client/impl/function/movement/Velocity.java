@@ -12,6 +12,7 @@ import com.client.impl.function.movement.velocity.grim.StandartGrim;
 import com.client.impl.function.movement.velocity.intave.Intave;
 import com.client.impl.function.movement.velocity.matrix.MatrixReduce;
 import com.client.impl.function.movement.velocity.matrix.OldMatrix;
+import com.client.impl.function.movement.velocity.other.FunTime;
 import com.client.impl.function.movement.velocity.other.Jump;
 import com.client.impl.function.movement.velocity.other.Vanilla;
 import com.client.system.function.Category;
@@ -24,7 +25,10 @@ import com.client.system.setting.settings.ListSetting;
 import java.util.List;
 
 public class Velocity extends Function {
-    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("AAC", "Matrix", "Grim", "Intave", "Прыжок", "Ванильный")).defaultValue("Ванильный").callback(this::onChangeSpeedMode).build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("AAC", "Matrix", "Grim", "Intave", "FunTime", "Прыжок", "Ванильный")).defaultValue("Ванильный").callback(this::onChangeSpeedMode).build();
+
+    public final DoubleSetting horGroundOffset = Double().name("horGroundOffset").enName("horGroundOffset").defaultValue(0.62).min(0).max(1).c(2).visible(() -> mode.get().equals("FunTime")).build();
+    public final DoubleSetting horAirOffset = Double().name("horAirOffset").enName("horAirOffset").defaultValue(0.62).min(0).max(1).c(2).visible(() -> mode.get().equals("FunTime")).build();
 
     private final ListSetting modeGrim = List().name("Режим Grim").enName("Grim Mode").list(List.of("Old", "Standart", "New", "Teleport")).defaultValue("New").visible(() -> mode.get().equals("Grim")).callback(e -> onChangeSpeedMode(mode.get())).build();
     public final IntegerSetting delay = Integer().name("delay").defaultValue(4).min(0).max(10).visible(() -> mode.get().equals("Grim") && modeGrim.get().equals("New")).build();
@@ -110,6 +114,7 @@ public class Velocity extends Function {
                 break;
             case "Intave": currentVelocityMode = new Intave(); break;
             case "Прыжок": currentVelocityMode = new Jump(); break;
+            case "FunTime": currentVelocityMode = new FunTime(); break;
             default: currentVelocityMode = new Vanilla(); break;
         }
 

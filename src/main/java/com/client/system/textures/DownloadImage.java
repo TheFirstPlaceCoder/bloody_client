@@ -47,6 +47,7 @@ public class DownloadImage {
     public static final int NEXT = hash("https://imgur.com/next");
     public static final int BACK = hash("https://imgur.com/back");
     public static final int POTION = hash("https://imgur.com/potion");
+    public static final int TIMER = hash("https://imgur.com/timer");
     public static final int STAFF = hash("https://imgur.com/staff");
     public static final int GROUP = hash("https://imgur.com/group");
     public static final int PLANET = hash("https://imgur.com/planet");
@@ -91,6 +92,7 @@ public class DownloadImage {
             download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/next");
             download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/back");
             download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/potion");
+            download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/timer");
             download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/staff");
             download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/group");
             download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/planet");

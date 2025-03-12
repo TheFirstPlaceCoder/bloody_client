@@ -179,20 +179,7 @@ public class FontRenderer implements Closeable {
         drawString(stack, s, x, y, color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F, color.getAlpha() / 255F, false);
     }
 
-    // По приколу создадим еще переменную
-    long var1 = 23454L;
-
     public void drawString(MatrixStack stack, String s, float x, float y, float r, float g, float b, float a, boolean shadow) {
-
-        if ((var1 = 4) == 4 && Loader.argumentCheckerInt != 6578) {
-            var1 = 3;
-            BloodyClient.LOGGER.info("C");
-            System.exit(-1);
-            for (;;) {}
-        }
-
-        if (var1 != 4) for (;;) {}
-
         if (shouldRename) s = FunctionManager.get(NameProtect.class).replace(s);
         sizeCheck();
         float r2 = r, g2 = g, b2 = b;

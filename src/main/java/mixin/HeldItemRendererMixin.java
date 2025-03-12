@@ -281,7 +281,7 @@ public abstract class HeldItemRendererMixin {
         if (animation.isEnabled() && animation.animation()) {
             matrices.push();
             matrices.translate(animation.x.floatValue(), animation.y.floatValue(), animation.z.floatValue());
-            matrices.scale(animation.scale.floatValue(), animation.scale.floatValue(), animation.scale.floatValue());
+            if (animation.shouldAnimate()) matrices.scale(animation.scale.floatValue(), animation.scale.floatValue(), animation.scale.floatValue());
         }
     }
 
@@ -299,7 +299,7 @@ public abstract class HeldItemRendererMixin {
         if (animation.isEnabled() && animation.animation()) {
             matrices.push();
             matrices.translate(-animation.x.floatValue(), animation.y.floatValue(), animation.z.floatValue());
-            matrices.scale(animation.scale.floatValue(), animation.scale.floatValue(), animation.scale.floatValue());
+            if (animation.shouldAnimate()) matrices.scale(animation.scale.floatValue(), animation.scale.floatValue(), animation.scale.floatValue());
         }
     }
 

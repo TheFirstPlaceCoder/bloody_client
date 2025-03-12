@@ -88,6 +88,7 @@ public class PotionHud extends HudFunction {
         }
         if (w > 91) {
             w = w + 10;
+
         } else {
             w = 91;
         }

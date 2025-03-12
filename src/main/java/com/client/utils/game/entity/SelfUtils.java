@@ -14,7 +14,7 @@ public class SelfUtils {
         return PlayerUtils.hasItem(mc.player, items);
     }
 
-    public static double getEyaY() {
+    public static double getEyeY() {
         return PlayerUtils.getEyeY(mc.player);
     }
 

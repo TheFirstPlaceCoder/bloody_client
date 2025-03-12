@@ -193,7 +193,7 @@ public class MusicHud extends Function {
                 return;
             }
             if (port.isControlSupported(FloatControl.Type.VOLUME)) {
-                FloatControl vol = (FloatControl)port.getControl(FloatControl.Type.VOLUME);
+                FloatControl vol = (FloatControl)port.getControl(FloatControl.Type.MASTER_GAIN);
                 vol.setValue(volume / 100.0f);
             }
             port.close();

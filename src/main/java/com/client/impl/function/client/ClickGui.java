@@ -33,7 +33,7 @@ public class ClickGui extends Function {
     public final ListSetting sortMode = List().name("Режим сортировки").enName("Sort Mode").list(List.of("По размеру", "По порядку")).defaultValue("По размеру").build();
     public final ListSetting centerMode = List().name("Позиционирование категорий").enName("Category Mode").list(List.of("Лево", "Центр", "Право")).defaultValue("Центр").build();
     public final ListSetting modulesMode = List().name("Позиционирование модулей").enName("Module Mode").list(List.of("Лево", "Центр", "Право")).defaultValue("Центр").build();
-    public final ListSetting outlineMode = List().name("Режим обводки").enName("Outline Mode").list(List.of("Обычная", "Свечение", "Оба", "Нету")).defaultValue("Оба").build();
+    public final ListSetting outlineMode = List().name("Режим обводки").enName("Outline Mode").list(List.of("Обычная", "Свечение", "Оба")).defaultValue("Оба").build();
     public final IntegerSetting opacity = Integer().name("Непрозрачность обычной").enName("Opacity").defaultValue(70).min(0).max(100).build();
     public final BooleanSetting drawBackground = Boolean().name("Рисовать бекграунд").enName("GUi Background").defaultValue(true).build();
     public final ColorSetting backgroundColor = Color().name("Цвет бекграунда").enName("Background Color").defaultValue(Color.BLACK).visible(drawBackground::get).build();

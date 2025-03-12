@@ -28,6 +28,7 @@ import com.client.utils.misc.FunctionUtils;
 import com.sun.jna.Platform;
 import mixin.accessor.MinecraftClientAccessor;
 import net.minecraft.block.FluidBlock;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffects;
@@ -37,7 +38,9 @@ import net.minecraft.item.Items;
 import net.minecraft.item.SwordItem;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 
 import java.io.BufferedReader;
@@ -66,30 +69,13 @@ public class AttackAura extends Function {
     public final DoubleSetting range = Double().name("Дистанция").enName("Attack Range").defaultValue(3.0).min(1).max(6).build();
 
     public final ListSetting bypass = List().name("Обход").enName("Bypass").list(List.of(
-            "FunTime", "Snap", "HvH", "Interpolate", "Vulcan/Grim", "Grim Combat", "Custom Linear"
+            "FunTime", "Матрикс", "Вулкан/Грим", "Грим"
     )).defaultValue("FunTime").build();
 
-    public final ListSetting interpolate = List().name("Интерполяция").enName("Interpolate").list(List.of(
-            "Back Ease Out", "Cubic Ease Out",
-            "Circ Ease Out", "Elastic Ease Out", "Quad Ease Out",
-            "Quint Ease Out"
-    )).defaultValue("Линейное").visible(() -> bypass.get().equals("Interpolate")).build();
+    public final IntegerSetting tick = Integer().name("Тик ротации").enName("Rotation Tick").max(5).min(1).defaultValue(3).visible(() -> bypass.get().equals("Матрикс")).build();
 
-    public final IntegerSetting pitchSpeed = Integer().name("Скорость Pitch").enName("Pitch Speed").defaultValue(2).min(0).max(10).visible(() -> bypass.get().equals("Interpolate")).build();
-
-    public final DoubleSetting speedYaw = Double().name("Горизонтальная скорость").enName("Horizontal Speed").defaultValue(0.2).min(0).max(1).c(2).visible(() -> bypass.get().equals("Custom Linear")).build();
-    public final DoubleSetting speedPitch = Double().name("Вертикальная скорость").enName("Vertical Speed").defaultValue(0.7).min(0).max(1).c(2).visible(() -> bypass.get().equals("Custom Linear")).build();
-    public final DoubleSetting randCoef = Double().name("Коэфициент рандома").enName("Random offset").defaultValue(0.30).min(0).max(0.4).c(2).visible(() -> bypass.get().equals("Custom Linear")).build();
-    public final BooleanSetting onlyNotLook = Boolean().name("Pitch только когда не смотришь").enName("Pitch Only When Not Look").defaultValue(true).visible(() -> bypass.get().equals("Custom Linear")).build();
-
-    public final ListSetting boostMode = List().name("Ускорение ротации").enName("Rotation Boost").list(List.of(
-            "Линейное", "Синусоидальное", "Экспоненциальное"
-    )).defaultValue("Линейное").visible(() -> bypass.get().equals("FunTime")).build();
-
-    public final IntegerSetting tick = Integer().name("Тик ротации").enName("Rotation Tick").max(5).min(1).defaultValue(3).visible(() -> bypass.get().equals("Snap")).build();
-
-    public final ListSetting moveFix = List().name("Корекция").enName("Movement Correction").list(List.of("Обычная", "Сфокусированная", "Нет")).defaultValue("Обычная").visible(() -> !bypass.get().equals("Snap")).build();
-    public final DoubleSetting rangeFollow = Double().name("Дистанция преследования").enName("Follow Distance").defaultValue(3.0).min(1).max(8).visible(() -> moveFix.get().equals("Сфокусированная")).build();
+    public final ListSetting moveFix = List().name("Корекция").enName("Movement Correction").list(List.of("Обычная", "Сфокусированная", "Нет")).defaultValue("Обычная").visible(() -> !bypass.get().equals("Матрикс")).build();
+    public final DoubleSetting rangeFollow = Double().name("Радиус преследования").enName("Follow Distance").defaultValue(3.0).min(1).max(8).visible(() -> moveFix.get().equals("Сфокусированная")).build();
 
     private final BooleanSetting elytraPvp = Boolean().name("Элитра таргет").enName("Elytra Mode").defaultValue(true).build();
     public final DoubleSetting elytraRange = Double().name("Дистанция в полете").enName("Elytra Distance").defaultValue(30.0).min(1).max(100).visible(elytraPvp::get).build();
@@ -112,8 +98,6 @@ public class AttackAura extends Function {
     private final BooleanSetting smartCriticals = Boolean().name("Умные криты").enName("Smart Crits").defaultValue(true).visible(criticals::get).build();
 
     private final ListSetting shield = List().name("Щит").enName("Shield Mode").defaultValue("Ломать").list(List.of("Ломать", "Ждать", "Игнорировать")).build();
-
-    public final IntegerSetting hitChance = Integer().name("Шанс удара").enName("Hit Chance").max(100).min(1).defaultValue(100).build();
 
     private final MultiBooleanSetting settings = MultiBoolean().name("Настройки").enName("Settings").defaultValue(List.of(
             new MultiBooleanValue(true, "Сброс спринта"),
@@ -168,8 +152,6 @@ public class AttackAura extends Function {
     }
 
     private void attack(boolean isMiss) {
-        if (Math.random() > hitChance.get() / 100f) return;
-
         boolean bl = mc.player.isSprinting() && settings.get("Сброс спринта");
         boolean bl2 = false;
 
@@ -187,8 +169,10 @@ public class AttackAura extends Function {
         }
 
         if (isMiss) ((IMinecraftClient) mc).attack();
-        else mc.interactionManager.attackEntity(mc.player, target);
-        mc.player.swingHand(Hand.MAIN_HAND);
+        else {
+            mc.interactionManager.attackEntity(mc.player, target);
+            mc.player.swingHand(Hand.MAIN_HAND);
+        }
 
         if (!(mc.player.getMainHandStack().getItem() instanceof AxeItem || mc.player.getMainHandStack().getItem() instanceof SwordItem))
             attackTime = System.currentTimeMillis() + 500L;
@@ -206,7 +190,7 @@ public class AttackAura extends Function {
     public boolean canAttack(boolean raytrace) {
         if (target == null || mc.player.isDead()) return false;
         if (settings.get("Ждать при использовании") && mc.player.isUsingItem()) return false;
-        if ((((IGameRenderer) mc.gameRenderer).getTarget(RotationHandler.serverYaw, RotationHandler.serverPitch) != target && !bypass.get().equals("HvH")) && raytrace && !settings.get("Бить через стены")) return false;
+        if (((IGameRenderer) mc.gameRenderer).getTarget(RotationHandler.serverYaw, RotationHandler.serverPitch) != target && raytrace && !settings.get("Бить через стены")) return false;
         if (mc.player.distanceTo(target) > range.get()) return false;
         if (target instanceof PlayerEntity && ((PlayerEntity) target).isBlocking() && shield.get().equals("Ломать") && !raytrace) return true;
 

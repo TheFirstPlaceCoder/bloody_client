@@ -73,6 +73,7 @@ public class AutoBuy extends Function {
     public void onEnable() {
         hash.clear();
         hashOfBlocked.clear();
+        isAcceptScreen = false;
     }
 
     @EventHandler
@@ -165,8 +166,8 @@ public class AutoBuy extends Function {
         }
     }
 
-    public boolean clickedBuy = false;
-    public long addTime;
+    public boolean clickedBuy = false, isAcceptScreen = false;
+    public long addTime, currentAcceptTime;
     public long jumpTime;
     public List<Integer> blockedIds = new ArrayList<>();
     public int currentId;
@@ -352,20 +353,26 @@ public class AutoBuy extends Function {
                         }
                     }
                     if (accept) {
-                        if (click && System.currentTimeMillis() > clickUptime) {
-                            click = false;
-                        }
-                        for (int i = 0; i < chestScreen.getScreenHandler().getInventory().size(); i++) {
-                            ItemStack stack = chestScreen.getScreenHandler().getInventory().getStack(i);
-                            String name = stack.getName().getString();
-                            if (stack.getItem().equals(Items.LIME_STAINED_GLASS_PANE) && name.contains("Купить") && !click) {
-                                click(i, 0);
-                                click = true;
-                                clickUptime = System.currentTimeMillis() + 1000L;
+                        if (!isAcceptScreen) {
+                            isAcceptScreen = true;
+                            currentAcceptTime = System.currentTimeMillis() + 500;
+                        } else if (System.currentTimeMillis() > currentAcceptTime) {
+                            if (click && System.currentTimeMillis() > clickUptime) {
+                                click = false;
+                            }
+                            for (int i = 0; i < chestScreen.getScreenHandler().getInventory().size(); i++) {
+                                ItemStack stack = chestScreen.getScreenHandler().getInventory().getStack(i);
+                                String name = stack.getName().getString();
+                                if (stack.getItem().equals(Items.LIME_STAINED_GLASS_PANE) && name.contains("Купить") && !click) {
+                                    click(i, 0);
+                                    click = true;
+                                    clickUptime = System.currentTimeMillis() + 1000L;
+                                }
                             }
                         }
                     } else {
                         click = false;
+                        isAcceptScreen = false;
                     }
                 }
             }

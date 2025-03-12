@@ -17,6 +17,7 @@ import static com.client.system.function.Function.mc;
 public class RotationHandler {
     private static AttackAura aura;
 
+    public static long time;
     public static float serverYaw, serverPitch;
     public static float prevServerYaw = 0, prevServerPitch = 0, diffYaw, diffPitch, maxDiffYaw;
 
@@ -27,7 +28,12 @@ public class RotationHandler {
     public static RotationTask task = RotationTask.IDLE;
     private static long set_time = 0;
 
-    private static Handler handler = new Handler("HvH");
+    private static Handler handler = new Handler("FunTime");
+
+    @EventHandler
+    public void onAttackEntityEvent(AttackEntityEvent.Pre event) {
+        time = System.currentTimeMillis() + 350L;
+    }
 
     @EventHandler
     private void onRender2DEvent(Render2DEvent event) {
@@ -78,7 +84,7 @@ public class RotationHandler {
     @EventHandler
     private void onTickEvent(TickEvent.Pre event) {
         if (aura.isEnabled()) {
-            if (aura.target == null) {
+            if (aura.target == null || !aura.testHand()) {
                 if (System.currentTimeMillis() > set_time && set_time != 0) {
                     task = RotationTask.IDLE;
                     return;
@@ -92,7 +98,6 @@ public class RotationHandler {
                 set_time = 0;
             }
         } else {
-            if (handler instanceof FunTimeRotationsHandler p) p.incrementTicks = 0;
             if (System.currentTimeMillis() > set_time && set_time != 0) {
                 task = RotationTask.IDLE;
                 return;
@@ -123,7 +128,7 @@ public class RotationHandler {
     @EventHandler
     private void onKeyboardInputEvent(KeyboardInputEvent event) {
         if (!checkIdle()) {
-            if (aura.moveFix.get().equals("Обычная") || aura.bypass.get().equals("Snap")) {
+            if (aura.moveFix.get().equals("Обычная") || aura.bypass.get().equals("Матрикс")) {
                 MovementUtils.fixMovement(event, RotationHandler.serverYaw);
                 event.cancel();
             }
@@ -133,16 +138,13 @@ public class RotationHandler {
     @EventHandler
     private void onUpdate(TickEvent.Pre event) {
         switch (aura.bypass.get()) {
-            case "Snap" -> handler = Handlers.get("ReallyWorld");
+            case "Матрикс" -> handler = Handlers.get("Matrix");
             case "FunTime" -> handler = Handlers.get("FunTime");
-            case "HvH" -> handler = Handlers.get("HvH");
-            case "Interpolate" -> handler = Handlers.get("CustomInterpolate");
-            case "Vulcan/Grim" -> handler = Handlers.get("VulcanGrim");
-            case "Grim Combat" -> handler = Handlers.get("HolyWorld");
-            case "Custom Linear" -> handler = Handlers.get("CustomLinear");
+            case "Вулкан/Грим" -> handler = Handlers.get("VulcanGrim");
+            case "Грим" -> handler = Handlers.get("Grim");
         }
 
-        if (checkIdle() || handler.name.equals("HvH")) {
+        if (checkIdle()) {
             serverYaw = mc.player.yaw;
             serverPitch = mc.player.pitch;
 
@@ -150,8 +152,6 @@ public class RotationHandler {
             handler.getRotate().b = serverPitch;
             return;
         }
-
-        if (handler instanceof FunTimeRotationsHandler p) p.tick1(aura.target == null ? mc.player : aura.target, (aura.moveFix.get().equals("Сфокусированная") ? aura.rangeFollow.get() : aura.range.get()), aura.isEnabled());
 
         for (int i = 0; i < 3; i++) {
             if (aura.isAllowElytraPvp()) handler.elytraTick(aura.target == null ? mc.player : aura.target, aura.elytraRange.get());
@@ -171,11 +171,11 @@ public class RotationHandler {
     }
 
     public static boolean checkIdle() {
-        return task.equals(RotationTask.IDLE) || handler.name.equals("HvH");
+        return task.equals(RotationTask.IDLE);
     }
 
     public static boolean checkMoveFix() {
-        return (!aura.moveFix.get().equals("Нет") || aura.bypass.get().equals("Snap")) && !checkIdle();
+        return (!aura.moveFix.get().equals("Нет") || aura.bypass.get().equals("Матрикс")) && !checkIdle();
     }
 
     public static void register(AttackAura attackAura) {

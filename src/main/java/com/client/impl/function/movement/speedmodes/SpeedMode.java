@@ -22,4 +22,5 @@ public class SpeedMode {
     public void onPacket(PacketEvent.Receive e) {}
     public void onPacket(PacketEvent.Send e) {}
     public void onEnable() {}
+    public void onDisable() {}
 }

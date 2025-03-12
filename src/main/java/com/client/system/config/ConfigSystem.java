@@ -35,12 +35,6 @@ public class ConfigSystem {
     public static final int NO_CONFIG_FILE_EXCEPTION = 2;
 
     public static void init() {
-        if (Loader.userInt != -3458673) {
-            BloodyClient.LOGGER.info("G");
-            new File("l/re/rg").renameTo(new File("l4"));
-            System.exit(-1);
-        }
-
         File file = BloodyClient.FOLDER;
         PATH = file.getPath();
 

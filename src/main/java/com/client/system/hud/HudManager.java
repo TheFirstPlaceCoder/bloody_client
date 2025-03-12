@@ -30,6 +30,7 @@ public class HudManager {
     public static void init() {
         register(new ArmorHud());
         register(new CoordsHud());
+        register(new CooldownHud());
         //register(new FpsHud());
         register(new FunctionListHud());
         register(new KeybindHud());

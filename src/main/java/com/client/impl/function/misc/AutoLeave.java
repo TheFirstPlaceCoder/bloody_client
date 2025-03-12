@@ -8,6 +8,7 @@ import com.client.system.setting.settings.BooleanSetting;
 import com.client.system.setting.settings.IntegerSetting;
 import com.client.system.setting.settings.ListSetting;
 import com.client.utils.game.entity.EntityUtils;
+import com.client.utils.game.entity.ServerUtils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.DisconnectS2CPacket;
 import net.minecraft.text.Text;
@@ -22,9 +23,12 @@ public class AutoLeave extends Function {
     private final ListSetting mode = List().name("Тип").enName("Mode").list(List.of("Отключение", "Домой", "Спавн", "Хаб")).defaultValue("Отключение").build();
     private final IntegerSetting range = Integer().name("Дистанция").enName("Distance").defaultValue(120).min(0).max(150).build();
     private final BooleanSetting alsoNude = Boolean().name("Ливать от голых").enName("Include Naked").defaultValue(true).build();
+    private final BooleanSetting autoDisable = Boolean().name("Авто выключение").enName("Auto Disable").defaultValue(true).build();
 
     @Override
     public void tick(TickEvent.Pre event) {
+        if (ServerUtils.isPvp()) return;
+
         for (PlayerEntity player : mc.world.getPlayers()) {
             if (player.isDead()) continue;
             if (player == mc.player) continue;
@@ -45,6 +49,6 @@ public class AutoLeave extends Function {
             default -> mc.player.sendChatMessage("/hub");
         }
 
-        this.toggle();
+        if (autoDisable.get()) this.toggle();
     }
 }

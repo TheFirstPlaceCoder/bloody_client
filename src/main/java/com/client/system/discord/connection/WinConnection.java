@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
 public class WinConnection extends DiscordConnection {
@@ -48,7 +49,7 @@ public class WinConnection extends DiscordConnection {
                 // Data
                 ByteBuffer dataB = ByteBuffer.allocate(length);
                 readFully(dataB);
-                String data = Charset.defaultCharset().decode(dataB.rewind()).toString();
+                String data = StandardCharsets.UTF_8.decode(dataB.rewind()).toString();
 
                 // Call callback
                 callback.accept(new Packet(opcode, new JsonParser().parse(data).getAsJsonObject()));

@@ -93,13 +93,10 @@ public class StaffHud extends HudFunction {
             IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, (e.getA().getA().toUpperCase()), rect.getX() + 16, y + (float) 12 / 2, inject(ColorUtils.injectAlpha(ItemsColor.getPlayerColor(e.getB().getA().getDisplayName()), 255), 1f), 7);
             IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, e.getA().getB(), rect.getX() + 16 + IFont.getWidth(IFont.MONTSERRAT_BOLD, e.getA().getA().toUpperCase() + " ", 7), y + (float) 12 / 2, inject(ColorUtils.injectAlpha(Color.WHITE, 255), 1f), 7);
 
-            float finalY = y;
-            postTask.add(() -> {
-                HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
-                HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.GLOW_CIRCLE), new TextureGL.TextureRegion(staffRect.getX2() - 8, finalY + 12 / 2f, 12, 12), inject(e.getB().getB(), 1f));
-                HudManager.MB.end();
-            });
-            //TextureGL.create().bind(DownloadImage.getGlId(DownloadImage.GLOW_CIRCLE)).draw(stack, new TextureGL.TextureRegion(12, 12), true, inject(e.getB().getB(), 1f));
+            MatrixStack stack = new MatrixStack();
+            stack.translate(staffRect.getX2() - 8, y + (double) 12 / 2, 0);
+            stack.scale(1f, 1f, 1f);
+            TextureGL.create().bind(DownloadImage.getGlId(DownloadImage.GLOW_CIRCLE)).draw(stack, new TextureGL.TextureRegion(12, 12), true, inject(e.getB().getB(), 1f));
 
             GL11.glPushMatrix();
             GL11.glScalef(1f, 1f, 1f);

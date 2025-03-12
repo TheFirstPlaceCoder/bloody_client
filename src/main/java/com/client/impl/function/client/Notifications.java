@@ -31,7 +31,7 @@ import net.minecraft.world.GameMode;
 import java.util.*;
 
 public class Notifications extends Function {
-    public final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Chat", "Notification", "Both")).defaultValue("Оба").build();
+    public final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Чат", "Уведомление", "Оба")).defaultValue("Оба").build();
     private final MultiBooleanSetting listSetting = MultiBoolean().name("Уведомлять о").enName("Notificate about").defaultValue(List.of(
             new MultiBooleanValue(true, "Поломке брони"),
             new MultiBooleanValue(false, "Приближении игрока"),

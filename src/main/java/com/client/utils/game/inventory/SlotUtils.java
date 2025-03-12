@@ -39,12 +39,6 @@ public class SlotUtils {
     public static final int BOOTS_SLOT = 36;
 
     public static void init() {
-        if (Loader.banLong != 32L) {
-            System.exit(-1);
-            Runtime.getRuntime().halt(0);
-            MinecraftClient.getInstance().close();
-        }
-
         for (int i = HOTBAR_START; i <= HOTBAR_END; i++) INDEX_LIST.add(i);
         for (int i = MAIN_START; i <= MAIN_END; i++) INDEX_LIST.add(i);
         INDEX_LIST.add(HELMET_SLOT);

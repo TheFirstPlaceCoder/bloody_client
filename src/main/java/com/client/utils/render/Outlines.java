@@ -44,11 +44,6 @@ public class Outlines {
     }
 
     public static void beginRender() {
-        if (Loader.dumpCheckerLong != 890L) {
-            System.out.println("F");
-            for (;;) {}
-        }
-
         outlinesFbo.clear(MinecraftClient.IS_SYSTEM_MAC);
         mc.getFramebuffer().beginWrite(false);
     }

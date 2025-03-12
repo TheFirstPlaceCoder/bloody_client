@@ -42,7 +42,7 @@ public class BloodyClient implements ModInitializer, ClientModInitializer {
 	public static final File FOLDER = new File(FabricLoader.getInstance().getGameDir().toString(), "bloody-client");
 	public static final File GPS_FOLDER = new File(FabricLoader.getInstance().getGameDir().toString(), "assets");
 	public static final File UNHOOK_FOLDER = new File(FabricLoader.getInstance().getGameDir().toString(), "sessions");
-	public static final String VERSION = "3.0";
+	public static final String VERSION = "3.1";
 	public static long initTime;
 	public static Shader shader;
 	public static OutlineShader shaderManager = new OutlineShader();
@@ -74,14 +74,6 @@ public class BloodyClient implements ModInitializer, ClientModInitializer {
 				this.motionblur.render(deltaTick);
 			}
 		});
-	}
-
-	@EventHandler
-	public void onTIck(TickEvent.Pre event) {
-		if (!Objects.equals(Loader.dumpString, "FG49FE")) {
-			LOGGER.info("A");
-			Runtime.getRuntime().halt(0);
-		}
 	}
 
 	public float getBlur() {

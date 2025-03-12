@@ -1,14 +1,14 @@
 package com.client.impl.function.visual.esp;
 
 import com.client.event.events.ESPRenderEvent;
+import com.client.event.events.Render3DEvent;
 import com.client.system.friend.FriendManager;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
-import com.client.system.setting.settings.ColorSetting;
-import com.client.system.setting.settings.DoubleSetting;
-import com.client.system.setting.settings.ListSetting;
+import com.client.system.setting.settings.*;
 import com.client.system.setting.settings.multiboolean.MultiBooleanSetting;
 import com.client.system.setting.settings.multiboolean.MultiBooleanValue;
+import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
 import com.client.utils.game.entity.EntityUtils;
 import com.client.utils.game.entity.PlayerUtils;
@@ -16,6 +16,7 @@ import com.client.utils.math.vector.Vec3;
 import com.client.utils.render.DrawMode;
 import com.client.utils.render.Renderer2D;
 import com.client.utils.render.TagUtils;
+import com.client.utils.render.wisetree.render.render3d.Renderer3D;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.entity.Entity;
@@ -42,13 +43,15 @@ public class ESP extends Function {
             new MultiBooleanValue(false, "Предметы")
     )).build();
 
-    public final DoubleSetting width = Double().name("Ширина линий").enName("Line Width").defaultValue(1.2).min(1).max(2).build();
-    public final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Отключен", "Квадрат", "Углы")).defaultValue("Квадрат").build();
+    public final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Отключен", "Квадрат", "Углы", "Хитбокс")).defaultValue("Квадрат").build();
+    public final DoubleSetting width = Double().name("Ширина линий").enName("Line Width").defaultValue(1.2).min(1).max(2).visible(() -> !mode.get().equals("Хитбокс")).build();
     public final ListSetting color = List().name("Режим цвета").enName("Color Mode").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
     public final ColorSetting colorSetting = Color().name("Цвет").enName("Color").defaultValue(Color.CYAN).visible(() -> color.get().equals("Статичный")).build();
-    public final ListSetting healthBar = List().name("Режим бара").enName("Healthbar Mode").list(List.of("Отключен", "Клиентский", "Здоровье", "Индивидуальный")).defaultValue("Здоровье").build();
-    public final ColorSetting downColor = Color().name("Нижний цвет бара").enName("Down Color").defaultValue(new Color(255, 0, 0, 255)).visible(() -> healthBar.get().equals("Индивидуальный")).build();
-    public final ColorSetting upColor = Color().name("Верхний цвет бара").enName("Up Color").defaultValue(new Color(0, 255, 13, 255)).visible(() -> healthBar.get().equals("Индивидуальный")).build();
+    public final BooleanSetting lighting = Boolean().name("Мигание цвета").enName("Color lighting").defaultValue(true).visible(() -> mode.get().equals("Хитбокс")).build();
+
+    public final ListSetting healthBar = List().name("Режим бара").enName("Healthbar Mode").list(List.of("Отключен", "Клиентский", "Здоровье", "Индивидуальный")).defaultValue("Здоровье").visible(() -> !mode.get().equals("Хитбокс")).build();
+    public final ColorSetting downColor = Color().name("Нижний цвет бара").enName("Down Color").defaultValue(new Color(255, 0, 0, 255)).visible(() -> healthBar.get().equals("Индивидуальный") && !mode.get().equals("Хитбокс")).build();
+    public final ColorSetting upColor = Color().name("Верхний цвет бара").enName("Up Color").defaultValue(new Color(0, 255, 13, 255)).visible(() -> healthBar.get().equals("Индивидуальный") && !mode.get().equals("Хитбокс")).build();
 
     private final Vec3 pos0 = new Vec3();
     private final Vec3 pos1 = new Vec3();
@@ -56,6 +59,8 @@ public class ESP extends Function {
 
     @Override
     public void onRenderESP(ESPRenderEvent event) {
+        if (mode.get().equals("Хитбокс")) return;
+
         Renderer2D.COLOR.begin(DrawMode.Quads, VertexFormats.POSITION_COLOR);
 
         for (Entity entity : getEntities()) {
@@ -93,6 +98,7 @@ public class ESP extends Function {
                 renderCorner(pos2.x, pos2.y, (pos2.x - pos1.x) / 3, (pos2.y - pos1.y) / 3, color0, DirectRender.RightDown);
             }
 
+
             if (!healthBar.get().equals("Отключен") && (entity instanceof LivingEntity)) {
                 Renderer2D.COLOR.quadCoords(pos1.x - width.get() * calculateWidth(entity) - calculateOffset(entity) - width.get() * calculateWidth(entity),
                         pos2.y - width.get() * calculateWidth(entity) + (((pos1.y - pos2.y) * (Math.min(PlayerUtils.getHealth((LivingEntity) entity) / ((LivingEntity) entity).getMaxHealth(), 1)))),
@@ -103,6 +109,27 @@ public class ESP extends Function {
         }
 
         Renderer2D.COLOR.end();
+    }
+
+    @Override
+    public void onRender3D(Render3DEvent event) {
+        for (Entity entity : getEntities()) {
+            if (entity == mc.player && mc.options.getPerspective().equals(Perspective.FIRST_PERSON)) continue;
+
+            Box box = entity.getBoundingBox();
+
+            if (mode.get().equals("Хитбокс")) {
+                double x = MathHelper.lerp(event.getTickDelta(), entity.lastRenderX, entity.getX()) - entity.getX();
+                double y = MathHelper.lerp(event.getTickDelta(), entity.lastRenderY, entity.getY()) - entity.getY();
+                double z = MathHelper.lerp(event.getTickDelta(), entity.lastRenderZ, entity.getZ()) - entity.getZ();
+
+                Box box1 = new Box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ);
+                Renderer3D.prepare3d(false);
+                Renderer3D.drawFilled(box1, getHitboxColor(entity, false));
+                Renderer3D.drawOutline(box1, getHitboxColor(entity, true));
+                Renderer3D.end3d();
+            }
+        }
     }
 
     private void renderCorner(double x, double y, double width, double height, Color color, DirectRender directRender) {
@@ -127,6 +154,36 @@ public class ESP extends Function {
                 Renderer2D.COLOR.quadCoords(x, y, x - this.width.get(), y - height - this.width.get(), color, color, color, color);
             }
         }
+    }
+
+    private Color getHitboxColor(Entity entity, boolean outline) {
+        Color colorToReturn = ColorUtils.injectAlpha(FriendManager.isFriend(entity) ? FriendManager.getFriendsColor() : color.get().equals("Клиентский") ? Colors.getColor(0) : colorSetting.get(), (outline ? 255 : 80));
+
+        if (lighting.get()) {
+            colorToReturn = ColorUtils.injectAlpha(colorToReturn, getAlpha(outline));
+        }
+
+        return colorToReturn;
+    }
+
+    public int getAlpha(boolean outline) {
+        int period = 3 * 1000;
+        long currentTime = System.currentTimeMillis();
+        double timeInCycle = (currentTime % period); // Time within the current cycle
+        double halfPeriod = period / 2.0; // Half the period (fade-in or fade-out duration)
+
+        double alphaNormalized; // Normalized alpha value (0.0 to 1.0)
+
+        if (timeInCycle < halfPeriod) {
+            // Fade-in (0 to 1)
+            alphaNormalized = timeInCycle / halfPeriod;
+        } else {
+            // Fade-out (1 to 0)
+            alphaNormalized = 1.0 - ((timeInCycle - halfPeriod) / halfPeriod);
+        }
+
+        // Scale to the 0-255 range:
+        return (int) (alphaNormalized * (outline ? 255 : 80));
     }
 
     private double calculateWidth(Entity entity) {

@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ChatHudLine.class)
 public class ChatHudLineMixin implements IChatHudLine {
-    @Unique private float x = 0;
+    @Unique private float x = -1;
 
     @Override
     public void setX(float x) {

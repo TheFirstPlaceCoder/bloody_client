@@ -37,6 +37,7 @@
     "accessor.AbstractBlockAccessor",
     "accessor.HorseScreenHandlerAccessor",
     "accessor.InteractionManagerAccessor",
+    "accessor.ItemCooldownManagerAccessor",
     "accessor.ItemStackAccessor",
     "accessor.JsonArrayAccessor",
     "accessor.JsonObjectAccessor",
@@ -73,6 +74,7 @@
     "HorseBaseEntityMixin",
     "InGameHudMixin",
     "InGameOverlayRendererMixin",
+    "ItemCooldownManagerMixin",
     "ItemEntityRendererMixin",
     "JsonGlProgramMixin",
     "KeyBindingMixin",
@@ -96,6 +98,7 @@
     "accessor.GameRendererAccessor",
     "accessor.SessionAccessor",
     "accessor.ShaderEffectAccessor",
+    "accessor.StyleAccessor",
     "accessor.WorldRendererAccessor"
   ]
 }

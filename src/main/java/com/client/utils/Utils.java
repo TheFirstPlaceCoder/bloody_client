@@ -125,6 +125,37 @@ public class Utils {
                 lerp(a.getAlpha(), b.getAlpha(), c));
     }
 
+    public static float lerpCircular(float a, float b, float t) {
+        // 1. Calculate the shortest distance between the angles:
+        a = normalizeAngle(a);
+        b = normalizeAngle(b);
+
+        float diff = b - a;
+
+        // 2. Handle crossing the +/- 180 boundary:
+        if (diff > 180f) {
+            diff -= 360f;
+        } else if (diff < -180f) {
+            diff += 360f;
+        }
+
+        // 3. Perform the linear interpolation:
+        float interpolatedAngle = a + diff * t;
+
+        // 4. Normalize the angle to the range -180 to 180:
+        return normalizeAngle(interpolatedAngle);
+    }
+
+    private static float normalizeAngle(float angle) {
+        while (angle > 180f) {
+            angle -= 360f;
+        }
+        while (angle < -180.0) {
+            angle += 360f;
+        }
+        return angle;
+    }
+
     public static double roundToDecimal(double n, int point) {
         if (point == 0) {
             return java.lang.Math.floor(n);

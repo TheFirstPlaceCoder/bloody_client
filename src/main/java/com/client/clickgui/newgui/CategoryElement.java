@@ -7,9 +7,12 @@ import com.client.system.function.Function;
 import com.client.system.function.FunctionManager;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
+import com.client.utils.math.animation.AnimationUtils;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.render.wisetree.font.main.IFont;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
+import com.client.utils.render.wisetree.render.render2d.utils.ScissorUtils;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,7 +26,7 @@ public class CategoryElement implements Impl {
 
     private final List<ModuleElement> functionButtons = new ArrayList<>();
     public float modulePadding = 0;
-    public boolean held = false;
+    public boolean held = false, expanded = true;
 
     public CategoryElement(FloatRect rect, Category category) {
         this.category = category;
@@ -54,7 +57,7 @@ public class CategoryElement implements Impl {
             h += functionButton.rect.getH() + modulePadding;
         }
 
-        return h + 6;
+        return expanded ? h + 6 : 0;
     }
 
     private float getMaxWidth() {
@@ -69,9 +72,10 @@ public class CategoryElement implements Impl {
     }
 
     private void setHeights() {
-        this.rect.setH(nameHeight + getMaxHeight());
+        this.rect.setH(AnimationUtils.fast(this.rect.getH(), nameHeight + getMaxHeight(), 10));
         this.innerRect.setY(rect.getY() + nameHeight + 2.5f);
-        this.innerRect.setH(getMaxHeight());
+        this.innerRect.setH(AnimationUtils.fast(this.innerRect.getH(), getMaxHeight(), 10));
+        this.namedRect.setX(rect.getX());
         this.namedRect.setY(rect.getY());
     }
 
@@ -91,20 +95,22 @@ public class CategoryElement implements Impl {
         setWidths();
         setHeights();
 
-        if (!GuiScreen.clickGui.outlineMode.get().equals("Обычная") && !GuiScreen.clickGui.outlineMode.get().equals("Нету"))
+        if (!GuiScreen.clickGui.outlineMode.get().equals("Обычная"))
             GL.drawRoundedGlowRect(rect, 4,5, AbstractSettingElement.inject(Colors.getColor(0), a), AbstractSettingElement.inject(Colors.getColor(90), a), AbstractSettingElement.inject(Colors.getColor(270), a), AbstractSettingElement.inject(Colors.getColor(180), a));
 
         GL.drawRoundedRect(rect, 4, AbstractSettingElement.inject(GuiScreen.clickGui.categoryColor.get(), a));
 
-        if (!GuiScreen.clickGui.outlineMode.get().equals("Свечение") && !GuiScreen.clickGui.outlineMode.get().equals("Нету")) {
+        if (!GuiScreen.clickGui.outlineMode.get().equals("Свечение")) {
             int outlineAlpha = (int) (GuiScreen.clickGui.opacity.get() * 2.55);
 
             GL.drawRoundedGradientOutline(new FloatRect(rect.getX() - 1, rect.getY().floatValue(), rect.getW() + 2, rect.getH().floatValue()), 4, 1, AbstractSettingElement.inject(ColorUtils.injectAlpha(Colors.getColor(0), outlineAlpha), a), AbstractSettingElement.inject(ColorUtils.injectAlpha(Colors.getColor(90), outlineAlpha), a), AbstractSettingElement.inject(ColorUtils.injectAlpha(Colors.getColor(270), outlineAlpha), a), AbstractSettingElement.inject(ColorUtils.injectAlpha(Colors.getColor(180), outlineAlpha), a));
         }
 
-        GL.drawLine(rect.getX() + 5, rect.getY() + nameHeight + 1.5, rect.getCenteredX(), rect.getY() + nameHeight + 1.5, 1, ColorUtils.injectAlpha(Colors.getColor(0), 0), ColorUtils.injectAlpha(Colors.getColor(90), (int) (a * 255)));
+        if (rect.getH() >= nameHeight + 1.5) {
+            GL.drawLine(rect.getX() + 5, rect.getY() + nameHeight + 1.5, rect.getCenteredX(), rect.getY() + nameHeight + 1.5, 1, ColorUtils.injectAlpha(Colors.getColor(0), 0), ColorUtils.injectAlpha(Colors.getColor(90), (int) (a * 255)));
 
-        GL.drawLine(rect.getCenteredX(), rect.getY() + nameHeight + 1.5, rect.getX2() - 5, rect.getY() + nameHeight + 1.5, 1, ColorUtils.injectAlpha(Colors.getColor(90), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(180), 0));
+            GL.drawLine(rect.getCenteredX(), rect.getY() + nameHeight + 1.5, rect.getX2() - 5, rect.getY() + nameHeight + 1.5, 1, ColorUtils.injectAlpha(Colors.getColor(90), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(180), 0));
+        }
 
         switch (GuiScreen.clickGui.centerMode.get()) {
           case "Лево" -> IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, category.toString(), rect.getX() + 4, rect.getY() + nameHeight / 2, ColorUtils.injectAlpha(GuiScreen.clickGui.categoryTextColor.get(), (int) (a * 255)), 10);
@@ -114,15 +120,21 @@ public class CategoryElement implements Impl {
 
         float y = innerRect.getY();
 
+        ScissorUtils.push();
+        ScissorUtils.setFromComponentCoordinates(innerRect.getX(), innerRect.getY(), innerRect.getW(), innerRect.getH());
         for (ModuleElement functionButton : functionButtons) {
             functionButton.rect.setX(innerRect.getX());
             functionButton.rect.setY(y);
+            if (innerRect.getY2() < functionButton.rect.getY()) continue;
+
             y += functionButton.rect.getH() + modulePadding;
             functionButton.draw(mx, my, a);
         }
+        ScissorUtils.unset();
+        ScissorUtils.pop();
 
         functionButtons.forEach(f -> {
-            if (f.open || f.rect.getH().intValue() > (int)f.defaultHeight) {
+            if (innerRect.getY2() >= f.rect.getY() &&(f.open || f.rect.getH().intValue() > (int)f.defaultHeight)) {
                 f.postRender(mx, my, a);
             }
         });
@@ -131,12 +143,17 @@ public class CategoryElement implements Impl {
     @Override
     public void click(double mx, double my, int button) {
         if (namedRect.intersect(mx, my)) {
-            held = true;
-            GuiScreen.CATEGORY_ELEMENTS.remove(this);
-            GuiScreen.CATEGORY_ELEMENTS.add(this);
+            if (button == GLFW.GLFW_MOUSE_BUTTON_1) {
+                held = true;
+                GuiScreen.CATEGORY_ELEMENTS.remove(this);
+                GuiScreen.CATEGORY_ELEMENTS.add(this);
+            } else if (button == GLFW.GLFW_MOUSE_BUTTON_2) {
+                expanded = !expanded;
+            }
         }
-        else
+        else if (expanded)
             for (ModuleElement functionButton : functionButtons) {
+                if (innerRect.getY2() < functionButton.rect.getY()) continue;
                 functionButton.click(mx, my, button);
             }
     }
@@ -144,14 +161,16 @@ public class CategoryElement implements Impl {
     @Override
     public void release(double mx, double my, int button) {
         if (held) held = false;
-        else
+        else if (expanded)
             for (ModuleElement functionButton : functionButtons) {
+                if (innerRect.getY2() < functionButton.rect.getY()) continue;
                 functionButton.release(mx, my, button);
             }
     }
 
     @Override
     public void key(int key) {
+        if (!expanded) return;
         for (ModuleElement functionButton : functionButtons) {
             functionButton.key(key);
         }
@@ -159,6 +178,7 @@ public class CategoryElement implements Impl {
 
     @Override
     public void symbol(char chr) {
+        if (!expanded) return;
         for (ModuleElement functionButton : functionButtons) {
             functionButton.symbol(chr);
         }

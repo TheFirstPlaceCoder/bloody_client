@@ -45,7 +45,7 @@ public class ElytraBounce extends Function {
         mc.options.keyJump.setPressed(true);
         mc.options.keyForward.setPressed(true);
 
-        if (!mc.player.isFallFlying() && mc.player.fallDistance > 0 && checkElytra() && !mc.player.isFallFlying())
+        if (!mc.player.isFallFlying() && mc.player.fallDistance > 0 && checkElytra())
             castElytra();
 
         ((LivingEntityAccessor) mc.player).setLastJumpCooldown(0);

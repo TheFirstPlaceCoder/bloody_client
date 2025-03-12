@@ -98,7 +98,7 @@ public class DiscordIPC {
 
     private static int getPID() {
         String pr = ManagementFactory.getRuntimeMXBean().getName();
-        return Integer.parseInt(pr.substring(0, pr.indexOf('@')));
+        return Integer.parseInt(pr.substring(0, pr.indexOf(64)));
     }
 
     private static void defaultErrorCallback(int code, String message) {

@@ -27,4 +27,8 @@ public class SwingAnimation extends Function {
     public boolean animation() {
         return isEnabled() && !onlyAura.get() || FunctionManager.get(AttackAura.class).isEnabled() && FunctionManager.get(AttackAura.class).target != null;
     }
+
+    public boolean shouldAnimate() {
+        return x.get() != 0.0 || y.get() != 0.0 || z.get() != 0.0;
+    }
 }

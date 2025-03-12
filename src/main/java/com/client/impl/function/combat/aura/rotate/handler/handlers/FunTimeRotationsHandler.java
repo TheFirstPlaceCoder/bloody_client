@@ -1,24 +1,16 @@
 package com.client.impl.function.combat.aura.rotate.handler.handlers;
 
-import com.client.impl.function.combat.aura.AttackAura;
-import com.client.impl.function.combat.aura.rotate.AttackAuraUtils;
-import com.client.impl.function.combat.aura.rotate.RotationHandler;
 import com.client.impl.function.combat.aura.rotate.handler.Handler;
-import com.client.impl.function.combat.aura.rotate.handler.Interpolates;
 import com.client.interfaces.IGameRenderer;
-import com.client.interfaces.IInGameHud;
-import com.client.system.function.FunctionManager;
 import com.client.utils.Utils;
 import com.client.utils.game.rotate.Rotations;
-import com.client.utils.math.MsTimer;
 import com.client.utils.math.vector.floats.V2F;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.Random;
+
 import static com.client.system.function.Function.mc;
-import static net.minecraft.util.math.MathHelper.wrapDegrees;
 
 public class FunTimeRotationsHandler extends Handler {
 
@@ -26,47 +18,24 @@ public class FunTimeRotationsHandler extends Handler {
         super("FunTime");
     }
 
-    private static final V2F rotate = new V2F(0, 0);
-    public float incrementTicks = 0;
-    public V2F currentRot = new V2F(0, 0);
-    public Interpolates interpolates = new Interpolates();
-    AttackAura aura;
+    private final V2F rotate = new V2F(0, 0);
+    private final Random random = new Random();
+    private double hitBoxOffset = 0.3, xOffset, zOffset;
 
     @Override
     public void tick(Entity target, double range) {
-        rotate.a = currentRot.a;
-        rotate.b = currentRot.b;
-    }
+        V2F vec = getBestPoint(target, range);
 
-    public void tick1(Entity target, double range, boolean isEnabled) {
-        if (aura == null) aura = FunctionManager.get(AttackAura.class);
-        V2F targetRotation = getBestPoint(target, range);
+        rotate.a = (float) Utils.lerpCircular(rotate.a, vec.a, (float) Utils.random(0.2, 0.3));
 
-        if (target != null && isEnabled) {
-            if (((IGameRenderer) mc.gameRenderer).getTarget(rotate.a, rotate.b) == target || target == mc.player) incrementTicks = 0;
-
-            incrementTicks += 0.05;
-            currentRot.a = interpolates.calculateInterpolate(aura.boostMode.get(), rotate.a, targetRotation.a, incrementTicks);
-
-            if (((IGameRenderer) mc.gameRenderer).getTarget(rotate.a, rotate.b) != target)
-                currentRot.b = (float) Utils.lerp(rotate.b, targetRotation.b, 0.1);
-        }
+        if (((IGameRenderer) mc.gameRenderer).getTarget(rotate.a, rotate.b) != target || System.currentTimeMillis() % 500 == 0)
+            rotate.b = (float) Utils.lerp(rotate.b, vec.b, (float) Utils.random(0.1, 0.15));
     }
 
     @Override
     public void elytraTick(Entity target, double range) {
-        if (aura == null) aura = FunctionManager.get(AttackAura.class);
-        V2F targetRotation = getBestPoint(target, range);
-
-        if (target != null) {
-            if (((IGameRenderer) mc.gameRenderer).getTarget(rotate.a, rotate.b) == target || target == mc.player) incrementTicks = 0;
-
-            incrementTicks += 0.05;
-            rotate.a = interpolates.calculateInterpolate(aura.boostMode.get(), rotate.a, targetRotation.a, incrementTicks);
-
-            if (((IGameRenderer) mc.gameRenderer).getTarget(rotate.a, rotate.b) != target)
-                rotate.b = (float) Utils.lerp(rotate.b, targetRotation.b, 0.1);
-        }
+        // You might need a different rotation logic for elytra flight
+        tick(target, range); // For now, just use the same
     }
 
     @Override
@@ -75,9 +44,17 @@ public class FunTimeRotationsHandler extends Handler {
             return new V2F(mc.player.yaw, mc.player.pitch);
         }
 
-        Vec3d vec = new Vec3d(target.getX(), target.getY() + target.getHeight() * (target.getY() > mc.player.getY() ? 0.25F : 0.75F), target.getZ());
-        return new V2F((float) Rotations.getYaw(vec), (float) Rotations.getPitch(vec));
+        // Calculate random hit point within the hitbox
+        if (xOffset == 0 || zOffset == 0 || System.currentTimeMillis() % 2000 == 0) {
+            xOffset = (random.nextDouble() * 2 - 1) * hitBoxOffset;
+            zOffset = (random.nextDouble() * 2 - 1) * hitBoxOffset;
+        }
+
+        Vec3d targetPos = target.getPos().add(xOffset, target.getHeight() * (target.getY() > mc.player.getY() + mc.player.getHeight() / 2 ? 0.25F : 0.8F), zOffset); //Randomize point
+
+        return new V2F((float) Rotations.getYaw(targetPos), (float) Rotations.getPitch(targetPos));
     }
+
 
     @Override
     public V2F getRotate() {

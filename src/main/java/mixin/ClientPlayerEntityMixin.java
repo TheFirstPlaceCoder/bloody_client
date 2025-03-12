@@ -1,7 +1,7 @@
 package mixin;
 
 import com.client.event.events.*;
-import com.client.impl.function.misc.MiddleClick;
+import com.client.impl.function.combat.Helper;
 import com.client.impl.function.movement.NoPush;
 import com.client.impl.function.player.PortalGUI;
 import com.client.interfaces.IClientPlayerEntity;
@@ -127,7 +127,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
             this.lastSneaking = bl2;
         }
 
-        if (this.isCamera() && !MiddleClick.sendPacket) {
+        if (this.isCamera() && !Helper.sendPacket) {
             SendMovementPacketsEvent event = new SendMovementPacketsEvent(getX(), getY(), getZ(), yaw, pitch, onGround);
 
             if (this.equals(mc.player)) {
@@ -186,11 +186,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
                 eventPost.post();
             }
         }
-
-        PostSyncEvent event2 = new PostSyncEvent();
-        event2.post();
-
-        MiddleClick.sendPacket = false;
+        Helper.sendPacket = false;
     }
 
     /**
@@ -218,7 +214,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
             if (!event.isCancelled()) {
                 Input var10000 = this.input;
                 var10000.movementSideways *= 0.2F;
-                var10000 = this.input;
                 var10000.movementForward *= 0.2F;
             }
             this.ticksLeftToDoubleTapSprint = 0;

@@ -232,7 +232,7 @@ public class AltScreen extends Screen {
 
         Utils.rescaling(() -> {
             GL.prepare();
-            GL.drawRoundedTexture(DownloadImage.getGlId(DownloadImage.CHRISTMAS_MENU), 0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight(), 0);
+            GL.drawRoundedTexture(DownloadImage.getGlId(DownloadImage.DEFAULT_MENU), 0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight(), 0);
             GL.end();
 
             BlurShader.registerRenderCall(() -> {

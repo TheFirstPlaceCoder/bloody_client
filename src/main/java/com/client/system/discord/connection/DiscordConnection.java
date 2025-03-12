@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -44,15 +45,13 @@ public abstract class DiscordConnection {
 
     public void write(Opcode opcode, JsonObject o) {
         o.addProperty("nonce", UUID.randomUUID().toString());
-
-        byte[] d = o.toString().getBytes();
+        byte[] d = o.toString().getBytes(StandardCharsets.UTF_8);
         ByteBuffer packet = ByteBuffer.allocate(d.length + 8);
         packet.putInt(Integer.reverseBytes(opcode.ordinal()));
         packet.putInt(Integer.reverseBytes(d.length));
         packet.put(d);
-
         packet.rewind();
-        write(packet);
+        this.write(packet);
     }
 
     protected abstract void write(ByteBuffer buffer);

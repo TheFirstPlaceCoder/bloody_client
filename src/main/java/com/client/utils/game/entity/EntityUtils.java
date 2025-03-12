@@ -1,6 +1,7 @@
 package com.client.utils.game.entity;
 
 import com.client.BloodyClient;
+import com.client.impl.function.combat.AntiBot;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.client.network.PlayerListEntry;
@@ -48,7 +49,7 @@ public class EntityUtils {
         if (!mc.isInSingleplayer() && mc.getNetworkHandler() != null && !mc.getNetworkHandler().getPlayerList().isEmpty()) {
             flag = (new ArrayList<>(mc.getNetworkHandler().getPlayerList()).get(0).getGameMode().getName().equals(ent.getEntityName()));
         }
-        return flag || !ent.getUuid().equals(UUID.nameUUIDFromBytes(("OfflinePlayer:" + ent.getName().getString()).getBytes(StandardCharsets.UTF_8))) && ent instanceof OtherClientPlayerEntity || getGameMode(ent) == null;
+        return flag || AntiBot.isBot(ent) || !ent.getUuid().equals(UUID.nameUUIDFromBytes(("OfflinePlayer:" + ent.getName().getString()).getBytes(StandardCharsets.UTF_8))) && ent instanceof OtherClientPlayerEntity || getGameMode(ent) == null;
     }
 
     public static float getTotalHealth() {

@@ -1,33 +1,41 @@
 package com.client.impl.function.movement;
 
+import api.interfaces.EventHandler;
+import com.client.event.events.KeyboardInputEvent;
 import com.client.event.events.NoSlowEvent;
+import com.client.event.events.PacketEvent;
+import com.client.event.events.TickEvent;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.setting.settings.BooleanSetting;
+import com.client.system.setting.settings.DoubleSetting;
 import com.client.system.setting.settings.ListSetting;
 import com.client.utils.game.entity.SelfUtils;
+import com.client.utils.game.entity.ServerUtils;
 import com.client.utils.game.movement.MovementUtils;
 import com.client.utils.math.MsTimer;
-import net.minecraft.network.packet.c2s.play.PlayerInteractItemC2SPacket;
-import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
+import mixin.accessor.PlayerMoveC2SPacketAccessor;
+import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.network.packet.c2s.play.*;
 import net.minecraft.util.Hand;
 import net.minecraft.util.UseAction;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Direction;
 
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class NoSlow extends Function {
-    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Grim", "Matrix", "Ванильный", "ReallyWorld")).defaultValue("Grim").build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Grim", "Matrix", "Ванильный", "ReallyWorld", "FunTime", "Matrix 2.0")).defaultValue("Grim").build();
     private final BooleanSetting setSlot = Boolean().name("Свапать слот").enName("Swap Slot").defaultValue(true).visible(() -> mode.get().equals("Ванильный")).build();
+    public final DoubleSetting offsetVel = Double().name("offsetVel").enName("offsetVel").defaultValue(1.0).min(0).max(1).visible(() -> mode.get().equals("FunTime")).build();
 
     public NoSlow() {
         super("No Slow", Category.MOVEMENT);
-    }
-
-    MsTimer timer = new MsTimer();
-
-    @Override
-    public void onEnable() {
-        timer.reset();
     }
 
     @Override
@@ -90,12 +98,59 @@ public class NoSlow extends Function {
                 event.cancel();
             }
 
+            case "FunTime", "Matrix 2.0" -> {
+                //event.cancel();
+            }
+
             default -> {
                 if (setSlot.get())
                     mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(mc.player.inventory.selectedSlot));
 
                 event.cancel();
             }
+        }
+    }
+
+    @Override
+    public void tick(TickEvent.Pre event) {
+        if (mode.get().equals("Matrix 2.0")) {
+            if (mc.player.isUsingItem() && MovementUtils.isMoving() && mc.player.fallDistance > 0.7) {
+                mc.player.getVelocity().multiply(0.97, 1, 0.97);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInput(KeyboardInputEvent event) {
+        if (mode.get().equals("FunTime")) {
+            double mul = 1 + offsetVel.get();
+
+            event.forward *= mul;
+            event.sideways *= mul;
+        }
+    }
+
+    @EventHandler
+    public void onSendPacket(PacketEvent.Send event) {
+        if (mode.get().equals("Matrix 2.0")) {
+            if (event.packet instanceof PlayerMoveC2SPacket cPacketPlayer) {
+                if (mc.player.isUsingItem() && MovementUtils.isMoving() && !mc.options.keyJump.isPressed()) {
+                    ((PlayerMoveC2SPacketAccessor) cPacketPlayer).setY(mc.player.age % 2 == 0 ? ((PlayerMoveC2SPacketAccessor) cPacketPlayer).getY() + 0.0006 : ((PlayerMoveC2SPacketAccessor) cPacketPlayer).getY() + 0.0002);
+                    ((PlayerMoveC2SPacketAccessor) cPacketPlayer).setOnGround(false);
+                    mc.player.setOnGround(false);
+                }
+            }
+        }
+
+        if (SelfUtils.hasElytra() && mc.player.isFallFlying() || mc.player.isRiding() || !mc.player.isUsingItem() || !MovementUtils.isMoving())
+            return;
+
+        if (mode.get().equals("FunTime") && event.packet instanceof PlayerInteractItemC2SPacket) {
+            Hand hand = ((PlayerInteractItemC2SPacket) event.packet).getHand();
+
+            mc.player.networkHandler.sendPacket(new PlayerInteractBlockC2SPacket(hand, new BlockHitResult(mc.player.getPos(), Direction.DOWN, mc.player.getBlockPos().down(), false)));
+
+            event.cancel();
         }
     }
 }

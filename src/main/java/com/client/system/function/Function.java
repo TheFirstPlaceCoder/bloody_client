@@ -73,13 +73,13 @@ public abstract class Function {
     private void notification() {
         if (canUpdate()) {
             if (FunctionManager.get(Notifications.class).isEnabled()) {
-                if (!FunctionManager.get(Notifications.class).mode.get().equals("Chat"))
+                if (!FunctionManager.get(Notifications.class).mode.get().equals("Чат"))
                     NotificationManager.add(new Notification(
                         isEnabled() ? NotificationType.ENABLE : NotificationType.DISABLE,
                         isEnabled() ? (Utils.isRussianLanguage ? (getName() + " был " + Formatting.GREEN + "включен" + Formatting.RESET + "!") : (getName() + " toggled " + Formatting.GREEN + "on" + Formatting.RESET + "!")) : (Utils.isRussianLanguage ? (getName() + " был " + Formatting.RED + "выключен" + Formatting.RESET + "!") : (getName() + " toggled " + Formatting.RED + "off" + Formatting.RESET + "!")), 1000L));
 
-                if (!FunctionManager.get(Notifications.class).mode.get().equals("Notification"))
-                    if (Utils.isRussianLanguage) ChatUtils.sendMsg(this.hashCode(), Formatting.GRAY, "Модуль (highlight)%s(default) %s(default).", name, isEnabled() ? Formatting.GREEN + "включен" : Formatting.RED + "выключен");
+                if (!FunctionManager.get(Notifications.class).mode.get().equals("Уведомление"))
+                    if (Utils.isRussianLanguage) ChatUtils.sendMsg(this.hashCode(), Formatting.GRAY, Formatting.WHITE + "Модуль (highlight)%s(default) %s(default).", name, isEnabled() ? Formatting.GREEN + "включен" : Formatting.RED + "выключен");
                     else ChatUtils.sendMsg(this.hashCode(), Formatting.GRAY, "(highlight)%s(default) %s(default).", name, "toggled " + (isEnabled() ? Formatting.GREEN + "включен" : Formatting.RED + "выключен"));
             }
 

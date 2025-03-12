@@ -132,8 +132,7 @@ public class WatermarkHud extends HudFunction {
 
     public String getRole() {
         if (Loader.isDev()) return Formatting.RED + "Разработчик";
-        if (Loader.isModer()) return Formatting.DARK_AQUA + "Модератор";
-        if (Loader.isHelper()) return Formatting.GOLD + (Utils.isRussianLanguage ? "Хелпер" : "Helper");
+        if (Loader.isAdmin()) return Formatting.DARK_AQUA + "Администратор";
         if (Loader.isYouTube()) return Formatting.WHITE + "You" + Formatting.DARK_RED + "Tube";
         return Formatting.WHITE + (Utils.isRussianLanguage ? "Пользователь" : "User");
     }
