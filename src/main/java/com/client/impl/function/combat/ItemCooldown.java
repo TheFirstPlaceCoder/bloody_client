@@ -49,7 +49,7 @@ public class ItemCooldown extends Function {
             return;
         }
 
-        if (CooldownManager.coolingItems.getOrDefault(itemStack.getItem(), -1) != -1) {
+        if (mc.player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
             mc.options.keyUse.setPressed(false);
         }
     }

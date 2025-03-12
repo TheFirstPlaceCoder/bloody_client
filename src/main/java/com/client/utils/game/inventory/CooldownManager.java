@@ -4,7 +4,6 @@ import api.interfaces.EventHandler;
 import com.client.event.events.AddCooldownEvent;
 import mixin.accessor.ItemCooldownManagerAccessor;
 import net.minecraft.item.Item;
-import net.minecraft.item.Items;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,11 +15,6 @@ public class CooldownManager {
 
     @EventHandler
     public void onAddCooldown(AddCooldownEvent event) {
-        if (event.item == Items.ENDER_PEARL && coolingItems.getOrDefault(event.item, -1) != -1) {
-            event.cancel();
-            return;
-        }
-
         coolingItems.put(event.item, event.endTick);
     }
 
