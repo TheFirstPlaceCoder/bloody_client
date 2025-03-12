@@ -91,6 +91,11 @@ public abstract class MinecraftClientMixin implements IMinecraftClient {
         return String.format("%d fps T: %s%s%s%s B: %d", (int) (currentFps * (optimization.isEnabled() ? 1.5 : this.currentScreen instanceof GuiScreen ? 1.25 : 1)), (double)this.options.maxFps == Option.FRAMERATE_LIMIT.getMax() ? "inf" : this.options.maxFps, this.options.enableVsync ? " vsync" : "", this.options.graphicsMode.toString(), this.options.cloudRenderMode == CloudRenderMode.OFF ? "" : (this.options.cloudRenderMode == CloudRenderMode.FAST ? " fast-clouds" : " fancy-clouds"), this.options.biomeBlendRadius);
     }
 
+    @Inject(method = "reloadResources", at = @At("TAIL"))
+    private void reloadResources(CallbackInfoReturnable<CompletableFuture<Void>> cir) {
+        BloodyClient.shaderManager.reloadShaders();
+    }
+
     @Inject(method = "<init>", at = @At("TAIL"))
     private void init(RunArgs args, CallbackInfo ci) {
         BloodyClient.onPostWindowInitialize();

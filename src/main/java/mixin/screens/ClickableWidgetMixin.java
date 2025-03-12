@@ -1,8 +1,10 @@
-package mixin;
+package mixin.screens;
 
+import com.client.utils.Utils;
 import com.client.utils.auth.Loader;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
+import com.client.utils.math.animation.AnimationUtils;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.render.wisetree.font.main.IFont;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
@@ -17,10 +19,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 
 import java.awt.*;
 
@@ -61,6 +60,9 @@ public abstract class ClickableWidgetMixin extends DrawableHelper implements Dra
     @Shadow
     public abstract Text getMessage();
 
+    @Unique
+    private float selectedAlpha;
+
     /**
      * @author
      * @reason
@@ -71,22 +73,16 @@ public abstract class ClickableWidgetMixin extends DrawableHelper implements Dra
         TextRenderer textRenderer = minecraftClient.textRenderer;
         if (!Loader.unHook) {
             FloatRect rect = new FloatRect(this.x, this.y, this.width, this.height);
-            int alphach = rect.intersect(mouseX, mouseY) ? 200 : 110;
+            selectedAlpha = AnimationUtils.fast(selectedAlpha, rect.intersect(mouseX, mouseY) ? 255 : 0, rect.intersect(mouseX, mouseY) ? 10 : 5);
+
             GL.prepare();
-            GL.drawRoundedGradientRect(rect, 3, ColorUtils.injectAlpha(Colors.getColor(0, 13), alphach),
-                    ColorUtils.injectAlpha(Colors.getColor(90, 13), alphach),
-                    ColorUtils.injectAlpha(Colors.getColor(270, 13), alphach),
-                    ColorUtils.injectAlpha(Colors.getColor(180, 13), alphach));
-
-            GL.drawRoundedGradientOutline(rect, 3, 1, ColorUtils.injectAlpha(Colors.getColor(0, 13), 255),
-                    ColorUtils.injectAlpha(Colors.getColor(90, 13), 255),
-                    ColorUtils.injectAlpha(Colors.getColor(270, 13), 255),
-                    ColorUtils.injectAlpha(Colors.getColor(180, 13), 255));
-
+            GL.drawRoundedRect(rect, 5, Utils.lerp(new Color(40, 40, 40, 200), new Color(15, 15, 15, 200), selectedAlpha / 255));
             GL.end();
 
             int j = this.active ? 16777215 : 10526880;
-            IFont.drawCenteredXY(IFont.NEVERLOSE, this.getMessage().getString(), this.x + this.width / 2, this.y + this.height / 2, new Color(j | MathHelper.ceil(this.alpha * 255.0F) << 24), 10);
+
+            IFont.drawCenteredXY(IFont.Greycliff, this.getMessage().getString(), this.x + this.width / 2, this.y + this.height / 2, new Color(j | MathHelper.ceil(this.alpha * 255.0F) << 24), 10);
+
             //drawCenteredText(matrices, textRenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
         } else {
             minecraftClient.getTextureManager().bindTexture(WIDGETS_TEXTURE);
