@@ -1,5 +1,6 @@
 package mixin.screens;
 
+import com.client.clickgui.newgui.settings.AbstractSettingElement;
 import com.client.utils.Utils;
 import com.client.utils.auth.Loader;
 import com.client.utils.color.ColorUtils;
@@ -76,7 +77,8 @@ public abstract class ClickableWidgetMixin extends DrawableHelper implements Dra
             selectedAlpha = AnimationUtils.fast(selectedAlpha, rect.intersect(mouseX, mouseY) ? 255 : 0, rect.intersect(mouseX, mouseY) ? 10 : 5);
 
             GL.prepare();
-            GL.drawRoundedRect(rect, 5, Utils.lerp(new Color(40, 40, 40, 200), new Color(15, 15, 15, 200), selectedAlpha / 255));
+            GL.drawRoundedGlowRect(rect, 5,4, Colors.getColor(0), Colors.getColor(90), Colors.getColor(270), Colors.getColor(180));
+            GL.drawRoundedRect(rect, 5, Utils.lerp(new Color(40, 40, 40, 125), new Color(15, 15, 15, 150), selectedAlpha / 255));
             GL.end();
 
             int j = this.active ? 16777215 : 10526880;

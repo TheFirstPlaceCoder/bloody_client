@@ -140,6 +140,7 @@ public class FunctionManager {
             register(new Freecam());
             register(new XRay());
             register(new DamageTint());
+            register(new FireFly());
             register(new ItemPhysic());
             register(new ShulkerPreview());
             register(new SwingAnimation());

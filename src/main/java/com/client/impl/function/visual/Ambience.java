@@ -15,7 +15,7 @@ import java.util.List;
 
 public class Ambience extends Function {
     public final ListSetting fog = List().name("Туман").enName("Fog Mode").list(List.of("Оставить", "Убрать", "Изменить")).defaultValue("Убрать").build();
-    public final ListSetting fogColorMode = List().name("Режим цвета тумана").enName("Fog Color Mode").list(List.of("Клиентский", "Свой")).defaultValue("Клиентский").build();
+    public final ListSetting fogColorMode = List().name("Режим цвета тумана").enName("Fog Color Mode").list(List.of("Клиентский", "Свой")).visible(() -> fog.get().equals("Изменить")).defaultValue("Клиентский").build();
     public final ColorSetting colorSetting = Color().name("Цвет").enName("Fog Color").defaultValue(Color.CYAN).visible(() -> fog.get().equals("Изменить") && fogColorMode.get().equals("Свой")).build();
     public final DoubleSetting fogStart = Double().name("Начало тумана").enName("Fog Start").defaultValue(5.0).min(0).max(10).visible(() -> fog.get().equals("Изменить")).build();
     public final DoubleSetting end = Double().name("Размытие").enName("Fog Unsaturation").defaultValue(5.0).min(0).max(10).visible(() -> fog.get().equals("Изменить")).build();

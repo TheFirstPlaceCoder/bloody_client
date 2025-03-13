@@ -6,6 +6,7 @@ import com.client.utils.Utils;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
 import com.client.utils.render.wisetree.render.render2d.utils.shader.shaders.BlurShader;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
@@ -34,6 +35,7 @@ public class ScreenMixin {
 
     @Inject(method = "renderBackground(Lnet/minecraft/client/util/math/MatrixStack;)V", at = @At(value = "HEAD"), cancellable = true)
     public void renderBackground(MatrixStack matrices, CallbackInfo ci) {
+        if (MinecraftClient.getInstance().world != null) return;
         ci.cancel();
 
         Utils.rescaling(() -> {
