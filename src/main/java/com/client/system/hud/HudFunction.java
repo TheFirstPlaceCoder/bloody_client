@@ -5,6 +5,7 @@ import com.client.BloodyClient;
 import com.client.event.events.ToggleEvent;
 import com.client.impl.function.client.Hud;
 import com.client.system.function.FunctionManager;
+import com.client.utils.Utils;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.color.Colors;
 import com.client.utils.math.animation.AnimationUtils;
@@ -169,17 +170,8 @@ public abstract class HudFunction {
     }
 
     public void drawNewClientRect(FloatRect rect) {
-        if (hud.blur.get()) {
-            BlurShader.registerRenderCall(() -> {
-                GL.drawRoundedRect(rect, 3.5, Color.WHITE);
-            });
-
-            BlurShader.draw(4);
-        }
-
-        if (hud.glow.get()) GL.drawRoundedGlowRect(rect, 3.5, 4, Colors.getColor(0), Colors.getColor(90), Colors.getColor(270), Colors.getColor(180));
-        else GL.drawRoundedGradientRect(rect, 3.5, ColorUtils.injectAlpha(Colors.getColor(0), 120), ColorUtils.injectAlpha(Colors.getColor(90), 120), ColorUtils.injectAlpha(Colors.getColor(270), 120), ColorUtils.injectAlpha(Colors.getColor(180), 120));
-        GL.drawRoundedGradientOutline(rect, 3.5, 1d, Colors.getColor(0), Colors.getColor(90), Colors.getColor(270), Colors.getColor(180));
+        GL.drawRoundedGlowRect(rect, 5,4, ColorUtils.injectAlpha(Colors.getColor(0), (int) (255)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (255)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (255)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (255)));
+        GL.drawRoundedRect(rect, 5, new Color(15, 15, 15, (int) (110)));
     }
 
     public static void drawRect(FloatRect rect, float a) {
@@ -208,18 +200,11 @@ public abstract class HudFunction {
         GL.end();
     }
 
-    public static void drawRectGui(FloatRect rect, float a) {
-        if (hud.blur.get()) {
-            BlurShader.registerRenderCall(() -> {
-                GL.drawRoundedRect(rect, 3.5, ColorUtils.injectAlpha(Color.WHITE, (int) (a * 255)));
-            });
-
-            BlurShader.draw(4);
-        }
-
-        if (hud.glow.get()) GL.drawRoundedGlowRect(rect, 3.5, 4, ColorUtils.injectAlpha(Colors.getColor(0), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (a * 255)));
-        else GL.drawRoundedGradientRect(rect, 3.5, ColorUtils.injectAlpha(Colors.getColor(0), (int) (a * 120)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (a * 120)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (a * 120)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (a * 120)));
-        GL.drawRoundedGradientOutline(rect, 3.5, 1d, ColorUtils.injectAlpha(Colors.getColor(0), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (a * 255)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (a * 255)));
+    public static void drawRectGui(FloatRect rect, float alpha) {
+        //GL.drawRoundedGlowRect(rect, 5,4, Colors.getColor(0), Colors.getColor(90), Colors.getColor(270), Colors.getColor(180));
+        //GL.drawRoundedRect(rect, 5, new Color(15, 15, 15, 110));
+        GL.drawRoundedGlowRect(rect, 5,4, ColorUtils.injectAlpha(Colors.getColor(0), (int) (255 * alpha)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (255 * alpha)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (255 * alpha)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (255 * alpha)));
+        GL.drawRoundedRect(rect, 5, new Color(15, 15, 15, (int) (110 * alpha)));
     }
 
     public void startScale(double scale) {

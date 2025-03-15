@@ -12,7 +12,6 @@ import com.client.system.hud.HudManager;
 import com.client.system.setting.settings.BooleanSetting;
 
 public class Hud extends Function {
-    public final BooleanSetting glow = Boolean().name("Свечение").enName("Glow").defaultValue(true).build();
     public final BooleanSetting blur = Boolean().name("Блюр").enName("Blur").defaultValue(true).build();
     public final BooleanSetting hotbar = Boolean().name("Хотбар").enName("Hotbar").defaultValue(true).build();
 

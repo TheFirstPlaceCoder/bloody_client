@@ -6,6 +6,7 @@ import com.client.impl.function.combat.aura.AttackAura;
 import com.client.impl.function.combat.aura.rotate.handler.Handler;
 import com.client.impl.function.combat.aura.rotate.handler.Handlers;
 import com.client.impl.function.combat.aura.rotate.handler.handlers.FunTimeRotationsHandler;
+import com.client.utils.Utils;
 import com.client.utils.game.movement.MovementUtils;
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
@@ -153,7 +154,7 @@ public class RotationHandler {
             return;
         }
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < (handler instanceof FunTimeRotationsHandler ? 1 : 3); i++) {
             if (aura.isAllowElytraPvp()) handler.elytraTick(aura.target == null ? mc.player : aura.target, aura.elytraRange.get());
             else handler.tick(aura.target == null ? mc.player : aura.target, (aura.moveFix.get().equals("Сфокусированная") ? aura.rangeFollow.get() : aura.range.get()));
         }

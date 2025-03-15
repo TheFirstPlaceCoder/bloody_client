@@ -127,7 +127,8 @@ public class Particle {
     private void tick() {
         //if (def < factor) def = AnimationUtils.fast(def, factor);
 
-        if (animType && alpha >= 255 && System.currentTimeMillis() - initTime > 100L) {
+        if (animType && alpha >= 255 && System.currentTimeMillis
+                () - initTime > 100L) {
             scale = AnimationUtils.fast(scale, 0f);
         }
 

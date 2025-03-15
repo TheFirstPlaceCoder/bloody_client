@@ -55,9 +55,11 @@ public class ChatUtils {
                 AtomicInteger integer = new AtomicInteger();
                 message.getText().accept((index, style, codePoint) -> {
                     int andIncrement = integer.getAndIncrement();
-                    ((StyleAccessor) style).setColor(TextColor.fromRgb(Colors.getColor(Colors.getIndex(PREFIX.length() - andIncrement, PREFIX.length() * 2)).getRGB()));
+                    if (andIncrement < PREFIX.length())
+                        ((StyleAccessor) style).setColor(TextColor.fromRgb(Colors.getColor(Colors.getIndex(PREFIX.length() - andIncrement, PREFIX.length() * 2)).getRGB()));
+                    else ((StyleAccessor) style).setColor(style.getColor());
 
-                    return andIncrement != PREFIX.length();
+                    return true;
                 });
             }
         }

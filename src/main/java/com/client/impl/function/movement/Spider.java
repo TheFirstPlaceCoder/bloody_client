@@ -51,9 +51,6 @@ public class Spider extends Function {
     private double lastY = 0;
 
     private final double coff = 0.0000000000326;
-    private int ticks = 0;
-    private int slot = -1;
-    private double blocks = 0;
 
     @Override
     public void onEnable() {

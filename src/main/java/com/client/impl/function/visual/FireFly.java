@@ -35,6 +35,8 @@ public class FireFly extends Function {
     private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Кометы", "Дождь")).defaultValue("Кометы").build();
     public final IntegerSetting count = Integer().name("Количество").enName("Count").defaultValue(6).min(1).max(20).build();
     public final IntegerSetting speed = Integer().name("Скорость").enName("Speed").defaultValue(4).min(1).max(20).build();
+    public final ListSetting scaleMode = List().name("Режим размера").enName("Scale Mode").list(List.of("Случайный", "Статичный")).defaultValue("Случайный").build();
+    public final DoubleSetting particleScale = Double().name("Размер").enName("Scale").defaultValue(1.0).min(0).max(1).c(2).visible(() -> scaleMode.get().equals("Статичный")).build();
     public final BooleanSetting workInMenu = Boolean().name("Работать в меню").enName("Work in menu").defaultValue(true).build();
     public final ListSetting colorMode = List().name("Режим цвета").enName("Color Mode").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
     public final ColorSetting colorSetting = Color().name("Цвет").enName("Color").defaultValue(Color.CYAN).visible(() -> colorMode.get().equals("Статичный")).build();
@@ -86,7 +88,7 @@ public class FireFly extends Function {
         protected float posX, posY, posZ;
         protected float motionX, motionY, motionZ;
         protected int age, maxAge;
-        private float alpha;
+        private float alpha, scale;
         private long collisionTime = -1L;
         private Color staticColor;
 
@@ -104,6 +106,7 @@ public class FireFly extends Function {
             this.maxAge = this.age = (int) Utils.random(120, 200);
             this.age = this.maxAge - startAge;
             this.staticColor = Colors.getColor(Utils.random(0, 359));
+            this.scale = scaleMode.get().equals("Статичный") ? particleScale.get().floatValue() : Utils.random(0f, 1f);
         }
 
         public void update() {
@@ -197,6 +200,7 @@ public class FireFly extends Function {
 
             matrix.push();
             matrix.translate(x, y, z);
+            matrix.scale(scale, scale, scale);
             matrix.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(-mc.gameRenderer.getCamera().getYaw()));
             matrix.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(mc.gameRenderer.getCamera().getPitch()));
 

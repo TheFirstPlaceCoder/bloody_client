@@ -3,9 +3,11 @@ package com.client.system.notification;
 import com.client.system.hud.HudFunction;
 import com.client.utils.Utils;
 import com.client.utils.color.ColorUtils;
+import com.client.utils.color.Colors;
 import com.client.utils.math.animation.AnimationUtils;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.render.wisetree.font.main.IFont;
+import com.client.utils.render.wisetree.render.render2d.main.GL;
 import net.minecraft.util.math.MathHelper;
 
 import java.awt.*;
@@ -47,7 +49,9 @@ public class Notification {
         rect.setY(Math.round(AnimationUtils.fast(rect.getY(), nextY) * 10.0f) / 10.0f);
 
         Utils.rescaling(() -> {
-            HudFunction.drawRect(rect, alpha);
+            GL.drawRoundedGlowRect(rect, 5,4, ColorUtils.injectAlpha(Colors.getColor(0), (int) (255 * alpha)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (255 * alpha)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (255 * alpha)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (255 * alpha)));
+            GL.drawRoundedRect(rect, 5, new Color(15, 15, 15, (int) (100 * alpha)));
+
             IFont.drawCenteredXY(IFont.COMFORTAAB, message, rect.getCenteredX(), rect.getCenteredY(), ColorUtils.injectAlpha(Color.WHITE, (int) (255 * alpha)), 8);
         });
     }
