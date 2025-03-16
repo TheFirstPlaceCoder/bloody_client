@@ -1,6 +1,7 @@
 package com.client.impl.function.movement.speedmodes.grim;
 
 import com.client.event.events.PlayerTravelEvent;
+import com.client.impl.function.combat.aura.rotate.RotationHandler;
 import com.client.impl.function.movement.speedmodes.SpeedMode;
 import com.client.system.companion.DumboOctopusEntity;
 import com.client.utils.game.movement.MovementUtils;
@@ -21,7 +22,7 @@ public class GrimCollide extends SpeedMode {
                     else otherCollisions++;
                 }
 
-            double[] motion = MovementUtils.forward((collisions > 0 ? settings.speed.get() / 100d : settings.speedAnimal.get() / 100d) * (collisions + otherCollisions));
+            double[] motion = MovementUtils.forward(RotationHandler.serverYaw,(collisions > 0 ? settings.speed.get() / 100d : settings.speedAnimal.get() / 100d) * (collisions + otherCollisions));
             mc.player.addVelocity(motion[0], 0.0, motion[1]);
         }
     }

@@ -7,6 +7,7 @@ import com.client.system.function.FunctionManager;
 import com.client.system.textures.DownloadImage;
 import com.client.utils.Utils;
 import com.client.utils.auth.Loader;
+import com.client.utils.color.Colors;
 import com.client.utils.files.SoundManager;
 import com.client.utils.math.animation.AnimationUtils;
 import com.client.utils.math.rect.FloatRect;
@@ -148,7 +149,8 @@ public class ShaderScreen extends Screen {
             selectedAlpha = AnimationUtils.fast(selectedAlpha, rect.intersect(mx, my) ? 255 : 0, rect.intersect(mx, my) ? 10 : 5);
 
             GL.prepare();
-            GL.drawRoundedRect(rect, 5, Utils.lerp(new Color(40, 40, 40, 200), new Color(15, 15, 15, 200), selectedAlpha / 255));
+            GL.drawRoundedGlowRect(rect, 5,3, Colors.getColor(0), Colors.getColor(90), Colors.getColor(270), Colors.getColor(180));
+            GL.drawRoundedRect(rect, 5, Utils.lerp(new Color(40, 40, 40, 150), new Color(15, 15, 15, 200), selectedAlpha / 255));
             GL.end();
 
             IFont.drawCenteredX(IFont.Greycliff, text, rect.getCenteredX(), rect.getCenteredY() - IFont.getHeight(IFont.Greycliff, "a", 9) / 2, Color.WHITE, 9);
