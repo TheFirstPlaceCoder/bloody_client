@@ -30,9 +30,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class NoSlow extends Function {
-    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Grim", "Matrix", "Ванильный", "ReallyWorld", "FunTime", "Matrix 2.0")).defaultValue("Grim").build();
+    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Grim", "Matrix", "Ванильный", "ReallyWorld", "Matrix 2.0")).defaultValue("Grim").build();
     private final BooleanSetting setSlot = Boolean().name("Свапать слот").enName("Swap Slot").defaultValue(true).visible(() -> mode.get().equals("Ванильный")).build();
-    public final DoubleSetting offsetVel = Double().name("offsetVel").enName("offsetVel").defaultValue(1.0).min(0).max(1).visible(() -> mode.get().equals("FunTime")).build();
 
     public NoSlow() {
         super("No Slow", Category.MOVEMENT);
@@ -98,10 +97,6 @@ public class NoSlow extends Function {
                 event.cancel();
             }
 
-            case "FunTime", "Matrix 2.0" -> {
-                //event.cancel();
-            }
-
             default -> {
                 if (setSlot.get())
                     mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(mc.player.inventory.selectedSlot));
@@ -121,16 +116,6 @@ public class NoSlow extends Function {
     }
 
     @EventHandler
-    public void onInput(KeyboardInputEvent event) {
-        if (mode.get().equals("FunTime")) {
-            double mul = 1 + offsetVel.get();
-
-            event.forward *= mul;
-            event.sideways *= mul;
-        }
-    }
-
-    @EventHandler
     public void onSendPacket(PacketEvent.Send event) {
         if (mode.get().equals("Matrix 2.0")) {
             if (event.packet instanceof PlayerMoveC2SPacket cPacketPlayer) {
@@ -140,17 +125,6 @@ public class NoSlow extends Function {
                     mc.player.setOnGround(false);
                 }
             }
-        }
-
-        if (SelfUtils.hasElytra() && mc.player.isFallFlying() || mc.player.isRiding() || !mc.player.isUsingItem() || !MovementUtils.isMoving())
-            return;
-
-        if (mode.get().equals("FunTime") && event.packet instanceof PlayerInteractItemC2SPacket) {
-            Hand hand = ((PlayerInteractItemC2SPacket) event.packet).getHand();
-
-            mc.player.networkHandler.sendPacket(new PlayerInteractBlockC2SPacket(hand, new BlockHitResult(mc.player.getPos(), Direction.DOWN, mc.player.getBlockPos().down(), false)));
-
-            event.cancel();
         }
     }
 }

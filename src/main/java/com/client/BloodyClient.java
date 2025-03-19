@@ -4,6 +4,7 @@ import api.interfaces.EventHandler;
 import com.client.event.events.TickEvent;
 import com.client.impl.function.visual.MotionBlur;
 import com.client.interfaces.IClientConnection;
+import com.client.system.changelogs.ChangeLogs;
 import com.client.system.companion.CompanionRegistry;
 import com.client.system.function.FunctionManager;
 import com.client.system.gps.GpsManager;
@@ -92,6 +93,7 @@ public class BloodyClient implements ModInitializer, ClientModInitializer {
 		DownloadImage.init();
 		initTime = System.currentTimeMillis();
 		shader = new Shader(Shader.mainMenuShader);
+		ChangeLogs.init();
 	}
 
 	public static boolean canUpdate() {

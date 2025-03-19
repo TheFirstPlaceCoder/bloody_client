@@ -10,6 +10,9 @@ import com.client.system.function.Function;
 import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudManager;
 import com.client.system.setting.settings.BooleanSetting;
+import com.client.system.setting.settings.ColorSetting;
+
+import java.awt.*;
 
 public class Hud extends Function {
     public final BooleanSetting blur = Boolean().name("Блюр").enName("Blur").defaultValue(true).build();
