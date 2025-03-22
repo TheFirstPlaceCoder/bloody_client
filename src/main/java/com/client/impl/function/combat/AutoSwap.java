@@ -112,8 +112,8 @@ public class AutoSwap extends Function {
                 taskTransfer.bind(() -> mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(mc.player.currentScreenHandler.syncId)), delay.get() * 50);
             } else {
                 prev = mc.player.inventory.selectedSlot;
-                mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
-                mc.interactionManager.pickFromInventory(slot);
+                mc.player.inventory.selectedSlot = slot;
+                mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(mc.player.inventory.selectedSlot));
                 swap();
                 taskTransfer.bind(() -> mc.player.inventory.selectedSlot = prev, delay.get() * 50);
             }
@@ -170,8 +170,8 @@ public class AutoSwap extends Function {
 
     private Item getItem(String name) {
         return switch (name) {
-            case "Сфера" -> Items.COBBLESTONE;
-            case "Золотое яблоко" -> Items.DIRT;
+            case "Сфера" -> Items.PLAYER_HEAD;
+            case "Золотое яблоко" -> Items.GOLDEN_APPLE;
             case "Щит" -> Items.SHIELD;
             case "Чарка" -> Items.ENCHANTED_GOLDEN_APPLE;
             case "Тотем" -> Items.TOTEM_OF_UNDYING;

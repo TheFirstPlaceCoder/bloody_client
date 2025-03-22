@@ -137,8 +137,8 @@ public class AutoTotem extends Function {
                 taskTransfer.bind(() -> mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(mc.player.currentScreenHandler.syncId)), delay.get() * 50);
             } else {
                 prev = mc.player.inventory.selectedSlot;
-                mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
-                mc.interactionManager.pickFromInventory(slot);
+                mc.player.inventory.selectedSlot = slot;
+                mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(mc.player.inventory.selectedSlot));
                 swap();
                 taskTransfer.bind(() -> mc.player.inventory.selectedSlot = prev, delay.get() * 50);
             }

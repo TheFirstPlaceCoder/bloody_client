@@ -5,6 +5,7 @@ import com.client.event.events.TickEvent;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.setting.settings.BooleanSetting;
+import com.client.utils.game.entity.EntityUtils;
 import com.google.common.collect.Lists;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -38,7 +39,7 @@ public class AntiBot extends Function {
     @Override
     public void tick(TickEvent.Pre event) {
         for (PlayerEntity entity : mc.world.getPlayers()) {
-            if (!entity.getUuid().equals(PlayerEntity.getOfflinePlayerUuid(entity.getName().getString()))) {
+            if (EntityUtils.isBot(entity)) {
                 if (!bots.contains(entity)) {
                     bots.add(entity);
                 }

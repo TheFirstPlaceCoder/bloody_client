@@ -175,17 +175,17 @@ public class Helper extends Function {
 
                     mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(mc.player.currentScreenHandler.syncId));
 
-                    taskTransfer.bind(() -> {
-                        mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, mc.player.inventory.selectedSlot + 36, mc.player.inventory.selectedSlot, SlotActionType.SWAP, mc.player);
-                        mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, mc.player.inventory.selectedSlot + 36, mc.player.inventory.selectedSlot, SlotActionType.SWAP, mc.player);
-
-                        mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(mc.player.currentScreenHandler.syncId));
-                    }, delay.get() * 50L);
+//                    taskTransfer.bind(() -> {
+//                        mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, mc.player.inventory.selectedSlot + 36, mc.player.inventory.selectedSlot, SlotActionType.SWAP, mc.player);
+//                        mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, mc.player.inventory.selectedSlot + 36, mc.player.inventory.selectedSlot, SlotActionType.SWAP, mc.player);
+//
+//                        mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(mc.player.currentScreenHandler.syncId));
+//                    }, delay.get() * 50L);
                 }, delay.get() * 50L);
             } else {
                 prev = mc.player.inventory.selectedSlot;
-                mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
-                mc.interactionManager.pickFromInventory(slot);
+                mc.player.inventory.selectedSlot = slot;
+                mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(mc.player.inventory.selectedSlot));
                 mc.interactionManager.interactItem(mc.player, mc.world, Hand.MAIN_HAND);
                 mc.player.swingHand(Hand.MAIN_HAND);
                 taskTransfer.bind(() -> {
@@ -249,6 +249,7 @@ public class Helper extends Function {
             afterSwap = false;
         }
     }
+
 
     private void print(KeybindSetting setting, int i) {
         if (!notification.get()) return;

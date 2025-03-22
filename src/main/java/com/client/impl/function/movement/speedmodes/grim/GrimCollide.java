@@ -9,21 +9,21 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.vehicle.BoatEntity;
 
 public class GrimCollide extends SpeedMode {
     @Override
     public void onTravel(PlayerTravelEvent e) {
         if (!e.pre && MovementUtils.isMoving()) {
             int collisions = 0;
-            int otherCollisions = 0;
-            for (Entity ent : mc.world.getEntities())
+            for (Entity ent : mc.world.getEntities()) {
                 if (ent != mc.player && !(ent instanceof DumboOctopusEntity) && (ent instanceof PlayerEntity || (ent instanceof LivingEntity && !(ent instanceof ArmorStandEntity) && settings.others.get()) || (ent instanceof ArmorStandEntity && settings.armorStands.get())) && mc.player.getBoundingBox().expand(settings.expand.get()).intersects(ent.getBoundingBox())) {
-                    if (ent instanceof PlayerEntity) collisions++;
-                    else otherCollisions++;
+                    collisions++;
                 }
+            }
 
-            double[] motion = MovementUtils.forward(RotationHandler.serverYaw,(collisions > 0 ? settings.speed.get() / 100d : settings.speedAnimal.get() / 100d) * (collisions + otherCollisions));
-            mc.player.addVelocity(motion[0], 0.0, motion[1]);
+            double[] addXZ = MovementUtils.forward(RotationHandler.serverYaw, (settings.speed.get() / 100d * collisions) * 1.18999F);
+            mc.player.addVelocity(addXZ[0], 0.0, addXZ[1]);
         }
     }
 }

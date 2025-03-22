@@ -49,7 +49,11 @@ public class EntityUtils {
         if (!mc.isInSingleplayer() && mc.getNetworkHandler() != null && !mc.getNetworkHandler().getPlayerList().isEmpty()) {
             flag = (new ArrayList<>(mc.getNetworkHandler().getPlayerList()).get(0).getGameMode().getName().equals(ent.getEntityName()));
         }
-        return flag || AntiBot.isBot(ent) || !ent.getUuid().equals(UUID.nameUUIDFromBytes(("OfflinePlayer:" + ent.getName().getString()).getBytes(StandardCharsets.UTF_8))) && ent instanceof OtherClientPlayerEntity || getGameMode(ent) == null;
+
+        int health = Math.round(PlayerUtils.getHealth((LivingEntity) ent));
+        double healthPercentage = health / PlayerUtils.getMaxHealth(ent);
+
+        return flag || healthPercentage == 0 || !ent.getUuid().equals(PlayerEntity.getOfflinePlayerUuid(ent.getName().getString())) || !ent.getUuid().equals(UUID.nameUUIDFromBytes(("OfflinePlayer:" + ent.getName().getString()).getBytes(StandardCharsets.UTF_8))) && ent instanceof OtherClientPlayerEntity || getGameMode(ent) == null;
     }
 
     public static float getTotalHealth() {

@@ -22,7 +22,9 @@ public class ChangeLogs {
                 "Fire Fly",
                 "Velocity | Режим FunTime",
                 "No Slow | Режим Matrix 2.0",
-                "ESP, Shaders | Режим Box, Мигание цвета"
+                "ESP, Shaders | Режим Box, Мигание цвета",
+                "Anti Bot | Улучшены проверки",
+                "Auto Explosion | Добавлен свап для кристаллов из инвентаря"
         ));
 
         fixChangelogs.addAll(List.of(
@@ -31,14 +33,16 @@ public class ChangeLogs {
                 "Hud, Notifications, Кнопки майнкрафта | Новый стиль",
                 "Attack Aura | Теперь только 4 режима: Matrix, Vulcan/Grim, Grim, FunTime",
                 "Speed & Attack Aura | Появилась возможность 'Летать' вокруг таргета",
-                "Particles | При потере тотема частицы становятся зелеными"
+                "Particles | При потере тотема частицы становятся зелеными",
+                "Auto Swap, Auto Totem, Helper, Elytra Helper | Исправлен баг со свапами в хотбаре"
         ));
 
         removeChangelogs.addAll(List.of(
                 "Middle Click —> Helper + Elytra Helper",
                 "Disabler",
                 "Jesus",
-                "No Fall"
+                "No Fall",
+                "Auto Potion"
         ));
 
         addChangelogs.sort(Comparator.comparingDouble(e -> -IFont.getWidth(IFont.Greycliff, e, 9)));
@@ -52,32 +56,32 @@ public class ChangeLogs {
 
     public static void drawChangeLog(FloatRect changelogRect) {
         if (width > 0) changelogRect.setW(width + 10);
-        float y = 5;
+        float y = 0;
         for (String add : addChangelogs) {
-            IFont.draw(IFont.Greycliff, "[+]", changelogRect.getX() + 5, changelogRect.getY() + 5 + IFont.getHeight(IFont.Greycliff, "Changelogs", 11) + y, new Color(0, 255, 0), 9);
-            IFont.draw(IFont.Greycliff, add, changelogRect.getX() + 5 + IFont.getWidth(IFont.Greycliff, "[+] ", 9), changelogRect.getY() + 5 + IFont.getHeight(IFont.Greycliff, "Changelogs", 11) + y, new Color(162, 162, 162).brighter(), 9);
+            IFont.draw(IFont.Greycliff, "[+]", changelogRect.getX() + 5, changelogRect.getY() + 5 + y, new Color(0, 255, 0), 9);
+            IFont.draw(IFont.Greycliff, add, changelogRect.getX() + 5 + IFont.getWidth(IFont.Greycliff, "[+] ", 9), changelogRect.getY() + 5 + y, new Color(162, 162, 162).brighter(), 9);
 
             y += IFont.getHeight(IFont.Greycliff, add, 9);
         }
 
         y += IFont.getHeight(IFont.Greycliff, "AAA", 9);
         for (String fix : fixChangelogs) {
-            IFont.draw(IFont.Greycliff, "[/]", changelogRect.getX() + 5, changelogRect.getY() + 5 + IFont.getHeight(IFont.Greycliff, "Changelogs", 11) + y, new Color(0, 255, 255).brighter(), 9);
-            IFont.draw(IFont.Greycliff, fix, changelogRect.getX() + 5 + IFont.getWidth(IFont.Greycliff, "[/] ", 9), changelogRect.getY() + 5 + IFont.getHeight(IFont.Greycliff, "Changelogs", 11) + y, new Color(162, 162, 162).brighter(), 9);
+            IFont.draw(IFont.Greycliff, "[/]", changelogRect.getX() + 5, changelogRect.getY() + 5 + y, new Color(0, 255, 255).brighter(), 9);
+            IFont.draw(IFont.Greycliff, fix, changelogRect.getX() + 5 + IFont.getWidth(IFont.Greycliff, "[/] ", 9), changelogRect.getY() + 5 + y, new Color(162, 162, 162).brighter(), 9);
 
             y += IFont.getHeight(IFont.Greycliff, fix, 9);
         }
 
         y += IFont.getHeight(IFont.Greycliff, "AAA", 9);
         for (String remove : removeChangelogs) {
-            IFont.draw(IFont.Greycliff, "[-]", changelogRect.getX() + 5, changelogRect.getY() + 5 + IFont.getHeight(IFont.Greycliff, "Changelogs", 11) + y, new Color(255, 0, 0).brighter(), 9);
-            IFont.draw(IFont.Greycliff, remove, changelogRect.getX() + 5 + IFont.getWidth(IFont.Greycliff, "[-] ", 9), changelogRect.getY() + 5 + IFont.getHeight(IFont.Greycliff, "Changelogs", 11) + y, new Color(162, 162, 162).brighter(), 9);
+            IFont.draw(IFont.Greycliff, "[-]", changelogRect.getX() + 5, changelogRect.getY() + 5+ y, new Color(255, 0, 0).brighter(), 9);
+            IFont.draw(IFont.Greycliff, remove, changelogRect.getX() + 5 + IFont.getWidth(IFont.Greycliff, "[-] ", 9), changelogRect.getY() + 5 + y, new Color(162, 162, 162).brighter(), 9);
 
             y += IFont.getHeight(IFont.Greycliff, remove, 9);
         }
 
         y += IFont.getHeight(IFont.Greycliff, "AAA", 9);
 
-        changelogRect.setH(5 + IFont.getHeight(IFont.Greycliff, "Changelogs", 11) + y);
+        changelogRect.setH(5 + y);
     }
 }

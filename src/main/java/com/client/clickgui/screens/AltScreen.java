@@ -333,7 +333,7 @@ public class AltScreen extends Screen {
         if (addButtonRect.intersect(BloodyClient.mc.mouse.getX() / 2, BloodyClient.mc.mouse.getY() / 2) && isSelected) {
             addAccount();
         } else if (isSelected) isSelected = false;
-        if (inputRect.intersect(BloodyClient.mc.mouse.getX() / 2, BloodyClient.mc.mouse.getY() / 2)) {
+        if (inputRect.intersect(BloodyClient.mc.mouse.getX() / 2, BloodyClient.mc.mouse.getY() / 2) && !isSelected) {
             isSelected = true;
             currentNickname = "";
         }

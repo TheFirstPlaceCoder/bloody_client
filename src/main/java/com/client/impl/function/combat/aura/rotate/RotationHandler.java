@@ -6,7 +6,6 @@ import com.client.impl.function.combat.aura.AttackAura;
 import com.client.impl.function.combat.aura.rotate.handler.Handler;
 import com.client.impl.function.combat.aura.rotate.handler.Handlers;
 import com.client.impl.function.combat.aura.rotate.handler.handlers.FunTimeRotationsHandler;
-import com.client.utils.Utils;
 import com.client.utils.game.movement.MovementUtils;
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
@@ -18,7 +17,6 @@ import static com.client.system.function.Function.mc;
 public class RotationHandler {
     private static AttackAura aura;
 
-    public static long time;
     public static float serverYaw, serverPitch;
     public static float prevServerYaw = 0, prevServerPitch = 0, diffYaw, diffPitch, maxDiffYaw;
 
@@ -30,11 +28,6 @@ public class RotationHandler {
     private static long set_time = 0;
 
     private static Handler handler = new Handler("FunTime");
-
-    @EventHandler
-    public void onAttackEntityEvent(AttackEntityEvent.Pre event) {
-        time = System.currentTimeMillis() + 350L;
-    }
 
     @EventHandler
     private void onRender2DEvent(Render2DEvent event) {

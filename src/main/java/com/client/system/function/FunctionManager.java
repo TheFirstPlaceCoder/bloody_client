@@ -41,7 +41,6 @@ public class FunctionManager {
             register(new AutoArmor());
             register(new AutoExplosion());
             register(new AutoGApple());
-            register(new AutoPotion());
             register(new AutoSwap());
             register(new AutoTotem());
             register(new Criticals());

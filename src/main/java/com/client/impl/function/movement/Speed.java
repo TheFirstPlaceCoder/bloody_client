@@ -17,11 +17,10 @@ import java.util.List;
 
 public class Speed extends Function {
     private final ListSetting mode = List().name("Режим").enName("Mode").list(
-            List.of("FunTime")).defaultValue("FunTime").callback(this::onChangeSpeedMode).build();
+            List.of("Grim")).defaultValue("Grim").callback(this::onChangeSpeedMode).build();
 
     public final DoubleSetting expand = Double().name("Оффсет").enName("Box Offset").defaultValue(1.0).min(0).max(1).visible(() -> mode.get().equals("FunTime")).build();
     public final IntegerSetting speed = Integer().name("Скорость от игроков").enName("Speed From Players").defaultValue(7).min(0).max(15).visible(() -> mode.get().equals("FunTime")).build();
-    public final IntegerSetting speedAnimal = Integer().name("Скорость от других").enName("Other Speed").defaultValue(14).min(0).max(20).visible(() -> mode.get().equals("FunTime")).build();
     public final BooleanSetting armorStands = Boolean().name("Армор стенды").enName("Armor Stands").defaultValue(true).visible(() -> mode.get().equals("FunTime")).build();
     public final BooleanSetting others = Boolean().name("Другие сущности").enName("Other Entities").defaultValue(true).visible(() -> mode.get().equals("FunTime")).build();
 
@@ -75,7 +74,7 @@ public class Speed extends Function {
         if (currentSpeedMode != null) currentSpeedMode.onDisable();
 
         switch (name) {
-            case "FunTime": currentSpeedMode = new GrimCollide(); break;
+            case "Grim": currentSpeedMode = new GrimCollide(); break;
         }
 
         currentSpeedMode.onEnable();

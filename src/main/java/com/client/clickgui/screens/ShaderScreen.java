@@ -72,7 +72,7 @@ public class ShaderScreen extends Screen {
         }
 
         mainRect.setX((float) (mc.getWindow().getWidth() / 4 - 75 + 1000 - animation));
-        changelogRect.setY((float) (10 + 1000 - animation));
+        changelogRect.setY((float) (1000 - animation));
 
         buttonList.forEach(e -> e.rect.setX((float) (mc.getWindow().getWidth() / 4 + (e.text.equals(Utils.isRussianLanguage ? "Выйти" : "Quit") ? 2.5 : - 62.5) + 1000 - animation)));
 
@@ -92,14 +92,9 @@ public class ShaderScreen extends Screen {
 
             GL.prepare();
             GL.drawRoundedRect(mainRect, 7, new Color(28, 30, 35, 175));
-            GL.drawRoundedGlowRect(changelogRect, 5,3, Colors.getColor(0), Colors.getColor(90), Colors.getColor(270), Colors.getColor(180));
-            GL.drawRoundedRect(changelogRect, 5, new Color(28, 30, 35, 175));
-            GL.drawRoundedRect(changelogRect, 5, new Color(15, 15, 15, 150));
-
             GL.end();
 
             FontRenderer.color(true);
-            IFont.drawCenteredX(IFont.MONTSERRAT_BOLD, "Changelogs", changelogRect.getCenteredX(), changelogRect.getY() + 5, new Color(162, 162, 162).brighter(), 11);
             IFont.drawCenteredX(IFont.MONTSERRAT_BOLD, "Bloody Client", mainRect.getCenteredX(), mainRect.getY() + 5, new Color(162, 162, 162).brighter(), 13);
             IFont.drawCenteredX(IFont.MONTSERRAT_BOLD, "v" + BloodyClient.VERSION, mainRect.getCenteredX(), mainRect.getY() + 5 + IFont.getHeight(IFont.MONTSERRAT_BOLD, "ABC123", 13), new Color(162, 162, 162).brighter(), 7);
             FontRenderer.color(false);
@@ -210,7 +205,7 @@ public class ShaderScreen extends Screen {
 
         // mainRect = new FloatRect(mc.getWindow().getWidth() / 4 - 75, mc.getWindow().getHeight() / 4, 150, 145);
         mainRect = new FloatRect(mc.getWindow().getWidth() / 4 - 75 + 1000, mc.getWindow().getHeight() / 4, 150, 145);
-        changelogRect = new FloatRect(10, 10 + 1000, 150, 145);
+        changelogRect = new FloatRect(0, 1000, 150, 145);
 
         one = new Button(new FloatRect(mc.getWindow().getWidth() / 4 - 62.5 + 1000, mc.getWindow().getHeight() / 4 + 10 + 30, 125, 20), (Utils.isRussianLanguage ? "Одиночная игра" : "Singleplayer"), () -> {
             this.client.openScreen(new SelectWorldScreen(getInstance()));
