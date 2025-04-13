@@ -7,9 +7,7 @@ import com.client.system.function.FunctionManager;
 import com.client.utils.Utils;
 import com.client.utils.auth.Loader;
 import com.client.utils.math.animation.Direction;
-import com.client.utils.render.DrawMode;
 import com.client.utils.render.MeshBuilder;
-import net.minecraft.client.render.VertexFormats;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +29,10 @@ public class HudManager {
         register(new ArmorHud());
         register(new CoordsHud());
         register(new CooldownHud());
-        //register(new FpsHud());
         register(new FunctionListHud());
         register(new KeybindHud());
+        register(new KeyboardHud());
         register(new MusicHud());
-        //register(new LeftAngle());
         register(new PingHud());
         register(new PotionHud());
         register(new SpeedHud());

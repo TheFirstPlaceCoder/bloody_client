@@ -1,6 +1,7 @@
 package mixin.screens;
 
 import com.client.utils.Utils;
+import com.client.utils.auth.Loader;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.render.wisetree.font.api.FontRenderer;
 import com.client.utils.render.wisetree.font.main.IFont;
@@ -112,14 +113,19 @@ public abstract class SelectWorldScreenMixin extends Screen {
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         this.tooltipText = null;
         this.levelList.render(matrices, mouseX, mouseY, delta);
-        
-        GL.prepare();
-        GL.drawRoundedRect(new FloatRect(this.width / 2f - IFont.getWidth(IFont.MONTSERRAT_BOLD, this.title.getString(), 13) / 2 - 10, 12, IFont.getWidth(IFont.MONTSERRAT_BOLD, this.title.getString(), 13) + 20, IFont.getHeight(IFont.MONTSERRAT_BOLD, this.title.getString(), 13) + 6), 6, new Color(28, 30, 35, 210));
-        GL.end();
-        
-        FontRenderer.color(true);
-        IFont.drawCenteredX(IFont.MONTSERRAT_BOLD, this.title.getString(), this.width / 2f, 15, new Color(162, 162, 162).brighter(), 13);
-        FontRenderer.color(false);
+
+        if (!Loader.unHook) {
+            GL.prepare();
+            GL.drawRoundedRect(new FloatRect(this.width / 2f - IFont.getWidth(IFont.MONTSERRAT_BOLD, this.title.getString(), 13) / 2 - 10, 12, IFont.getWidth(IFont.MONTSERRAT_BOLD, this.title.getString(), 13) + 20, IFont.getHeight(IFont.MONTSERRAT_BOLD, this.title.getString(), 13) + 6), 6, new Color(28, 30, 35, 210));
+            GL.end();
+
+            FontRenderer.color(true);
+            IFont.drawCenteredX(IFont.MONTSERRAT_BOLD, this.title.getString(), this.width / 2f, 15, new Color(162, 162, 162).brighter(), 13);
+            FontRenderer.color(false);
+        } else {
+            drawCenteredText(matrices, this.textRenderer, this.title, this.width / 2, 8, 16777215);
+        }
+
         super.render(matrices, mouseX, mouseY, delta);
         if (this.tooltipText != null) {
             this.renderOrderedTooltip(matrices, this.tooltipText, mouseX, mouseY);

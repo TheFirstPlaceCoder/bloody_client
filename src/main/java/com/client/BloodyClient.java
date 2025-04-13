@@ -1,12 +1,8 @@
 package com.client;
 
-import api.interfaces.EventHandler;
-import com.client.event.events.TickEvent;
-import com.client.impl.function.visual.MotionBlur;
 import com.client.interfaces.IClientConnection;
 import com.client.system.changelogs.ChangeLogs;
 import com.client.system.companion.CompanionRegistry;
-import com.client.system.function.FunctionManager;
 import com.client.system.gps.GpsManager;
 import com.client.system.textures.DownloadImage;
 import com.client.utils.auth.Loader;
@@ -18,16 +14,12 @@ import com.client.utils.render.gl.PostProcessRenderer;
 import com.client.utils.render.wisetree.font.main.IFont;
 import com.client.utils.render.wisetree.render.render2d.utils.shader.Shader;
 import com.client.utils.render.wisetree.render.render2d.utils.shader.shaders.OutlineShader;
-import ladysnake.satin.api.event.ShaderEffectRenderCallback;
-import ladysnake.satin.api.managed.ManagedShaderEffect;
-import ladysnake.satin.api.managed.ShaderEffectManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.network.Packet;
-import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.bernie.geckolib3.GeckoLib;
@@ -35,7 +27,6 @@ import software.bernie.geckolib3.GeckoLib;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Objects;
 
 public class BloodyClient implements ModInitializer, ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger("bloody-client");
@@ -47,10 +38,6 @@ public class BloodyClient implements ModInitializer, ClientModInitializer {
 	public static long initTime;
 	public static Shader shader;
 	public static OutlineShader shaderManager = new OutlineShader();
-	private float currentBlur;
-	private final ManagedShaderEffect motionblur = ShaderEffectManager.getInstance().manage(new Identifier("bloody-client", "shaders/post/motion_blur.json"), (shader) -> {
-		shader.setUniformValue("BlendFactor", this.getBlur());
-	});;
 
 	@Override
 	public void onInitializeClient() {
@@ -65,23 +52,6 @@ public class BloodyClient implements ModInitializer, ClientModInitializer {
 		Loader.unHook = UNHOOK_FOLDER.exists();
 		Loader.load();
 		new EntityCullingBase().onInitialize();
-		ShaderEffectRenderCallback.EVENT.register((deltaTick) -> {
-			if (this.getBlur() != 0.0F) {
-				if (this.currentBlur != this.getBlur()) {
-					this.motionblur.setUniformValue("BlendFactor", this.getBlur());
-					this.currentBlur = this.getBlur();
-				}
-
-				this.motionblur.render(deltaTick);
-			}
-		});
-	}
-
-	public float getBlur() {
-		MotionBlur motionBlur = FunctionManager.get(MotionBlur.class);
-		if (motionBlur == null || !motionBlur.isEnabled()) return 0;
-
-		return (float)Math.min(motionBlur.smoothness.get(), 99) / 100.0F;
 	}
 
 	public static void onPostWindowInitialize() {

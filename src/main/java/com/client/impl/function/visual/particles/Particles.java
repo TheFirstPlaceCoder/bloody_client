@@ -52,6 +52,8 @@ public class Particles extends Function {
     public final BooleanSetting firstPerspective = Boolean().name("Видеть от первого лица").enName("See while walking").defaultValue(true).visible(() -> add.get("При ходьбе")).build();
     public final BooleanSetting stopWhileAttacking = Boolean().name("Застывать при атаке").enName("Stop while attacking").defaultValue(true).visible(() -> add.get("При атаке")).build();
 
+    public final DoubleSetting particleSpeed = Double().name("Скорость").enName("Speed").defaultValue(1.0).min(0).max(2).c(1).build();
+
     private final List<Particle> particles = new ArrayList<>();
     private long lastHit = 0;
 
@@ -71,7 +73,7 @@ public class Particles extends Function {
         if (add.get("При потери тотема")) {
             for (int i = 0; i < 50; i++) {
                 Vec3d pos = event.entity.getPos();
-                Particle particle = new Particle(pos.x, pos.y + 0.2F + (new Random().nextFloat() * (mc.player.getHeight() - 0.2F)), pos.z, 50, false, true);
+                Particle particle = new Particle(pos.x, pos.y + 0.2F + (new Random().nextFloat() * (mc.player.getHeight() - 0.2F)), pos.z, modifySpeed(50), false, true);
                 particles.add(particle);
             }
         }
@@ -91,7 +93,7 @@ public class Particles extends Function {
                     z = event.entity.getMovementDirection().getOpposite().getOffsetZ() * (event.entity.getWidth() / 2);
                 }
 
-                Particle particle = new Particle(pos.x + x, pos.y + (event.entity.getHeight() * new Random().nextDouble()), pos.z + z, stopWhileAttacking.get() ? 1000 : 50, false, false);
+                Particle particle = new Particle(pos.x + x, pos.y + (event.entity.getHeight() * new Random().nextDouble()), pos.z + z, stopWhileAttacking.get() ? 1000 : modifySpeed(50), false, false);
                 particles.add(particle);
             }
 
@@ -107,7 +109,7 @@ public class Particles extends Function {
                 for (int i = 0; i < 2; i++) {
                     float x = mc.player.getMovementDirection().getOpposite().getOffsetX() * (mc.player.getWidth() / 2);
                     float z = mc.player.getMovementDirection().getOpposite().getOffsetZ() * (mc.player.getWidth() / 2);
-                    particles.add(new Particle(pos.x + x, pos.y + 0.2F + (new Random().nextFloat() * (mc.player.getHeight() - 0.2F)), pos.z + z, 70, false, false));
+                    particles.add(new Particle(pos.x + x, pos.y + 0.2F + (new Random().nextFloat() * (mc.player.getHeight() - 0.2F)), pos.z + z, modifySpeed(70), false, false));
                 }
             }
         }
@@ -116,7 +118,7 @@ public class Particles extends Function {
             for (Entity entity : mc.world.getEntities()) {
                 if (entity instanceof EnderPearlEntity) {
                     Vec3d pos = entity.getPos();
-                    particles.add(new Particle(pos.x, pos.y + entity.getHeight() / 2, pos.z, 50F, false, false));
+                    particles.add(new Particle(pos.x, pos.y + entity.getHeight() / 2, pos.z, modifySpeed(50), false, false));
                 }
             }
         }
@@ -126,7 +128,7 @@ public class Particles extends Function {
                 if (entity instanceof TridentEntity tridentEntity) {
                     if (tridentEntity.getX() != tridentEntity.prevX || tridentEntity.getY() != tridentEntity.prevY || tridentEntity.getZ() != tridentEntity.prevZ) {
                         Vec3d pos = entity.getPos();
-                        particles.add(new Particle(pos.x, pos.y + entity.getHeight() / 2, pos.z, 50F, false, false));
+                        particles.add(new Particle(pos.x, pos.y + entity.getHeight() / 2, pos.z, modifySpeed(50), false, false));
                     }
                 }
             }
@@ -137,7 +139,7 @@ public class Particles extends Function {
                 if (entity instanceof ArrowEntity arrowEntity) {
                     if (arrowEntity.getX() != arrowEntity.prevX || arrowEntity.getY() != arrowEntity.prevY || arrowEntity.getZ() != arrowEntity.prevZ) {
                         Vec3d pos = entity.getPos();
-                        particles.add(new Particle(pos.x, pos.y + entity.getHeight() / 2, pos.z, 50F, false, false));
+                        particles.add(new Particle(pos.x, pos.y + entity.getHeight() / 2, pos.z, modifySpeed(50), false, false));
                     }
                 }
             }
@@ -146,5 +148,12 @@ public class Particles extends Function {
         for (Particle particle : particles) {
             particle.draw(event.getMatrices());
         }
+    }
+
+    public double modifySpeed(double speed) {
+        double normalizedSpeed = particleSpeed.get() / 2;
+        double reductionFactor = 1 - normalizedSpeed;
+
+        return speed * (0.5 + reductionFactor);
     }
 }

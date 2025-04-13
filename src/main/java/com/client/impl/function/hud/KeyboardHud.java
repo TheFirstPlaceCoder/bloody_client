@@ -3,8 +3,8 @@ package com.client.impl.function.hud;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
 
-public class ArmorHud extends Function {
-    public ArmorHud() {
-        super("Armor", Category.HUD);
+public class KeyboardHud extends Function {
+    public KeyboardHud() {
+        super("Keyboard", Category.HUD);
     }
 }

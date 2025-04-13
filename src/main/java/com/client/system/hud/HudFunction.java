@@ -43,9 +43,7 @@ public abstract class HudFunction {
     private boolean toggled = false, draw;
     public List<Runnable> postTask = new CopyOnWriteArrayList<>();
 
-    private final SmoothStepAnimation panel_anim = new SmoothStepAnimation(300, 1);
     public final SmoothStepAnimation alpha_anim = new SmoothStepAnimation(300, 1);
-    private static Hud hud = FunctionManager.get(Hud.class);
 
     public HudFunction(FloatRect rect, String name) {
         this.rect = rect;
@@ -174,30 +172,9 @@ public abstract class HudFunction {
         GL.drawRoundedRect(rect, 5, new Color(15, 15, 15, (int) (110)));
     }
 
-    public static void drawRect(FloatRect rect, float a) {
-        GL.drawQuad(rect,
-                ColorUtils.injectAlpha(Colors.getColor(0), (int) (95f * a)),
-                ColorUtils.injectAlpha(Colors.getColor(90), (int) (95f * a)),
-                ColorUtils.injectAlpha(Colors.getColor(180), (int) (95f * a)),
-                ColorUtils.injectAlpha(Colors.getColor(270), (int) (95f * a))
-        );
-
-        GL.prepare();
-        Renderer3D.enableSmoothLine(1F);
-        Renderer3D.begin(GL11.GL_LINE_STRIP);
-        Renderer3D.color(ColorUtils.injectAlpha(Colors.getColor(0), (int) (a * 255)));
-        GL11.glVertex2d(rect.getX(), rect.getY());
-        Renderer3D.color(ColorUtils.injectAlpha(Colors.getColor(90), (int) (a * 255)));
-        GL11.glVertex2d(rect.getX(), rect.getY2());
-        Renderer3D.color(ColorUtils.injectAlpha(Colors.getColor(180), (int) (a * 255)));
-        GL11.glVertex2d(rect.getX2(), rect.getY2());
-        Renderer3D.color(ColorUtils.injectAlpha(Colors.getColor(270), (int) (a * 255)));
-        GL11.glVertex2d(rect.getX2(), rect.getY());
-        Renderer3D.color(ColorUtils.injectAlpha(Colors.getColor(0), (int) (a * 255)));
-        GL11.glVertex2d(rect.getX(), rect.getY());
-        Renderer3D.end();
-        Renderer3D.disableSmoothLine();
-        GL.end();
+    public static void drawRect(FloatRect rect, float alpha) {
+        GL.drawRoundedGlowRect(rect, 3,4, ColorUtils.injectAlpha(Colors.getColor(0), (int) (255 * alpha)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (255 * alpha)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (255 * alpha)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (255 * alpha)));
+        GL.drawRoundedRect(rect, 3, new Color(15, 15, 15, (int) (110 * alpha)));
     }
 
     public static void drawRectGui(FloatRect rect, float alpha) {
@@ -208,6 +185,13 @@ public abstract class HudFunction {
     }
 
     public void startScale(double scale) {
+        GL11.glPushMatrix();
+        GL11.glTranslated(rect.getCenteredX(), rect.getCenteredY(), 0);
+        GL11.glScaled(scale, scale, scale);
+        GL11.glTranslated(-rect.getCenteredX(), -rect.getCenteredY(), 0);
+    }
+
+    public void startScaleCustom(FloatRect rect, double scale) {
         GL11.glPushMatrix();
         GL11.glTranslated(rect.getCenteredX(), rect.getCenteredY(), 0);
         GL11.glScaled(scale, scale, scale);

@@ -15,12 +15,9 @@
     { "name": "InSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] },
     { "name": "OutSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] },
 
-    { "name": "resolution", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] },
     { "name": "radius", "type": "float", "count": 1, "values": [ 1.0 ] },
     { "name": "fillOpacity", "type": "float", "count": 1, "values": [ 1.0 ] },
-    { "name": "time", "type": "float", "count": 1, "values": [ 1.0 ] },
-    { "name": "renderMode", "type": "float", "count": 1, "values": [ 1.0 ] },
-    { "name": "glowMode", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "brightOutline", "type": "float", "count": 1, "values": [ 1.0 ] },
     { "name": "power", "type": "float", "count": 1, "values": [ 1.0 ] }
   ]
 }

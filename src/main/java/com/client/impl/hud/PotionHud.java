@@ -1,16 +1,17 @@
 package com.client.impl.hud;
 
 import com.client.system.hud.HudFunction;
-import com.client.system.hud.HudManager;
 import com.client.system.textures.DownloadImage;
+import com.client.utils.math.animation.Animation;
 import com.client.utils.math.animation.AnimationUtils;
+import com.client.utils.math.animation.Direction;
+import com.client.utils.math.animation.impl.EaseBackIn;
 import com.client.utils.math.rect.FloatRect;
-import com.client.utils.render.DrawMode;
 import com.client.utils.render.wisetree.font.main.IFont;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
-import com.client.utils.render.wisetree.render.render2d.main.TextureGL;
 import com.client.utils.render.wisetree.render.render2d.utils.ScissorUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.Tessellator;
@@ -21,7 +22,6 @@ import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
@@ -35,15 +35,17 @@ public class PotionHud extends HudFunction {
     }
 
     public FloatRect potionRect = new FloatRect();
+    private final Animation animation = new EaseBackIn(400, 1, 1);
+    private double sc;
+    private List<StatusEffectInstance> potionList = new ArrayList<>();
 
     @Override
-    public void draw(float alpha) {
+    public void tick() {
         potionRect.setX(rect.getX());
         potionRect.setW(rect.getW());
         potionRect.setY(rect.getY() + 18);
 
-        List<StatusEffectInstance> potionList = new ArrayList<>();
-
+        potionList = new ArrayList<>();
         for (StatusEffectInstance statusEffectInstance : mc.player.getStatusEffects()) {
             StatusEffect statusEffect = statusEffectInstance.getEffectType();
             if (statusEffect == StatusEffects.NIGHT_VISION) continue;
@@ -51,15 +53,28 @@ public class PotionHud extends HudFunction {
         }
 
         potionRect.setH(AnimationUtils.fast(potionRect.getH(), potionList.isEmpty() ? 0 : potionList.size() * 12 + 2));
+
+        if (potionRect.getH() < 2 && potionList.isEmpty()) potionRect.setH(0f);
+
         rect.setH(16 + potionRect.getH() + 2);
+        animation.setDirection(potionList.isEmpty() && !(mc.currentScreen instanceof ChatScreen) ? Direction.BACKWARDS : Direction.FORWARDS);
+
+        sc = animation.getOutput();
+    }
+
+    @Override
+    public void draw(float alpha) {
+        if (sc <= 0.0f) return;
+
+        startScale(sc);
 
         drawNewClientRect(new FloatRect(rect.getX(), rect.getY(), rect.getW(), 16));
 
-        postTask.add(() -> {
-            HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
-            HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.POTION), new TextureGL.TextureRegion(rect.getX() + 2.5f, rect.getY(), 16, 16), Color.WHITE);
-            HudManager.MB.end();
-        });
+        GL11.glPushMatrix();
+        GL11.glScalef(1f, 1f, 1f);
+        GL11.glTranslatef(rect.getX() + 2.5f, rect.getY(), 0);
+        GL.drawRoundedTexture(DownloadImage.getGlId(DownloadImage.POTION), 0, 0, 16, 16, 0);
+        GL11.glPopMatrix();
 
         IFont.drawCenteredXY(IFont.MONTSERRAT_BOLD, "Potions", rect.getCenteredX(), rect.getY() + 8, Color.WHITE, 9);
 
@@ -77,10 +92,10 @@ public class PotionHud extends HudFunction {
             mc.getTextureManager().bindTexture(sprite.getAtlas().getId());
 
             drawSprite(stack, 0, 0, 200, 10, 10, 1f, sprite);
-            IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, potion.getEffectType().getName().getString() + (potion.getAmplifier() == 0 ? "" : Formatting.AQUA + " " + potion.getAmplifier()), potionRect.getX() + 16, y + (float) 12 / 2, Color.WHITE, 7);
+            IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, potion.getEffectType().getName().getString() + (potion.getAmplifier() == 0 ? "" : Formatting.AQUA + " " + (potion.getAmplifier() + 1)), potionRect.getX() + 16, y + (float) 12 / 2, Color.WHITE, 7);
             String time = getTime(potion.getDuration());
             IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, time, potionRect.getX2() - 4 - IFont.getWidth(IFont.MONTSERRAT_BOLD, time, 7), y + (float) 12 / 2, Color.WHITE, 7);
-            double tempW = 14 + IFont.getWidth(IFont.MONTSERRAT_BOLD, potion.getEffectType().getName().getString() + (potion.getAmplifier() == 0 ? "" : Formatting.AQUA + " " + potion.getAmplifier()), 7) + IFont.getWidth(IFont.MONTSERRAT_BOLD, "   " + time, 7);
+            double tempW = 14 + IFont.getWidth(IFont.MONTSERRAT_BOLD, potion.getEffectType().getName().getString() + (potion.getAmplifier() == 0 ? "" : Formatting.AQUA + " " + (potion.getAmplifier() + 1)), 7) + IFont.getWidth(IFont.MONTSERRAT_BOLD, "   " + time, 7);
             if (tempW > w) {
                 w = tempW;
             }
@@ -94,6 +109,8 @@ public class PotionHud extends HudFunction {
         }
         rect.setW(AnimationUtils.fast(rect.getW().floatValue(), (float) w));
         ScissorUtils.disableScissor();
+
+        endScale();
     }
 
     public static void drawSprite(MatrixStack matrices, int x, int y, int z, int width, int height, float a, Sprite sprite) {

@@ -3,6 +3,7 @@ package com.client.utils.render.wisetree.render.render2d.utils.shader.shaders;
 import com.client.impl.function.visual.Hands;
 import com.client.interfaces.IShaderEffect;
 import com.client.system.function.FunctionManager;
+import com.client.utils.color.Colors;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import ladysnake.satin.api.managed.ManagedShaderEffect;
@@ -82,8 +83,6 @@ public class OutlineShader {
         RenderSystem.disableBlend();
     }
 
-    public float time = 0;
-
     public void setupShader(ManagedShaderEffect effect) {
         if (FunctionManager.get(Hands.class) == null) return;
         Hands hands = FunctionManager.get(Hands.class);
@@ -92,10 +91,7 @@ public class OutlineShader {
         effect.setUniformValue("color", hands.colorSetting.get().getRed(), hands.colorSetting.get().getGreen(), hands.colorSetting.get().getBlue());
         effect.setUniformValue("radius", hands.lineWidth.get().floatValue());
         effect.setUniformValue("fillOpacity", hands.getOpacity());
-        effect.setUniformValue("time", time);
-        effect.setUniformValue("renderMode", hands.getIndexOfMode());
         effect.render(mc.getTickDelta());
-        time += (hands.speed.floatValue() / 1000);
     }
 
     public void reloadShaders() {

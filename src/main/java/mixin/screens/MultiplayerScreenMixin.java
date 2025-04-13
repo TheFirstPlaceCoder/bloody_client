@@ -1,5 +1,6 @@
 package mixin.screens;
 
+import com.client.utils.auth.Loader;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.render.wisetree.font.api.FontRenderer;
 import com.client.utils.render.wisetree.font.main.IFont;
@@ -29,12 +30,16 @@ public class MultiplayerScreenMixin extends Screen {
             )
     )
     public void renderText(MatrixStack matrixStack, TextRenderer textRenderer, Text text, int i, int i1, int i2) {
-        GL.prepare();
-        GL.drawRoundedRect(new FloatRect(this.width / 2f - IFont.getWidth(IFont.MONTSERRAT_BOLD, this.title.getString(), 13) / 2 - 10, 12, IFont.getWidth(IFont.MONTSERRAT_BOLD, this.title.getString(), 13) + 20, IFont.getHeight(IFont.MONTSERRAT_BOLD, this.title.getString(), 13) + 6), 6, new Color(28, 30, 35, 210));
-        GL.end();
+        if (!Loader.unHook) {
+            GL.prepare();
+            GL.drawRoundedRect(new FloatRect(this.width / 2f - IFont.getWidth(IFont.MONTSERRAT_BOLD, this.title.getString(), 13) / 2 - 10, 12, IFont.getWidth(IFont.MONTSERRAT_BOLD, this.title.getString(), 13) + 20, IFont.getHeight(IFont.MONTSERRAT_BOLD, this.title.getString(), 13) + 6), 6, new Color(28, 30, 35, 210));
+            GL.end();
 
-        FontRenderer.color(true);
-        IFont.drawCenteredX(IFont.MONTSERRAT_BOLD, this.title.getString(), this.width / 2f, 15, new Color(162, 162, 162).brighter(), 13);
-        FontRenderer.color(false);
+            FontRenderer.color(true);
+            IFont.drawCenteredX(IFont.MONTSERRAT_BOLD, this.title.getString(), this.width / 2f, 15, new Color(162, 162, 162).brighter(), 13);
+            FontRenderer.color(false);
+        } else {
+            drawCenteredText(matrixStack, this.textRenderer, this.title, this.width / 2, 20, 16777215);
+        }
     }
 }

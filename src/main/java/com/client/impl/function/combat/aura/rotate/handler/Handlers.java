@@ -3,7 +3,7 @@ package com.client.impl.function.combat.aura.rotate.handler;
 import com.client.impl.function.combat.aura.rotate.handler.handlers.*;
 import com.client.impl.function.combat.aura.rotate.handler.handlers.grim.GrimRotationsHandler;
 import com.client.impl.function.combat.aura.rotate.handler.handlers.matrix.MatrixRotationsHandler;
-import com.client.impl.function.combat.aura.rotate.handler.handlers.vulcan.VulcanGrimHandler;
+import com.client.impl.function.combat.aura.rotate.handler.handlers.vulcan.VulcanHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,7 @@ public class Handlers {
         register(new FunTimeRotationsHandler());
         register(new GrimRotationsHandler());
         register(new MatrixRotationsHandler());
-        register(new VulcanGrimHandler());
+        register(new VulcanHandler());
     }
 
     public static <T extends Handler> T get(String name) {

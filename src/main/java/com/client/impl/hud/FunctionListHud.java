@@ -69,7 +69,7 @@ public class FunctionListHud extends HudFunction {
         AtomicDouble height = new AtomicDouble(0);
 
         functions.forEach(f -> height.addAndGet((IFont.getHeight(font, f.getName(), size) + 2) * MAP.get(f).getB()));
-        rect.setX(rect.getX() + (rect.getW() - (IFont.getWidth(font, functions.get(0).getName() + (!functions.get(0).getHudPrefix().isEmpty() ? " [" : "") + functions.get(0).getHudPrefix() + (!functions.get(0).getHudPrefix().isEmpty() ? "]" : ""), size) + 4)));
+        //rect.setX(rect.getX() + (rect.getW() - (IFont.getWidth(font, functions.get(0).getName() + (!functions.get(0).getHudPrefix().isEmpty() ? " [" : "") + functions.get(0).getHudPrefix() + (!functions.get(0).getHudPrefix().isEmpty() ? "]" : ""), size) + 4)));
         rect.setW(IFont.getWidth(font, functions.get(0).getName() + (!functions.get(0).getHudPrefix().isEmpty() ? " [" : "") + functions.get(0).getHudPrefix() + (!functions.get(0).getHudPrefix().isEmpty() ? "]" : ""), size) + 4);
         rect.setH(height.floatValue());
     }

@@ -155,7 +155,7 @@ public abstract class InGameHudMixin extends DrawableHelper implements IInGameHu
             event.post();
 
             if (!Loader.unHook) {
-                for (HudFunction hudFunction : HudManager.getHudFunctions()) {
+                HudManager.getHudFunctions().forEach(hudFunction -> {
                     if (!(mc.currentScreen instanceof ChatScreen)) {
                         boolean b = !FunctionManager.get(Hud.class).isEnabled() || !hudFunction.isEnabled();
                         CompletableFuture.runAsync(hudFunction::tick).join();
@@ -175,7 +175,7 @@ public abstract class InGameHudMixin extends DrawableHelper implements IInGameHu
                             hudFunction.postTask.clear();
                         });
                     }
-                }
+                });
             }
 
             if (!Loader.unHook) NotificationManager.draw();

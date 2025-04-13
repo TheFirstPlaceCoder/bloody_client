@@ -134,7 +134,7 @@ public class RotationHandler {
         switch (aura.bypass.get()) {
             case "Матрикс" -> handler = Handlers.get("Matrix");
             case "FunTime" -> handler = Handlers.get("FunTime");
-            case "Вулкан/Грим" -> handler = Handlers.get("VulcanGrim");
+            case "Вулкан" -> handler = Handlers.get("Vulcan");
             case "Грим" -> handler = Handlers.get("Grim");
         }
 

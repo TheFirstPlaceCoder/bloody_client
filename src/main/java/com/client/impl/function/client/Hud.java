@@ -10,7 +10,6 @@ import com.client.system.function.Function;
 import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudManager;
 import com.client.system.setting.settings.BooleanSetting;
-import com.client.system.setting.settings.ColorSetting;
 
 import java.awt.*;
 
@@ -23,6 +22,7 @@ public class Hud extends Function {
         HudManager.get(WatermarkHud.class).setEnabled(FunctionManager.get(com.client.impl.function.hud.WatermarkHud.class).isEnabled());
         HudManager.get(PotionHud.class).setEnabled(FunctionManager.get(PotionsHud.class).isEnabled());
         HudManager.get(KeybindHud.class).setEnabled(FunctionManager.get(KeybindsHud.class).isEnabled());
+        HudManager.get(KeyboardHud.class).setEnabled(FunctionManager.get(com.client.impl.function.hud.KeyboardHud.class).isEnabled());
         HudManager.get(StaffHud.class).setEnabled(FunctionManager.get(com.client.impl.function.hud.StaffHud.class).isEnabled());
         HudManager.get(ArmorHud.class).setEnabled(FunctionManager.get(com.client.impl.function.hud.ArmorHud.class).isEnabled());
         HudManager.get(CooldownHud.class).setEnabled(FunctionManager.get(com.client.impl.function.hud.CooldownsHud.class).isEnabled());

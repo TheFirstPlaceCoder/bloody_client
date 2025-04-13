@@ -7,172 +7,308 @@ import com.client.system.config.ConfigSystem;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.setting.settings.IntegerSetting;
-import com.client.system.setting.settings.ListSetting;
-import com.client.system.setting.settings.StringSetting;
-import com.client.utils.Utils;
 import javazoom.jl.decoder.Bitstream;
 import javazoom.jl.decoder.Header;
 import javazoom.jl.decoder.JavaLayerException;
+import javazoom.jl.player.AudioDevice;
 import javazoom.jl.player.FactoryRegistry;
+import javazoom.jl.player.JavaSoundAudioDevice;
 import javazoom.jl.player.advanced.AdvancedPlayer;
 import javazoom.jl.player.advanced.PlaybackEvent;
 import javazoom.jl.player.advanced.PlaybackListener;
+import mixin.accessor.JavaSoundAudioDeviceAccessor;
+import mixin.accessor.JavaZoomAccessor;
 
 import javax.sound.sampled.*;
+import java.awt.*;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 public class MusicHud extends Function {
-    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Ссылка на mp3", "Файлы")).defaultValue("Файлы").build();
-    public final StringSetting link = String().name("Ссылка на mp3").enName("mp3 link").defaultValue("https://icast.connectmedia.hu/5202/live.mp3").visible(() -> !mode.get().equals("Файлы")).build();
-
     private final IntegerSetting volume = Integer().name("Громкость").enName("Volume").defaultValue(50).min(0).max(100).build();
 
     public MusicHud() {
         super("Music", Category.HUD);
     }
 
-    public AdvancedPlayer player;
-    private List<String> list = new ArrayList<>();
-    private boolean isFiles = false;
-    private int currentSong = 0;
-    public int totalTime = 0, maxTime = 0;
-    private Thread timeThread;
+    private final List<File> musicFiles = new ArrayList<>();
+    private int currentTrackIndex;
+    private AdvancedPlayer player;
+    private FileInputStream fis;
+    private Thread musicThread;
+    private String currentTrackName;
+    private File currentTrackFile;
+    private int skippedFrames = 0, playedFrames = 0;
+    public boolean isPaused;
+
+    private void loadMusicFiles() {
+        File musicDir = new File(ConfigSystem.PATH + "/music");
+        if (!musicDir.exists() && !musicDir.mkdirs()) {
+            return;
+        }
+
+        File[] files = musicDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".mp3"));
+        if (files != null) {
+            musicFiles.addAll(Arrays.asList(files));
+            if (!musicFiles.isEmpty()) {
+                currentTrackIndex = 0;
+                playTrack(musicFiles.get(currentTrackIndex), 0);
+            }
+        } else {
+            System.err.println("No music files found in directory: " + musicDir.getAbsolutePath());
+        }
+    }
+
+    private void playTrack(File trackFile, int frameToSkip) {
+        try {
+            if (player != null) {
+                stop();
+            }
+            currentTrackName = trackFile.getName();
+            fis = new FileInputStream(trackFile);
+            player = new AdvancedPlayer(fis, FactoryRegistry.systemRegistry().createAudioDevice());
+            player.setPlayBackListener(new PlaybackListener() {
+                @Override
+                public void playbackFinished(PlaybackEvent evt) {
+                    playNextTrack();
+                }
+            });
+            currentTrackFile = trackFile;
+            skippedFrames = frameToSkip;
+
+            musicThread = new Thread(() -> {
+                try {
+                    player.play(frameToSkip, getMaxFrames());
+                } catch (JavaLayerException e) {
+                    System.err.println("Error playing music: " + e.getMessage());
+                } finally {
+                    stop();
+                    playNextTrack();
+                }
+            });
+            musicThread.start();
+
+            setVolume(volume.get());
+        } catch (IOException | JavaLayerException e) {
+            System.err.println("Error loading or playing music: " + e.getMessage());
+        }
+    }
+
+
+    public void stop() {
+        if (player != null) {
+            player.close();
+            player = null;
+        }
+
+        try {
+            musicThread.stop();
+        } catch (Exception ignored) {} finally {
+            musicThread = null;
+        }
+
+        if(fis != null) {
+            try {
+                fis.close();
+            } catch (IOException e) {
+                System.err.println("Error closing FileInputStream " + e.getMessage());
+            }
+        }
+
+        player = null;
+        fis = null;
+        isPaused = false;
+        com.client.impl.hud.MusicHud.nameSongX = 0;
+    }
+
+    public void pauseResume() {
+        isPaused = !isPaused;
+        if(player != null) {
+            if (isPaused) {
+                musicThread.suspend();
+            } else {
+                musicThread.resume();
+            }
+        }
+    }
+
+    public void playPreviousTrack() {
+        if (musicFiles.isEmpty()) return;
+        currentTrackIndex = (currentTrackIndex - 1 + musicFiles.size()) % musicFiles.size();
+        playTrack(musicFiles.get(currentTrackIndex), 0);
+    }
+
+    public void playNextTrack() {
+        if (musicFiles.isEmpty()) return;
+        currentTrackIndex = (currentTrackIndex + 1) % musicFiles.size();
+        playTrack(musicFiles.get(currentTrackIndex), 0);
+    }
+
+    public String getCurrentTrackName() {
+        return currentTrackName != null ? currentTrackName.replace(".mp3", "") : "Отсутствует";
+    }
+
+    public void seekTo(int currentFrame) {
+        if (currentTrackFile == null) return;
+
+        playTrack(currentTrackFile, currentFrame);
+    }
+
+    public int getFramePosition() {
+        SourceDataLine sourceDataLine;
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js && (sourceDataLine = ((JavaSoundAudioDeviceAccessor) js).getSource()) != null) {
+            return sourceDataLine.getFramePosition();
+        }
+        return 0;
+    }
+
+    public int getFrameSize() {
+        SourceDataLine sourceDataLine;
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js && (sourceDataLine = ((JavaSoundAudioDeviceAccessor) js).getSource()) != null) {
+            return sourceDataLine.getFormat().getFrameSize();
+        }
+        return 0;
+    }
+
+    public float getFrameRate() {
+        SourceDataLine sourceDataLine;
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js && (sourceDataLine = ((JavaSoundAudioDeviceAccessor) js).getSource()) != null) {
+            return sourceDataLine.getFormat().getFrameRate();
+        }
+        return 0f;
+    }
+
+    public float getSampleRate() {
+        SourceDataLine sourceDataLine;
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js && (sourceDataLine = ((JavaSoundAudioDeviceAccessor) js).getSource()) != null) {
+            return sourceDataLine.getFormat().getSampleRate();
+        }
+        return 0;
+    }
+
+    public int getSampleSizeInBits() {
+        SourceDataLine sourceDataLine;
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js && (sourceDataLine = ((JavaSoundAudioDeviceAccessor) js).getSource()) != null) {
+            return sourceDataLine.getFormat().getSampleSizeInBits();
+        }
+        return 0;
+    }
+
+    public int getChannels() {
+        SourceDataLine sourceDataLine;
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js && (sourceDataLine = ((JavaSoundAudioDeviceAccessor) js).getSource()) != null) {
+            return sourceDataLine.getFormat().getChannels();
+        }
+        return 0;
+    }
+
+    public long getLongFramePosition() {
+        SourceDataLine sourceDataLine;
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js && (sourceDataLine = ((JavaSoundAudioDeviceAccessor) js).getSource()) != null) {
+            return sourceDataLine.getLongFramePosition();
+        }
+        return 0;
+    }
+
+    public long getMicrosecondPosition() {
+        SourceDataLine sourceDataLine;
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js && (sourceDataLine = ((JavaSoundAudioDeviceAccessor) js).getSource()) != null) {
+            return sourceDataLine.getMicrosecondPosition();
+        }
+        return 0;
+    }
+
+    public int getBufferSize() {
+        SourceDataLine sourceDataLine;
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js && (sourceDataLine = ((JavaSoundAudioDeviceAccessor) js).getSource()) != null) {
+            return sourceDataLine.getBufferSize();
+        }
+        return 0;
+    }
+
+    public float getLevel() {
+        SourceDataLine sourceDataLine;
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js && (sourceDataLine = ((JavaSoundAudioDeviceAccessor) js).getSource()) != null) {
+            return sourceDataLine.getLevel();
+        }
+        return 0;
+    }
+
+    public int available() {
+        SourceDataLine sourceDataLine;
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js && (sourceDataLine = ((JavaSoundAudioDeviceAccessor) js).getSource()) != null) {
+            return sourceDataLine.available();
+        }
+        return 0;
+    }
+
+    public int getPosition() {
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js) {
+            return js.getPosition();
+        }
+        return 0;
+    }
+
+    public void setFramesPlayed() {
+        SourceDataLine sourceDataLine;
+        if (player != null && ((JavaZoomAccessor) player).getAudio() instanceof JavaSoundAudioDevice js && (sourceDataLine = ((JavaSoundAudioDeviceAccessor) js).getSource()) != null) {
+            long secondsPosition = sourceDataLine.getMicrosecondPosition() / 1000000;
+            int playedFrames = (int) (secondsPosition * 38.5f);
+
+            if (playedFrames > 0) {
+                this.playedFrames = skippedFrames + Math.min(playedFrames, getMaxFrames());
+            }
+        }
+    }
+
+    public int getFramesPlayed() {
+        return playedFrames;
+    }
+
+    public int getSkippedFrames() {
+        return skippedFrames;
+    }
+
+    public int getMaxFrames() {
+        if (currentTrackFile == null) return 0;
+        try {
+            FileInputStream fis = new FileInputStream(currentTrackFile);
+            Bitstream bitstream = new Bitstream(fis);
+            Header header = null;
+            int frameCount = 0;
+            while ((header = bitstream.readFrame()) != null) {
+                frameCount++;
+                bitstream.closeFrame();
+            }
+
+            fis.close();
+            return frameCount;
+        } catch (Exception e) {
+            System.err.println("Error getting max frames: " + e.getMessage());
+            return 0;
+        }
+    }
 
     @Override
     public void onEnable() {
-        isFiles = mode.get().equals("Файлы");
-        currentSong = 0;
-        totalTime = 0;
-        maxTime = 0;
-        if (isFiles) setStrings();
-        playRadio();
+        musicFiles.clear();
+        loadMusicFiles();
+        currentTrackIndex = 0;
+        isPaused = false;
     }
 
     @Override
     public void onDisable() {
-        stopRadio();
+        stop();
     }
 
     @EventHandler
     public void left_event(GameEvent.Left e) {
-        stopRadio();
-    }
-
-    public String getSongName() {
-        if (list.isEmpty() || list.get(currentSong) == null || !isEnabled()) return "None";
-        if (!isFiles) return "Ссылка";
-
-        String a = list.get(currentSong).substring(list.get(currentSong).lastIndexOf("/") + 1);
-        return a.substring(0, a.length() - 4);
-    }
-
-    public void setStrings() {
-        list.clear();
-        for (String name : Objects.requireNonNull(new File(ConfigSystem.PATH + "/music").list())) {
-            if (!name.endsWith("mp3")) continue;
-
-            File file = new File(ConfigSystem.PATH + "/music/" + name);
-
-            if (!file.isDirectory() && file.exists()) {
-                try {
-                    list.add(file.toURL().toString());
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    private void updateSongs() {
-        currentSong++;
-
-        if (currentSong > list.size() - 1) currentSong = 0;
-    }
-
-    private void updateSongsBack() {
-        currentSong--;
-
-        if (currentSong < 0) currentSong = list.size() - 1;
-    }
-
-    public void buttonBack() {
-        if (isEnabled() && mode.get().equals("Файлы")) {
-            if (player != null) player.close();
-            if (timeThread != null) timeThread.stop();
-            totalTime = 0;
-
-            updateSongsBack();
-
-            playRadio();
-        }
-    }
-
-    public void buttonNext() {
-        if (isEnabled() && mode.get().equals("Файлы")) {
-            if (player != null) player.close();
-            if (timeThread != null) timeThread.stop();
-            totalTime = 0;
-
-            updateSongs();
-
-            playRadio();
-        }
-    }
-
-    public void playRadio() {
-        try {
-            String selectedRadioUrl = isFiles ? list.isEmpty() ? null : list.get(currentSong) : (!link.get().isEmpty() && !link.get().isBlank() && link.get().endsWith("mp3") ? link.get() : null);
-            if (selectedRadioUrl != null) {
-                URL radioStream = new URL(selectedRadioUrl);
-                Bitstream bitstream = new Bitstream(radioStream.openStream());
-                Header header = bitstream.readFrame();
-
-                float totalSeconds = header.total_ms(radioStream.openStream().available()) / 1000f;
-                maxTime = (int) totalSeconds;
-
-                timeThread = new Thread(() -> {
-                    int elapsedSeconds = 0;
-                    while (elapsedSeconds < totalSeconds) {
-                        try {
-                            Thread.sleep(1000); // Обновление каждую секунду
-                            elapsedSeconds++;
-                            totalTime = elapsedSeconds;
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-                timeThread.start();
-
-                player = new AdvancedPlayer(radioStream.openStream(), FactoryRegistry.systemRegistry().createAudioDevice());
-                player.setPlayBackListener(new PlaybackListener() {
-                    @Override
-                    public void playbackFinished(PlaybackEvent evt) {
-                        if (isFiles) updateSongs();
-                        playRadio();
-                    }
-                });
-
-                setVolume(volume.get() / 2);
-
-                CompletableFuture.runAsync(() -> {
-                    try {
-                        player.play();
-                    } catch (JavaLayerException e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-        } catch (IOException | JavaLayerException e) {
-            e.printStackTrace();
-        }
+        stop();
     }
 
     @Override
@@ -198,14 +334,5 @@ public class MusicHud extends Function {
             }
             port.close();
         }
-    }
-
-    public void stopRadio() {
-        if (player != null) {
-            player.close();
-            player = null;
-        }
-        if (timeThread != null) timeThread.stop();
-        totalTime = 0;
     }
 }

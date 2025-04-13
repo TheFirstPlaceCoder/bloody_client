@@ -12,9 +12,9 @@ import net.minecraft.util.math.Vec3d;
 
 import static com.client.system.function.Function.mc;
 
-public class VulcanGrimHandler extends Handler {
-    public VulcanGrimHandler() {
-        super("VulcanGrim");
+public class VulcanHandler extends Handler {
+    public VulcanHandler() {
+        super("Vulcan");
     }
 
     private final V2F rotate = new V2F(0, 0);

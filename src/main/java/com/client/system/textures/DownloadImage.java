@@ -44,6 +44,7 @@ public class DownloadImage {
     public static final int KEYBOARD = hash("https://imgur.com/keyboard");
     public static final int PLAY = hash("https://imgur.com/play");
     public static final int STOP = hash("https://imgur.com/stop");
+    public static final int PAUSE = hash("https://imgur.com/pause");
     public static final int NEXT = hash("https://imgur.com/next");
     public static final int BACK = hash("https://imgur.com/back");
     public static final int POTION = hash("https://imgur.com/potion");
@@ -89,6 +90,7 @@ public class DownloadImage {
             download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/keyboard");
             download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/play");
             download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/stop");
+            download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/pause");
             download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/next");
             download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/back");
             download("https://raw.githubusercontent.com/TheFirstPlaceCoder/files/main/potion");

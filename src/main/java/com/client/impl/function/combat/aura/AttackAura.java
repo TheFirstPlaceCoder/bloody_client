@@ -69,7 +69,7 @@ public class AttackAura extends Function {
     public final DoubleSetting range = Double().name("Дистанция").enName("Attack Range").defaultValue(3.0).min(1).max(6).build();
 
     public final ListSetting bypass = List().name("Обход").enName("Bypass").list(List.of(
-            "FunTime", "Матрикс", "Вулкан/Грим", "Грим"
+            "FunTime", "Матрикс", "Вулкан", "Грим"
     )).defaultValue("FunTime").build();
 
     public final IntegerSetting tick = Integer().name("Тик ротации").enName("Rotation Tick").max(5).min(1).defaultValue(3).visible(() -> bypass.get().equals("Матрикс")).build();
@@ -269,6 +269,6 @@ public class AttackAura extends Function {
 
     @Override
     public String getHudPrefix() {
-        return bypass.get() + (target == null || !(target instanceof PlayerEntity p) ? "" : ", " + p.getGameProfile().getName());
+        return (target == null || !(target instanceof PlayerEntity p) ? "" : p.getGameProfile().getName());
     }
 }

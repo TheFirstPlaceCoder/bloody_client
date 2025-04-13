@@ -20,7 +20,8 @@ public class AutoFarm extends Function {
     public final MultiBooleanSetting items = MultiBoolean().name("Предметы для фарма").enName("Farm items").defaultValue(List.of(
             new MultiBooleanValue(true, "Морковь"),
             new MultiBooleanValue(true, "Картошка"),
-            new MultiBooleanValue(true, "Пшеница")
+            new MultiBooleanValue(true, "Пшеница"),
+            new MultiBooleanValue(true, "Свекла")
     )).build();
 
     public AutoFarm() {
@@ -85,7 +86,7 @@ public class AutoFarm extends Function {
                         Block block = mc.world.getBlockState(blockPos).getBlock();
 
 
-                        if ((items.get("Морковь") && block == Blocks.CARROTS) || (items.get("Картошка") && block == Blocks.POTATOES) || (items.get("Пшеница") && block == Blocks.WHEAT)) {
+                        if ((items.get("Морковь") && block == Blocks.CARROTS) || (items.get("Картошка") && block == Blocks.POTATOES) || (items.get("Пшеница") && block == Blocks.WHEAT) || (items.get("Свекла") && block == Blocks.BEETROOTS)) {
 
                             Block blockBelow = mc.world.getBlockState(blockPos.down()).getBlock();
                             if (blockBelow == Blocks.FARMLAND) {
@@ -110,13 +111,11 @@ public class AutoFarm extends Function {
                         mc.player.networkHandler.sendPacket(
                                 new PlayerInteractBlockC2SPacket(
                                         Hand.OFF_HAND,
-                                        new BlockHitResult(new Vec3d(blockToBreak.getX(), blockToBreak.getY(), blockToBreak.getZ()), Direction.UP, blockToBreak, true)
+                                        new BlockHitResult(new Vec3d(blockToBreak.down().getX(), blockToBreak.down().getY(), blockToBreak.down().getZ()), Direction.UP, blockToBreak.down(), true)
                                 )
                         );
 
-
-                        Thread.sleep(15);
-
+                        Thread.sleep(40);
 
                         for (int i = 0; i < 3; i++) {
                             mc.player.networkHandler.sendPacket(
@@ -128,9 +127,7 @@ public class AutoFarm extends Function {
                             Thread.sleep(5);
                         }
 
-
                         Thread.sleep(40);
-
 
                         mc.player.networkHandler.sendPacket(
                                 new PlayerActionC2SPacket(
@@ -140,13 +137,12 @@ public class AutoFarm extends Function {
                                 )
                         );
 
-
-                        Thread.sleep(3);
+                        Thread.sleep(40);
 
                         mc.player.networkHandler.sendPacket(
                                 new PlayerInteractBlockC2SPacket(
                                         Hand.OFF_HAND,
-                                        new BlockHitResult(new Vec3d(blockToBreak.getX(), blockToBreak.getY(), blockToBreak.getZ()), Direction.UP, blockToBreak, true)
+                                        new BlockHitResult(new Vec3d(blockToBreak.down().getX(), blockToBreak.down().getY(), blockToBreak.down().getZ()), Direction.UP, blockToBreak.down(), true)
                                 )
                         );
 

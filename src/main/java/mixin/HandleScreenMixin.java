@@ -43,6 +43,7 @@ import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -75,6 +76,7 @@ public abstract class HandleScreenMixin<T extends ScreenHandler> extends Screen 
     @Shadow protected abstract void onMouseClick(Slot slot, int invSlot, int clickData, SlotActionType actionType);
     @Shadow @Nullable protected Slot focusedSlot;
     @Shadow protected int backgroundHeight;
+    @Shadow @Final protected T handler;
     @Unique private FloatRect rect = new FloatRect();
 
     @Inject(method = "mouseDragged", at = @At("TAIL"))
@@ -91,10 +93,10 @@ public abstract class HandleScreenMixin<T extends ScreenHandler> extends Screen 
     private void onRender(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo info) {
         HelpItems.x = this.x;
         HelpItems.y = this.y;
-        int cx = client.getWindow().getScaledWidth() / 2;
-        int cy = client.getWindow().getScaledHeight() / 2;
-        float w = IFont.getWidth(IFont.COMFORTAAB, "   Выбросить   ", 9);
-        rect = new FloatRect(cx - w /2, cy - (float) backgroundHeight / 2 - IFont.getHeight(IFont.COMFORTAAB, "   Выбросить   ", 9) - 12, w, IFont.getHeight(IFont.COMFORTAAB, "   Выбросить   ", 9) + 8);
+//        int cx = client.getWindow().getScaledWidth() / 2;
+//        int cy = client.getWindow().getScaledHeight() / 2;
+//        float w = IFont.getWidth(IFont.COMFORTAAB, "   Выбросить   ", 9);
+//        rect = new FloatRect(cx - w /2, cy - (float) backgroundHeight / 2 - IFont.getHeight(IFont.COMFORTAAB, "   Выбросить   ", 9) - 12, w, IFont.getHeight(IFont.COMFORTAAB, "   Выбросить   ", 9) + 8);
 
         if (focusedSlot != null && !focusedSlot.getStack().isEmpty() && shulkerPreview.isEnabled()) {
             if (ShulkerPreview.hasItems(focusedSlot.getStack())) {
@@ -108,6 +110,8 @@ public abstract class HandleScreenMixin<T extends ScreenHandler> extends Screen 
         }
 
         RenderSlotEvent event = new RenderSlotEvent();
+        event.title = this.title;
+        event.handler = this.handler;
         EventUtils.post(event);
 
         if (event.minCountSlot != null)
@@ -116,18 +120,18 @@ public abstract class HandleScreenMixin<T extends ScreenHandler> extends Screen 
         if (event.minSlot != null && event.minCountSlot != event.minSlot)
             GL.drawQuad(this.x + event.minSlot.x, this.y + event.minSlot.y, 16, 16, ColorUtils.injectAlpha(event.minColor, 100));
 
-        if (mc.world != null && mc.player != null && !EntityUtils.getGameMode(mc.player).isCreative() && !Loader.unHook) {
-            HudFunction.drawRect(rect, 1f);
-            IFont.drawCenteredXY(IFont.COMFORTAAB, "   Выбросить   ", rect.getCenteredX(), rect.getCenteredY(), Color.WHITE, 9);
-        }
+//        if (mc.world != null && mc.player != null && !EntityUtils.getGameMode(mc.player).isCreative() && !Loader.unHook) {
+//            HudFunction.drawRect(rect, 1f);
+//            IFont.drawCenteredXY(IFont.COMFORTAAB, "   Выбросить   ", rect.getCenteredX(), rect.getCenteredY(), Color.WHITE, 9);
+//        }
     }
 
-    @Inject(method = "mouseClicked", at = @At("TAIL"))
-    private void mouseClicked(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
-        if (rect.intersect(mouseX, mouseY) && button == GLFW.GLFW_MOUSE_BUTTON_1 && mc.world != null && mc.player != null && !EntityUtils.getGameMode(mc.player).isCreative()) {
-            CommandManager.get(DropCommand.class).drop();
-        }
-    }
+//    @Inject(method = "mouseClicked", at = @At("TAIL"))
+//    private void mouseClicked(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
+//        if (rect.intersect(mouseX, mouseY) && button == GLFW.GLFW_MOUSE_BUTTON_1 && mc.world != null && mc.player != null && !EntityUtils.getGameMode(mc.player).isCreative()) {
+//            CommandManager.get(DropCommand.class).drop();
+//        }
+//    }
 
     @Unique
     private void draw(MatrixStack matrices, DefaultedList<ItemStack> itemStacks, int mouseX, int mouseY, Color color) {

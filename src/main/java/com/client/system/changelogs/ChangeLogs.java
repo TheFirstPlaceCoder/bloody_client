@@ -21,28 +21,54 @@ public class ChangeLogs {
                 "Change Logs",
                 "Fire Fly",
                 "Velocity | Режим FunTime",
-                "No Slow | Режим Matrix 2.0",
+                "No Slow | Режим New Grim, ReallyWorld, FunTime Snow",
                 "ESP, Shaders | Режим Box, Мигание цвета",
                 "Anti Bot | Улучшены проверки",
-                "Auto Explosion | Добавлен свап для кристаллов из инвентаря"
+                "Auto Explosion | Добавлен свап для кристаллов из инвентаря",
+                "Music Hud | Возможность прокручивать трек",
+                "Target Hud | Отображение брони",
+                "Auction Helper | Фильтры предметов, Чекбокс учитывать баланс",
+                "Helper | Для HolyWorld чекбокс для тыпо и корабля",
+                "Shaders | Чекбокс яркая обводка",
+                "Speed | Режим FunTime Snow",
+                "Jesus | FunTime",
+                "High Jump | FunTime Snow",
+                "Teleport Back | FunTime Snow",
+                "Elytra Bounce | Настройка на кастомный питч",
+                "Minecraft Screens | Новый дизайн",
+                "Particles | Настройка скорости",
+                "X-Ray | Настройки на: выбор руд, сканирование ответов сервера, сканирование территории"
         ));
 
         fixChangelogs.addAll(List.of(
                 "Auto Buy | Баг с зависанием",
                 "Discord RPC | Полностью новый",
                 "Hud, Notifications, Кнопки майнкрафта | Новый стиль",
-                "Attack Aura | Теперь только 4 режима: Matrix, Vulcan/Grim, Grim, FunTime",
+                "Attack Aura | Теперь только 4 режима: Matrix, Vulcan, Grim, FunTime",
                 "Speed & Attack Aura | Появилась возможность 'Летать' вокруг таргета",
                 "Particles | При потере тотема частицы становятся зелеными",
-                "Auto Swap, Auto Totem, Helper, Elytra Helper | Исправлен баг со свапами в хотбаре"
+                "Auto Swap, Auto Totem, Helper, Elytra Helper | Исправлен баг со свапами в хотбаре",
+                "No Slow | Режим ReallyWorld"
         ));
 
         removeChangelogs.addAll(List.of(
                 "Middle Click —> Helper + Elytra Helper",
+                "Night Vision —> Fullbright | Режим Ночное зрение",
+                "No Slow | Grim —> No Slow | Old Grim",
                 "Disabler",
-                "Jesus",
                 "No Fall",
-                "Auto Potion"
+                "Auto Potion",
+                "Motion Blur",
+                "Break Indicators",
+                "Hit Bubbles",
+                "Chams",
+                "HUE",
+                "Fast Use",
+                "Strafe",
+                "Damage Boost",
+                "Freeze",
+                "Spider",
+                "Shaders, Hands | Режим Градиент"
         ));
 
         addChangelogs.sort(Comparator.comparingDouble(e -> -IFont.getWidth(IFont.Greycliff, e, 9)));

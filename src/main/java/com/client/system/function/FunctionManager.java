@@ -19,7 +19,6 @@ import com.client.impl.function.player.*;
 import com.client.impl.function.visual.*;
 import com.client.impl.function.visual.chinahat.ChinaHat;
 import com.client.impl.function.visual.esp.ESP;
-import com.client.impl.function.visual.hitbubbles.HitBubbles;
 import com.client.impl.function.visual.jumpcircle.JumpCircle;
 import com.client.impl.function.visual.particles.Particles;
 import com.client.impl.function.visual.storageesp.StorageESP;
@@ -88,7 +87,6 @@ public class FunctionManager {
             register(new AutoRespawn());
             register(new AutoTool());
             register(new ElytraHelper());
-            register(new FastUse());
             register(new GhostHand());
             register(new GodBridge());
             register(new NoDelay());
@@ -98,31 +96,26 @@ public class FunctionManager {
 
             // movement
             register(new Blink());
-            register(new DamageBoost());
             register(new ElytraBounce());
             register(new ElytraFly());
-            register(new Flight());
-            register(new Freeze());
+            register(new HighJump());
             register(new InvWalk());
+            register(new Jesus());
             register(new NoPush());
             register(new NoSlow());
             register(new SafeWalk());
             register(new Speed());
-            register(new Spider());
             register(new Sprint());
-            register(new Strafe());
+            register(new TeleportBack());
             register(new Timer());
             register(new Velocity());
-            register(new WaterSpeed());
 
             // visual
             register(new Ambience());
             register(new AntiVanish());
             register(new Arrows());
             register(new BlockOutline());
-            register(new BreakIndicators());
             register(new CameraTweaks());
-            register(new Chams());
             register(new ChinaHat());
             register(new Crosshair());
             register(new DamageTint());
@@ -132,13 +125,9 @@ public class FunctionManager {
             register(new Freecam());
             register(new Fullbright());
             register(new Hands());
-            register(new HitBubbles());
-            register(new Hue());
             register(new ItemPhysic());
             register(new JumpCircle());
             register(new KillEffect());
-            register(new MotionBlur());
-            register(new NightVision());
             register(new NoRender());
             register(new Particles());
             register(new Shaders());
@@ -166,7 +155,7 @@ public class FunctionManager {
             register(new GPS());
             register(new UnHook());
             register(new Optimization());
-            //register(new HelpItems());
+            register(new HelpItems());
             //register(new TestModule());
 
             // hud
@@ -174,6 +163,7 @@ public class FunctionManager {
             register(new CooldownsHud());
             register(new InfoHud());
             register(new KeybindsHud());
+            register(new KeyboardHud());
             register(new ModulesHud());
             register(new MusicHud());
             register(new PotionsHud());

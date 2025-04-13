@@ -98,8 +98,8 @@ public abstract class ChatHudMixin extends DrawableHelper implements IChatHud {
     @Override
     public void unHookClear() {
         clientCall = true;
-        visibleMessages.removeIf(e -> ((OrderedText) e.getText()).toString().toLowerCase().contains("bloody"));
-        messages.removeIf(e -> e.getText().getString().toLowerCase().contains("bloody"));
+        visibleMessages.clear();
+        messages.clear();
         clientCall = false;
     }
 

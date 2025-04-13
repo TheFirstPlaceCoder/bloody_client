@@ -9,8 +9,13 @@ import com.client.utils.game.chat.ChatUtils;
 import com.client.utils.misc.InputUtils;
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen;
 import net.minecraft.client.item.TooltipContext;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.PotionItem;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.potion.PotionUtil;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
@@ -78,6 +83,11 @@ public class HelpItems extends Function {
                     i++;
                 }
 
+                if (itemStack.getItem() instanceof PotionItem) {
+                    System.out.println("hasPotion: " + hasPotion(itemStack, StatusEffects.STRENGTH));
+                    System.out.println("getPotionLevel: " + getPotionLevel(itemStack, StatusEffects.STRENGTH));
+                }
+
                 System.out.println("Strings:");
                 int j = 0;
                 for (Text in : itemStack.getTooltip(mc.player, TooltipContext.Default.NORMAL)) {
@@ -89,6 +99,22 @@ public class HelpItems extends Function {
                 System.out.println("PRODAVEC: " + (author != null ? author : ""));
             }
         }
+    }
+
+    private boolean hasPotion(ItemStack itemStack, StatusEffect effect) {
+        return PotionUtil.getPotionEffects(itemStack).stream().anyMatch(e -> e.getEffectType().equals(effect));
+    }
+
+    private int getPotionLevel(ItemStack itemStack, StatusEffect effect) {
+        List<StatusEffectInstance> statusEffectInstances = PotionUtil.getPotionEffects(itemStack);
+
+        for (StatusEffectInstance effectInstance : statusEffectInstances) {
+            if (effectInstance.getEffectType().equals(effect)) {
+                return effectInstance.getAmplifier();
+            }
+        }
+
+        return 0;
     }
 
     @Nullable

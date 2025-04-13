@@ -6,6 +6,7 @@ import com.client.event.events.SendMovementPacketsEvent;
 import com.client.event.events.TickEvent;
 import com.client.impl.function.movement.speedmodes.SpeedMode;
 import com.client.impl.function.movement.speedmodes.grim.GrimCollide;
+import com.client.impl.function.movement.speedmodes.other.FunTimeSnow;
 import com.client.system.function.Category;
 import com.client.system.function.Function;
 import com.client.system.setting.settings.BooleanSetting;
@@ -17,7 +18,7 @@ import java.util.List;
 
 public class Speed extends Function {
     private final ListSetting mode = List().name("Режим").enName("Mode").list(
-            List.of("Grim")).defaultValue("Grim").callback(this::onChangeSpeedMode).build();
+            List.of("Grim", "FunTime Snow")).defaultValue("Grim").callback(this::onChangeSpeedMode).build();
 
     public final DoubleSetting expand = Double().name("Оффсет").enName("Box Offset").defaultValue(1.0).min(0).max(1).visible(() -> mode.get().equals("FunTime")).build();
     public final IntegerSetting speed = Integer().name("Скорость от игроков").enName("Speed From Players").defaultValue(7).min(0).max(15).visible(() -> mode.get().equals("FunTime")).build();
@@ -75,6 +76,7 @@ public class Speed extends Function {
 
         switch (name) {
             case "Grim": currentSpeedMode = new GrimCollide(); break;
+            case "FunTime Snow": currentSpeedMode = new FunTimeSnow(); break;
         }
 
         currentSpeedMode.onEnable();

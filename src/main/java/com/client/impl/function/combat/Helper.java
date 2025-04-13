@@ -19,15 +19,16 @@ import com.client.utils.Utils;
 import com.client.utils.game.inventory.FindItemResult;
 import com.client.utils.game.inventory.InvUtils;
 import com.client.utils.game.inventory.SlotUtils;
+import com.client.utils.game.rotate.Rotations;
+import com.client.utils.math.vector.floats.V2F;
 import com.client.utils.misc.InputUtils;
 import com.client.utils.misc.TaskTransfer;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
+import net.minecraft.network.packet.c2s.play.*;
+import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
 import net.minecraft.network.packet.s2c.play.UpdateSelectedSlotS2CPacket;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
@@ -56,6 +57,7 @@ public class Helper extends Function {
     private final KeybindSetting hw_stan = Keybind().name("Стан").defaultValue(-1).visible(() -> mode.get().equals("HolyWorld")).build();
     private final KeybindSetting hw_prochalniy_gul = Keybind().name("Прощальный гул").defaultValue(-1).visible(() -> mode.get().equals("HolyWorld")).build();
     private final KeybindSetting hw_blazerod = Keybind().name("Взрывная палочка").defaultValue(-1).visible(() -> mode.get().equals("HolyWorld")).build();
+    private final BooleanSetting autoEquip = Boolean().name("Забирать лут с мобов").defaultValue(true).visible(() -> mode.get().equals("HolyWorld")).build();
 
     private final KeybindSetting ft_trapka = Keybind().name("Трапка").defaultValue(-1).visible(() -> mode.get().equals("FunTime")).build();
     private final KeybindSetting ft_disorent = Keybind().name("Дезориентация").defaultValue(-1).visible(() -> mode.get().equals("FunTime")).build();
@@ -85,6 +87,24 @@ public class Helper extends Function {
         if (shouldSwap) {
             mc.player.inventory.selectedSlot = prev;
             shouldSwap = false;
+        }
+
+        if (mode.get().equals("HolyWorld") && autoEquip.get()) {
+            for (Entity entity : mc.world.getEntities()) {
+                boolean haveLoot = false;
+                for (ItemStack stack : entity.getItemsEquipped()) {
+                    if (stack.getItem() == Items.EXPERIENCE_BOTTLE || stack.getItem() == Items.TRIPWIRE_HOOK) {
+                        haveLoot = true;
+                        break;
+                    }
+                }
+                if (haveLoot && mc.player.distanceTo(entity) <= mc.interactionManager.getReachDistance()) {
+                    V2F rotation = new V2F((float) Rotations.getYaw(entity.getPos().add(0, entity.getHeight() * 0.75, 0)), (float) Rotations.getPitch(entity.getPos().add(0, entity.getHeight() * 0.75, 0)));
+                    mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookOnly(rotation.a, rotation.b, mc.player.isOnGround()));
+                    mc.player.networkHandler.sendPacket(new PlayerInteractEntityC2SPacket(entity, Hand.MAIN_HAND, mc.player.isSneaking()));
+                    mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.LookOnly(mc.player.yaw, mc.player.pitch, mc.player.isOnGround()));
+                }
+            }
         }
     }
 

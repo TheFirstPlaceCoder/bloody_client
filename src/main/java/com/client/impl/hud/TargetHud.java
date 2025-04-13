@@ -5,12 +5,15 @@ import com.client.impl.function.misc.NameProtect;
 import com.client.system.function.FunctionManager;
 import com.client.system.hud.HudFunction;
 import com.client.utils.color.ColorUtils;
+import com.client.utils.color.Colors;
 import com.client.utils.game.entity.PlayerUtils;
 import com.client.utils.math.MathUtils;
 import com.client.utils.math.animation.Animation;
+import com.client.utils.math.animation.AnimationUtils;
 import com.client.utils.math.animation.Direction;
 import com.client.utils.math.animation.impl.EaseBackIn;
 import com.client.utils.math.rect.FloatRect;
+import com.client.utils.render.wisetree.font.api.FontRenderer;
 import com.client.utils.render.wisetree.font.main.IFont;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
 import com.client.utils.render.wisetree.render.render2d.utils.PlayerHeadTexture;
@@ -18,15 +21,19 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.util.math.MathHelper;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.lwjgl.opengl.GL11.*;
+
 public class TargetHud extends HudFunction {
     public TargetHud() {
-        super(new FloatRect(208, 23, 100, 35), "Target-Hud");
+        super(new FloatRect(208, 23, 100, 30), "Target-Hud");
     }
 
     private final List<TargetHudParticle> particles = new ArrayList<>();
@@ -117,28 +124,86 @@ public class TargetHud extends HudFunction {
             particle.draw();
         }
 
+        List<ItemStack> stacks = getArmor();
+
+        RenderSystem.pushMatrix();
+        RenderSystem.scalef(0.8f, 0.8f, 1f);
+
+        float scale = 0.8f;
+        for (int i = 0; i < stacks.size(); i++) {
+            ItemStack stack = stacks.get(i);
+            double x = i * 12.8;
+            mc.getItemRenderer().renderInGui(stack, (int)((rect.getX2().intValue() - 3 - 12.8 - x) / scale), (int)((rect.getY().intValue() - 13) / scale));
+            mc.getItemRenderer().renderGuiItemOverlay(mc.textRenderer, stack, (int)((rect.getX2().intValue() - 3 - 12.8 - x) / scale), (int)((rect.getY().intValue() - 13) / scale));
+        }
+
+        RenderSystem.popMatrix();
+
+
         drawNewClientRect(rect);
 
         RenderSystem.color4f(1f, 1f, 1f, a);
-        GL.drawRoundedTexture(PlayerHeadTexture.resolve(target.getUuid()), rect.getX().doubleValue() + 2d + pulse, rect.getY().doubleValue() + 2f + pulse, 31f - pulse * 2, 31f - pulse * 2, 6f);
+        GL.drawRoundedTexture(PlayerHeadTexture.resolve(target.getUuid()), rect.getX().doubleValue() + 3 + pulse, rect.getY().doubleValue() + 3 + pulse, 24f - pulse * 2, 24f - pulse * 2, 6f);
         RenderSystem.color4f(1f, 1f, 1f, 1f);
-        GL.drawRoundedRect(rect.getX() + 2 + pulse, rect.getY() + 2f + pulse, 31f - pulse * 2f, 31f - pulse * 2, 4, inject(ColorUtils.injectAlpha(Color.RED, MathHelper.clamp(alpha, 0, 255)), a));
+        GL.drawRoundedRect(rect.getX() + 3 + pulse, rect.getY() + 3 + pulse, 24f - pulse * 2f, 24f - pulse * 2, 4, inject(ColorUtils.injectAlpha(Color.RED, MathHelper.clamp(alpha, 0, 255)), a));
 
-        String name = replaceString(nameProtect.replace(target.getEntityName()), rect.getW() - 40);
-        IFont.draw(IFont.COMFORTAAB, name, rect.getX() + 37, rect.getY() + 3, inject(Color.WHITE, a), 9);
+        String name = nameProtect.replace(target.getEntityName());
 
-        String healthString = "HP: " + Math.round(getWidth(100F, PlayerUtils.getHealth(target)) * 100.0) / 100.0 + "%";
-        IFont.draw(IFont.MONTSERRAT_MEDIUM, healthString, rect.getX() + 37, rect.getY() + 3 + IFont.getHeight(IFont.COMFORTAAB, name, 9), inject(Color.WHITE, a), 6);
+        IFont.draw(IFont.COMFORTAAB, "Name:", rect.getX() + 31, rect.getY() + 6, inject(Color.WHITE, a), 7);
 
-        healthBarWidth = getWidth(59, PlayerUtils.getHealth(target));
-                //AnimationUtils.fast(healthBarWidth, getWidth(59, PlayerUtils.getHealth(target)));
+        FontRenderer.color(true);
+        IFont.draw(IFont.MONTSERRAT_BOLD, name, rect.getX() + 31 + IFont.getWidth(IFont.COMFORTAAB, "Name: ", 7), rect.getY() + 6, inject(Color.WHITE, a), 7);
+        FontRenderer.color(false);
+
+        healthBarWidth =
+                //AnimationUtils.fast(healthBarWidth,
+                getWidth(this.rect.getW() - 40 - IFont.getWidth(IFont.MONTSERRAT_BOLD, "99.9", 7), PlayerUtils.getHealth(target));
+        //);
+        //AnimationUtils.fast(healthBarWidth, getWidth(59, PlayerUtils.getHealth(target)));
         //ChatUtils.info("width: " + healthBarWidth);
-        double y_pos = rect.getY() + 3 + IFont.getHeight(IFont.COMFORTAAB, name, 9) + IFont.getHeight(IFont.MONTSERRAT_MEDIUM, healthString, 6);
+        double y_pos = rect.getY() + 8 + IFont.getHeight(IFont.COMFORTAAB, name, 7);
 
-        GL.drawRoundedRect(new FloatRect(rect.getX() + 37, y_pos + 2f, 59, 7), 3, ColorUtils.injectAlpha(Color.LIGHT_GRAY, (int) (45 * a)));
-        GL.drawRoundedRect(new FloatRect(rect.getX() + 37, y_pos + 2f, (float) Math.max(healthBarWidth, 5D), 7), 3, inject(getBarColor(target), a));
+        if (targetHud.barMode.get().equals("Клиентский")) {
+            if (!targetHud.blur.get()) {
+                GL.drawRoundedRect(new FloatRect(rect.getX() + 31, y_pos + 2f, this.rect.getW() - 40 - IFont.getWidth(IFont.MONTSERRAT_BOLD, "99.9", 7), 4), 1.5, ColorUtils.injectAlpha(Color.LIGHT_GRAY, (int) (45 * a)));
+                GL.drawRoundedGradientRect(new FloatRect(rect.getX() + 31, y_pos + 2f, (float) Math.max(healthBarWidth, 5D), 4), 1.5, ColorUtils.injectAlpha(Colors.getColor(0), (int) (255)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (255)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (255)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (255)));
+            } else GL.drawRoundedGlowRect(new FloatRect(rect.getX() + 31, y_pos + 2f, (float) Math.max(healthBarWidth, 5D), 4), 1.5,0, ColorUtils.injectAlpha(Colors.getColor(0), (int) (255)), ColorUtils.injectAlpha(Colors.getColor(90), (int) (255)), ColorUtils.injectAlpha(Colors.getColor(270), (int) (255)), ColorUtils.injectAlpha(Colors.getColor(180), (int) (255)));
+        }
+        else {
+            if (!targetHud.blur.get()) {
+                GL.drawRoundedRect(new FloatRect(rect.getX() + 31, y_pos + 2f, this.rect.getW() - 40 - IFont.getWidth(IFont.MONTSERRAT_BOLD, "99.9", 7), 4), 1.5, ColorUtils.injectAlpha(Color.LIGHT_GRAY, (int) (45 * a)));
+                GL.drawRoundedRect(new FloatRect(rect.getX() + 31, y_pos + 2f, (float) Math.max(healthBarWidth, 5D), 4), 1.5, inject(getBarColor(target), a));
+            } else GL.drawRoundedGlowRect(new FloatRect(rect.getX() + 31, y_pos + 2f, (float) Math.max(healthBarWidth, 5D), 4), 1.5, 0, inject(getBarColor(target), a));
+        }
+
+        FontRenderer.color(true);
+        IFont.drawCenteredY(IFont.MONTSERRAT_BOLD, (PlayerUtils.getHealth(target) > 40 ? "20.0" : String.format("%.1f",  PlayerUtils.getHealth(target))).replace(",", "."), rect.getX() + 31 + (this.rect.getW() - 40 - IFont.getWidth(IFont.MONTSERRAT_BOLD, "99.9", 6)) + 1, (float) (y_pos + 4), inject(Color.WHITE, a), 7);
+        FontRenderer.color(false);
+
+        float width = 3 + 24 + 6 + IFont.getWidth(IFont.COMFORTAAB, "Name: ", 7) + IFont.getWidth(IFont.MONTSERRAT_BOLD, name, 7) + 3;
+        this.rect.setW(AnimationUtils.fast(this.rect.getW(), width));
 
         endScale();
+    }
+
+    private List<ItemStack> getArmor() {
+        List<ItemStack> itemStacks = new ArrayList<>();
+        boolean empty = true;
+        for (int i = 0; i < 4; i++) {
+            ItemStack stack = target.inventory.getArmorStack(i);
+            itemStacks.add(stack);
+            if (!stack.isEmpty()) {
+                empty = false;
+            }
+        }
+        if (mc.currentScreen instanceof ChatScreen && empty) {
+            itemStacks.clear();
+            itemStacks.add(Items.NETHERITE_BOOTS.getDefaultStack());
+            itemStacks.add(Items.NETHERITE_LEGGINGS.getDefaultStack());
+            itemStacks.add(Items.NETHERITE_CHESTPLATE.getDefaultStack());
+            itemStacks.add(Items.NETHERITE_HELMET.getDefaultStack());
+        }
+        return itemStacks;
     }
 
     public Color getBarColor(PlayerEntity target) {
@@ -149,25 +214,6 @@ public class TargetHud extends HudFunction {
         int green = (int) Math.abs(progress * (double) (color1.getGreen()) + (1.0 - progress) * (double) (color2.getGreen()));
         int blue = (int) Math.abs(progress * (double) (color1.getBlue()) + (1.0 - progress) * (double) (color2.getBlue()));
         return new Color(MathHelper.clamp(red, 0, 255), MathHelper.clamp(green, 0, 255), MathHelper.clamp(blue, 0, 255), 255);
-    }
-
-    private String replaceString(String in, double w) {
-        StringBuilder f = new StringBuilder();
-        double t = 0.0d;
-
-        w -= IFont.getWidth(IFont.COMFORTAAB, "...", 9);
-
-        for (char c : in.toCharArray()) {
-            String s = "" + c;
-            t += IFont.getWidth(IFont.COMFORTAAB, s, 9);
-            if (t >= w) {
-                f.append("...");
-                break;
-            }
-            f.append(s);
-        }
-
-        return f.toString();
     }
 
     private float getWidth(float max, float health) {

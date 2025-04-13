@@ -1,11 +1,9 @@
 package mixin;
 
 import com.client.impl.function.combat.aura.rotate.RotationHandler;
-import com.client.impl.function.visual.Chams;
 import com.client.system.function.Function;
 import com.client.system.function.FunctionManager;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
@@ -17,10 +15,9 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.*;
-import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
-
-import java.awt.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 import static com.client.BloodyClient.mc;
 
@@ -63,30 +60,11 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
         return oldValue;
     }
 
-    @Unique private Chams module;
     @Unique private Function function;
-
-    @SuppressWarnings("UnresolvedMixinReference")
-    @ModifyArgs(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/EntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;IIFFFF)V"))
-    private void modifyColor(Args args, T livingEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i) {
-        if (module == null) module = FunctionManager.get(Chams.class);
-        if (!module.isEnabled() || !module.shouldDraw(livingEntity)) return;
-
-        Color color = module.getEntityColor(livingEntity);
-        args.set(4, color.getRed() / 255f);
-        args.set(5, color.getGreen() / 255f);
-        args.set(6, color.getBlue() / 255f);
-        args.set(7, color.getAlpha() / 255f);
-    }
 
     @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/LivingEntityRenderer;getRenderLayer(Lnet/minecraft/entity/LivingEntity;ZZZ)Lnet/minecraft/client/render/RenderLayer;"))
     private RenderLayer getRenderLayer(LivingEntityRenderer<T, M> livingEntityRenderer, T livingEntity, boolean showBody, boolean translucent, boolean showOutline) {
-        if (module == null)  module = FunctionManager.get(Chams.class);
         if (function == null) function = FunctionManager.get("Anti Vanish");
-
-        if (!module.isEnabled() || !module.shouldDraw(livingEntity))
-            return getRenderLayer(livingEntity, function.isEnabled() || !livingEntity.isInvisible(), function.isEnabled() || !livingEntity.isInvisible(), function.isEnabled() || !livingEntity.isInvisible());
-
-        return getRenderLayer(livingEntity, ((function.isEnabled() || module.filter.get(3)) || !livingEntity.isInvisible()), ((function.isEnabled() || module.filter.get(3)) || !livingEntity.isInvisible()), ((function.isEnabled() || module.filter.get(3)) || !livingEntity.isInvisible()));
+        return getRenderLayer(livingEntity, function.isEnabled() || !livingEntity.isInvisible(), function.isEnabled() || !livingEntity.isInvisible(), function.isEnabled() || !livingEntity.isInvisible());
     }
 }

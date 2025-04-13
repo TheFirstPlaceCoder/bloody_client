@@ -80,7 +80,7 @@ public abstract class Function {
 
                 if (!FunctionManager.get(Notifications.class).mode.get().equals("Уведомление"))
                     if (Utils.isRussianLanguage) ChatUtils.sendMsg(this.hashCode(), Formatting.GRAY, Formatting.WHITE + "Модуль (highlight)%s(default) %s(default).", name, isEnabled() ? Formatting.GREEN + "включен" : Formatting.RED + "выключен");
-                    else ChatUtils.sendMsg(this.hashCode(), Formatting.GRAY, "(highlight)%s(default) %s(default).", name, "toggled " + (isEnabled() ? Formatting.GREEN + "включен" : Formatting.RED + "выключен"));
+                    else ChatUtils.sendMsg(this.hashCode(), Formatting.GRAY, "(highlight)%s(default) %s(default).", name, "toggled " + (isEnabled() ? Formatting.GREEN + "on" : Formatting.RED + "off"));
             }
 
             if (FunctionManager.get(ClickGui.class).clientSound.get()) {

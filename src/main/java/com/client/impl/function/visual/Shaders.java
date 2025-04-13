@@ -34,15 +34,11 @@ public class Shaders extends Function {
         super("Shaders", Category.VISUAL);
     }
 
-    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Нормальный", "Градиент")).defaultValue("Нормальный").build();
-    public final BooleanSetting glowMode = Boolean().name("Режим свечения").enName("Glow Mode").defaultValue(false).build();
+    public final BooleanSetting brightOutline = Boolean().name("Яркая обводка вокруг").enName("Bright Outline").defaultValue(false).build();
     public final BooleanSetting lighting = Boolean().name("Мигание").enName("Lighting").defaultValue(false).build();
     public final IntegerSetting lineWidth = Integer().name("Ширина обводки").enName("Outline Width").defaultValue(5).min(1).max(10).build();
-    public final IntegerSetting glowPower = Integer().name("Сила").enName("Glow Power").defaultValue(4).min(1).max(10).visible(glowMode::get).build();
+    public final IntegerSetting glowPower = Integer().name("Сила").enName("Glow Power").defaultValue(4).min(1).max(10).build();
     public final DoubleSetting fadeDistance = Double().name("Дистанция убывания").enName("Fade Distance").defaultValue(2.0).min(0).max(12).build();
-
-    public final IntegerSetting fillOpacity = Integer().name("Непрозрачность").enName("Opacity").defaultValue(60).min(0).max(100).visible(() -> mode.get().equals("Градиент")).build();
-    public final DoubleSetting speed = Double().name("Скорость переливания").enName("Gradient Speed").defaultValue(5.0).min(0).max(10).visible(() -> mode.get().equals("Градиент")).build();
 
     public final MultiBooleanSetting filter = MultiBoolean().name("Отображать").enName("Draw at").defaultValue(List.of(
             new MultiBooleanValue(true, "Игроков"),
@@ -52,19 +48,11 @@ public class Shaders extends Function {
             new MultiBooleanValue(false, "Предметы")
     )).build();
 
-    public final ColorSetting colorSetting = Color().name("Цвет игроков").enName("Players Color").defaultValue(Color.CYAN).visible(() -> !mode.get().equals("Градиент")).build();
-    public final ColorSetting colorSettingItems = Color().name("Цвет предметов").enName("Items Color").defaultValue(new Color(155, 0, 255)).visible(() -> filter.get(4) && !mode.get().equals("Градиент")).build();
+    public final ColorSetting colorSetting = Color().name("Цвет игроков").enName("Players Color").defaultValue(Color.CYAN).build();
+    public final ColorSetting colorSettingItems = Color().name("Цвет предметов").enName("Items Color").defaultValue(new Color(155, 0, 255)).visible(() -> filter.get(4)).build();
 
     public boolean shouldDraw(Entity entity) {
         return getColore(entity) != null;
-    }
-
-    public int getGlow() {
-        return glowMode.get() ? 1 : 0;
-    }
-
-    public int getIndexOfMode() {
-        return mode.get().equals("Нормальный") ? 0 : 1;
     }
 
     public Color getColore(Entity entity) {
@@ -91,30 +79,27 @@ public class Shaders extends Function {
     public int getAlpha(float alphaVal) {
         int period = 3 * 1000;
         long currentTime = System.currentTimeMillis();
-        double timeInCycle = (currentTime % period); // Time within the current cycle
-        double halfPeriod = period / 2.0; // Half the period (fade-in or fade-out duration)
+        double timeInCycle = (currentTime % period);
+        double halfPeriod = period / 2.0;
 
-        double alphaNormalized; // Normalized alpha value (0.0 to 1.0)
+        double alphaNormalized;
 
         if (timeInCycle < halfPeriod) {
-            // Fade-in (0 to 1)
             alphaNormalized = timeInCycle / halfPeriod;
         } else {
-            // Fade-out (1 to 0)
             alphaNormalized = 1.0 - ((timeInCycle - halfPeriod) / halfPeriod);
         }
 
-        // Scale to the 0-255 range:
         return (int) (alphaNormalized * alphaVal);
     }
 
     public Color getColor(Entity entity) {
-        if (entity instanceof ItemEntity) return (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : colorSettingItems.get());
-        if (entity instanceof DumboOctopusEntity) return (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : colorSetting.get());
+        if (entity instanceof ItemEntity) return colorSettingItems.get();
+        if (entity instanceof DumboOctopusEntity) return colorSetting.get();
 
-        if (FriendManager.isFriend(entity)) return ((PlayerEntity) entity).hurtTime != 0 ? ColorUtils.injectAlpha(getColorHurt((PlayerEntity) entity, FriendManager.getFriendsColor()), (mode.get().equals("Градиент") ? (int) (fillOpacity.get() * 2.55f) : colorSetting.get().getAlpha())) : (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : ColorUtils.injectAlpha(FriendManager.getFriendsColor(), colorSetting.get().getAlpha()));
+        if (FriendManager.isFriend(entity)) return ((PlayerEntity) entity).hurtTime != 0 ? ColorUtils.injectAlpha(getColorHurt((PlayerEntity) entity, FriendManager.getFriendsColor()), colorSetting.get().getAlpha()) : ColorUtils.injectAlpha(FriendManager.getFriendsColor(), colorSetting.get().getAlpha());
 
-        return ((PlayerEntity) entity).hurtTime != 0 ? ColorUtils.injectAlpha(getColorHurt((PlayerEntity) entity, colorSetting.get()), (mode.get().equals("Градиент") ? (int) (fillOpacity.get() * 2.55f) : colorSetting.get().getAlpha())) : (mode.get().equals("Градиент") ? ColorUtils.injectAlpha(Color.WHITE, (int) (fillOpacity.get() * 2.55f)) : colorSetting.get());
+        return ((PlayerEntity) entity).hurtTime != 0 ? ColorUtils.injectAlpha(getColorHurt((PlayerEntity) entity, colorSetting.get()), colorSetting.get().getAlpha()) : colorSetting.get();
     }
 
     public Color getColorHurt(PlayerEntity player, Color color) {
@@ -166,10 +151,5 @@ public class Shaders extends Function {
         if (entity instanceof DumboOctopusEntity) return FunctionManager.get(Companion.class).isEnabled() && FunctionManager.get(Companion.class).glow.get();
 
         return entity instanceof ItemEntity && filter.get(4);
-    }
-
-    @Override
-    public String getHudPrefix() {
-        return mode.get();
     }
 }

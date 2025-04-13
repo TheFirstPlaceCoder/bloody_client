@@ -2,6 +2,7 @@ package mixin.screens;
 
 import com.client.system.textures.DownloadImage;
 import com.client.utils.Utils;
+import com.client.utils.auth.Loader;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
 import com.client.utils.render.wisetree.render.render2d.utils.shader.shaders.BlurShader;
@@ -56,6 +57,9 @@ public abstract class EntryListWidgetMixin<E extends net.minecraft.client.gui.wi
     protected abstract void renderList(MatrixStack matrices, int x, int y, int mouseX, int mouseY, float delta);
 
     @Shadow
+    protected abstract void renderBackground(MatrixStack matrices);
+
+    @Shadow
     protected abstract int getScrollbarPositionX();
 
     @Shadow
@@ -77,11 +81,12 @@ public abstract class EntryListWidgetMixin<E extends net.minecraft.client.gui.wi
      */
     @Overwrite
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        //this.renderBackground(matrices);
+        if (Loader.unHook) this.renderBackground(matrices);
         int i = this.getScrollbarPositionX();
         int j = i + 6;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferBuilder = tessellator.getBuffer();
+        if (!Loader.unHook)
         Utils.rescaling(() -> {
             GL.prepare();
             GL.drawRoundedTexture(DownloadImage.getGlId(DownloadImage.DEFAULT_MENU), 0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight(), 0);

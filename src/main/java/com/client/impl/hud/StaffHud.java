@@ -8,7 +8,10 @@ import com.client.system.hud.HudManager;
 import com.client.system.textures.DownloadImage;
 import com.client.utils.color.ColorUtils;
 import com.client.utils.math.Pair;
+import com.client.utils.math.animation.Animation;
 import com.client.utils.math.animation.AnimationUtils;
+import com.client.utils.math.animation.Direction;
+import com.client.utils.math.animation.impl.EaseBackIn;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.render.DrawMode;
 import com.client.utils.render.ItemsColor;
@@ -18,6 +21,7 @@ import com.client.utils.render.wisetree.render.render2d.main.GL;
 import com.client.utils.render.wisetree.render.render2d.main.TextureGL;
 import com.client.utils.render.wisetree.render.render2d.utils.PlayerHeadTexture;
 import com.client.utils.render.wisetree.render.render2d.utils.ScissorUtils;
+import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
@@ -62,25 +66,41 @@ public class StaffHud extends HudFunction {
     }};
 
     public FloatRect staffRect = new FloatRect();
+    private final Animation animation = new EaseBackIn(400, 1, 1);
+    private double sc;
+    private List<Pair<Pair<String, String>, Pair<PlayerListEntry, Color>>> staffList = new ArrayList<>();
 
     @Override
-    public void draw(float alpha) {
+    public void tick() {
         staffRect.setX(rect.getX());
         staffRect.setW(rect.getW());
         staffRect.setY(rect.getY() + 20);
 
-        List<Pair<Pair<String, String>, Pair<PlayerListEntry, Color>>> staffList = getStaffList();
+        staffList = getStaffList();
 
         staffRect.setH(AnimationUtils.fast(staffRect.getH(), staffList.isEmpty() ? 0 : staffList.size() * 12 + 2));
+
+        if (staffRect.getH() < 2 && staffList.isEmpty()) staffRect.setH(0f);
+
         rect.setH(16 + staffRect.getH() + 2);
+        animation.setDirection(staffList.isEmpty() && !(mc.currentScreen instanceof ChatScreen) ? Direction.BACKWARDS : Direction.FORWARDS);
+
+        sc = animation.getOutput();
+    }
+
+    @Override
+    public void draw(float alpha) {
+        if (sc <= 0.0f) return;
+
+        startScale(sc);
 
         drawNewClientRect(new FloatRect(rect.getX(), rect.getY(), rect.getW(), 16));
 
-        postTask.add(() -> {
-            HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
-            HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.STAFF), new TextureGL.TextureRegion(rect.getX() + 1, rect.getY(), 16, 16), Color.WHITE);
-            HudManager.MB.end();
-        });
+        GL11.glPushMatrix();
+        GL11.glScalef(1f, 1f, 1f);
+        GL11.glTranslatef(rect.getX() + 1, rect.getY(), 0);
+        GL.drawRoundedTexture(DownloadImage.getGlId(DownloadImage.STAFF), 0, 0, 16, 16, 0);
+        GL11.glPopMatrix();
 
         IFont.drawCenteredXY(IFont.MONTSERRAT_BOLD, "Staff Statistic", rect.getCenteredX(), rect.getY() + 8, Color.WHITE, 9);
 
@@ -117,6 +137,8 @@ public class StaffHud extends HudFunction {
         }
         rect.setW(AnimationUtils.fast(rect.getW().floatValue(), (float) w));
         ScissorUtils.disableScissor();
+
+        endScale();
     }
 
     public static List<Pair<Pair<String, String>, Pair<PlayerListEntry, Color>>> getStaffList() {

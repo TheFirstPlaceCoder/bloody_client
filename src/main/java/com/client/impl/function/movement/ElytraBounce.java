@@ -6,6 +6,8 @@ import com.client.system.function.Function;
 import com.client.system.notification.Notification;
 import com.client.system.notification.NotificationManager;
 import com.client.system.notification.NotificationType;
+import com.client.system.setting.settings.BooleanSetting;
+import com.client.system.setting.settings.IntegerSetting;
 import com.client.system.setting.settings.ListSetting;
 import mixin.accessor.LivingEntityAccessor;
 import net.minecraft.client.util.InputUtil;
@@ -19,6 +21,9 @@ import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import java.util.List;
 
 public class ElytraBounce extends Function {
+    private final BooleanSetting setPitch = Boolean().name("Статичный питч").enName("Set Pitch").defaultValue(true).build();
+    private final IntegerSetting pitch = Integer().name("Питч").enName("Pitch").defaultValue(20).min(0).max(90).visible(setPitch::get).build();
+
     public ElytraBounce() {
         super("Elytra Bounce", Category.MOVEMENT);
     }
@@ -42,6 +47,8 @@ public class ElytraBounce extends Function {
 
     @Override
     public void tick(TickEvent.Pre event) {
+        if (setPitch.get()) mc.player.pitch = pitch.get();
+
         mc.options.keyJump.setPressed(true);
         mc.options.keyForward.setPressed(true);
 

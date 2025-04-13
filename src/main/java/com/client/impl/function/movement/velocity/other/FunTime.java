@@ -36,7 +36,7 @@ public class FunTime extends VelocityMode {
                     afterSetback = false;
                 }
             }
-        } else if (e.packet instanceof PlayerPositionLookS2CPacket) {
+        } else if (e.packet instanceof PlayerPositionLookS2CPacket && !setBack) {
             NotificationManager.add(new Notification(NotificationType.CLIENT, "Вас сетбекнуло! Велосити на время не работает!", 3000L), NotificationManager.NotifType.Warning);
             setBack = true;
             msTimer.reset();

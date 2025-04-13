@@ -15,7 +15,6 @@ import com.client.utils.optimization.EntityCullingBase;
 import com.client.utils.optimization.interfaces.Cullable;
 import com.client.utils.optimization.interfaces.EntityRendererInter;
 import com.client.utils.render.Outlines;
-import com.client.utils.render.OutlinesCompanion;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.client.gl.Framebuffer;
@@ -51,7 +50,6 @@ public abstract class WorldRendererMixin {
     @Shadow @Nullable private Framebuffer entityOutlinesFramebuffer;
     @Shadow private ClientWorld world;
 
-    @Unique private float time = 0;
     @Unique private final Shaders shaders = FunctionManager.get(Shaders.class);
 
     @Final
@@ -142,14 +140,10 @@ public abstract class WorldRendererMixin {
             Framebuffer prevBuffer = this.entityOutlinesFramebuffer;
             this.entityOutlinesFramebuffer = Outlines.outlinesFbo;
 
-            Outlines.setUniform("resolution", (float) mc.getWindow().getScaledWidth(), (float) mc.getWindow().getScaledHeight());
             Outlines.setUniform("radius", shaders.lineWidth.get().floatValue());
             Outlines.setUniform("fillOpacity", (shaders.getColor(entity).getAlpha() / 255F));
-            Outlines.setUniform("time", time);
-            Outlines.setUniform("renderMode", shaders.getIndexOfMode());
-            Outlines.setUniform("glowMode", shaders.getGlow());
+            Outlines.setUniform("brightOutline", (shaders.brightOutline.get() ? 1 : 0));
             Outlines.setUniform("power", shaders.glowPower.get() / 10f);
-            time += (shaders.speed.floatValue() / 1000);
 
             Outlines.vertexConsumerProvider.setColor(c0.getRed(), c0.getGreen(), c0.getBlue(), c0.getAlpha());
             renderEntity(entity, cameraX, cameraY, cameraZ, tickDelta, matrices, Outlines.vertexConsumerProvider);

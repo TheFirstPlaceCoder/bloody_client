@@ -18,26 +18,21 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
+import net.minecraft.world.Heightmap;
 
 import java.awt.*;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FireFly extends Function {
-    public final ListSetting type = List().name("Партиклы").enName("Particles").list(List.of(
-            "Звездочки",
-            "Сердечки",
-            "Снежинки",
-            "Треугольники",
-            "Кружки"
-    )).defaultValue("Звездочки").build();
-
-    private final ListSetting mode = List().name("Режим").enName("Mode").list(List.of("Кометы", "Дождь")).defaultValue("Кометы").build();
     public final IntegerSetting count = Integer().name("Количество").enName("Count").defaultValue(6).min(1).max(20).build();
-    public final IntegerSetting speed = Integer().name("Скорость").enName("Speed").defaultValue(4).min(1).max(20).build();
-    public final ListSetting scaleMode = List().name("Режим размера").enName("Scale Mode").list(List.of("Случайный", "Статичный")).defaultValue("Случайный").build();
-    public final DoubleSetting particleScale = Double().name("Размер").enName("Scale").defaultValue(1.0).min(0).max(1).c(2).visible(() -> scaleMode.get().equals("Статичный")).build();
-    public final BooleanSetting workInMenu = Boolean().name("Работать в меню").enName("Work in menu").defaultValue(true).build();
+    public final DoubleSetting speed = Double().name("Скорость").enName("Speed").defaultValue(1.0).min(0).max(5).c(1).build();
+    public final IntegerSetting range = Integer().name("Дистанция").enName("Range").defaultValue(16).min(4).max(64).build();
+    public final DoubleSetting particleScale = Double().name("Размер").enName("Scale").defaultValue(1.0).min(0).max(1).c(1).build();
+    public final IntegerSetting lifeTime = Integer().name("Время жизни").enName("Life Time").defaultValue(3500).min(1500).max(5000).build();
+    public final BooleanSetting ground = Boolean().name("Появляться на земле").enName("Ground Spawn").defaultValue(true).build();
+    public final BooleanSetting physic = Boolean().name("Отталкиваться от земли").enName("Pushing From Ground").defaultValue(true).build();
+
     public final ListSetting colorMode = List().name("Режим цвета").enName("Color Mode").list(List.of("Клиентский", "Статичный")).defaultValue("Клиентский").build();
     public final ColorSetting colorSetting = Color().name("Цвет").enName("Color").defaultValue(Color.CYAN).visible(() -> colorMode.get().equals("Статичный")).build();
 
@@ -46,35 +41,17 @@ public class FireFly extends Function {
     }
 
     private static final CopyOnWriteArrayList<ParticleBase> particles = new CopyOnWriteArrayList<>();
-    private float dynamicSpeed = 0.1f;
 
     @Override
     public void tick(TickEvent.Pre e) {
-        dynamicSpeed = mode.get().equals("Дождь") ? 0.1f : speed.get() / 10f;
-
-        particles.removeIf(ParticleBase::tick);
-
-        int particlesToCreate = (int) ((count.get() * 50) - particles.size());
-        if (particlesToCreate > 0) {
-            for (int n = 0; n < particlesToCreate; ++n) {
-                if (!workInMenu.get() && mc.currentScreen instanceof GameMenuScreen) return;
-
-                float spawnX = (float) (mc.cameraEntity.getX() + Utils.random(-48.0F, 48.0F));
-                float spawnY = (float) (mc.cameraEntity.getY() + Utils.random(-20.0F, 48.0F));
-                float spawnZ = (float) (mc.cameraEntity.getZ() + Utils.random(-48.0F, 48.0F));
-
-                float motionX = Utils.random(-dynamicSpeed, dynamicSpeed);
-                float motionY = Utils.random(-0.1F, 0.1F);
-                float motionZ = Utils.random(-dynamicSpeed, dynamicSpeed);
-
-                int startAge = (int) Utils.random(0, 100);
-
-                particles.add(new ParticleBase(spawnX, spawnY, spawnZ, motionX, motionY, motionZ, startAge));
-            }
+        float range = this.range.get();
+        for (int i = 0; i < count.get(); i++) {
+            Vec3d additional = mc.player.getPos().add(Utils.random(-range, range), 0, Utils.random(-range, range));
+            BlockPos pos = mc.world.getTopPosition(Heightmap.Type.MOTION_BLOCKING, new BlockPos(additional));
+            particles.add(new ParticleBase(new Vec3d(pos.getX() + Utils.random(0f, 1f), ground.get() ? pos.getY() : mc.player.getY() + Utils.random(mc.player.getHeight(), range), pos.getZ() + Utils.random(0f, 1f)), new Vec3d(0, Utils.random(0.0, speed.get()) * (ground.get() ? 1 : -1), 0), (int) Utils.random(0, 100)));
         }
 
-
-        particles.removeIf(particleBase -> System.currentTimeMillis() - particleBase.time > 5000);
+        particles.removeIf(particleBase -> System.currentTimeMillis() - particleBase.time > lifeTime.get());
     }
 
     @Override
@@ -84,116 +61,56 @@ public class FireFly extends Function {
 
     public class ParticleBase {
         public long time;
-        protected float prevposX, prevposY, prevposZ;
-        protected float posX, posY, posZ;
-        protected float motionX, motionY, motionZ;
+        private Vec3d position;
+        private Vec3d velocity;
         protected int age, maxAge;
         private float alpha, scale;
-        private long collisionTime = -1L;
         private Color staticColor;
 
-        public ParticleBase(float x, float y, float z, float motionX, float motionY, float motionZ, int startAge) {
-            this.posX = x;
-            this.posY = y;
-            this.posZ = z;
-            this.prevposX = x;
-            this.prevposY = y;
-            this.prevposZ = z;
-            this.motionX = motionX;
-            this.motionY = motionY;
-            this.motionZ = motionZ;
+        public ParticleBase(Vec3d position, final Vec3d velocity, int startAge) {
+            this.position = position;
+            this.velocity = velocity.multiply(0.01f);
             this.time = System.currentTimeMillis();
             this.maxAge = this.age = (int) Utils.random(120, 200);
             this.age = this.maxAge - startAge;
             this.staticColor = Colors.getColor(Utils.random(0, 359));
-            this.scale = scaleMode.get().equals("Статичный") ? particleScale.get().floatValue() : Utils.random(0f, 1f);
+            this.scale = particleScale.get().floatValue();
         }
 
         public void update() {
             alpha = AnimationUtils.fast(alpha, 1, 10);
-            if (mode.get().equals("Дождь")) updateWithBounce();
+            update(physic.get());
         }
 
-        public boolean tick() {
-            this.age = mc.player.squaredDistanceTo(this.posX, (double) this.posY, (double) this.posZ) > 4096.0 ? (this.age -= 8) : --this.age;
-            if (this.age < 0) {
-                return true;
-            } else {
-                this.prevposX = this.posX;
-                this.prevposY = this.posY;
-                this.prevposZ = this.posZ;
-                this.posX += this.motionX;
-                this.posY += this.motionY;
-                this.posZ += this.motionZ;
-
-                if (mode.get().equals("Кометы")) {
-                    this.motionX *= 0.9F;
-                    this.motionY *= 0.9F;
-                    this.motionZ *= 0.9F;
-                    this.motionY -= 0.001F * (speed.get() / 10f);
-                } else {
-                    this.motionX = 0;
-                    this.motionZ = 0;
+        public void update(boolean physic) {
+            if (physic) {
+                if (isBlockSolid(this.position.x, this.position.y, this.position.z + this.velocity.z)) {
+                    this.velocity = this.velocity.multiply(1, 1, -0.8);
                 }
-                return false;
+                if (isBlockSolid(this.position.x, this.position.y + this.velocity.y, this.position.z)) {
+                    this.velocity = this.velocity.multiply(0.999, -0.6, 0.999);
+                }
+                if (isBlockSolid(this.position.x + this.velocity.x, this.position.y, this.position.z)) {
+                    this.velocity = this.velocity.multiply(-0.8, 1, 1);
+                }
+                this.velocity = this.velocity.multiply(0.999999).subtract(new Vec3d(0, 0.00005, 0));
             }
+            this.position = this.position.add(this.velocity);
         }
 
-        private void updateWithBounce() {
-            if (this.collisionTime != -1L) {
-                long timeSinceCollision = System.currentTimeMillis() - this.collisionTime;
-                this.alpha = Math.max(0.0f, 1.0f - (float) timeSinceCollision / 3000.0f);
-            }
-            this.motionY -= 8.0E-4 * (speed.get() / 10f);
-            float newPosX = this.posX + this.motionX;
-            float newPosY = this.posY + this.motionY;
-            float newPosZ = this.posZ + this.motionZ;
-
-            BlockPos particlePos = new BlockPos(newPosX, newPosY, newPosZ);
-            BlockState blockState = mc.world.getBlockState(particlePos);
-
-            if (!blockState.isAir()) {
-                if (this.collisionTime == -1L) {
-                    this.collisionTime = System.currentTimeMillis();
-                }
-
-                if (!mc.world.getBlockState(new BlockPos(this.posX + this.motionX, this.posY, this.posZ)).isAir()) {
-                    this.motionX = 0.0f;
-                }
-                if (!mc.world.getBlockState(new BlockPos(this.posX, this.posY + this.motionY, this.posZ)).isAir()) {
-                    this.motionY = -this.motionY * 0.8f;
-                }
-                if (!mc.world.getBlockState(new BlockPos(this.posX, this.posY, this.posZ + this.motionZ)).isAir()) {
-                    this.motionZ = 0.0f;
-                }
-
-                this.posX += this.motionX;
-                this.posY += this.motionY;
-                this.posZ += this.motionZ;
-            } else {
-                this.posX = newPosX;
-                this.posY = newPosY;
-                this.posZ = newPosZ;
-            }
+        public boolean isBlockSolid(double x, double y, double z) {
+            return mc.world.getBlockState(new BlockPos(x, y, z)).getMaterial().isSolid();
         }
 
         public void draw(MatrixStack matrix) {
             float size = 1 - ((System.currentTimeMillis() - time) / 5000f);
-            int texture = -1;
-
-            texture = switch (type.get()) {
-                case "Звездочки" -> DownloadImage.getGlId(DownloadImage.STAR);
-                case "Сердечки" -> DownloadImage.getGlId(DownloadImage.HEART);
-                case "Снежинки" -> DownloadImage.getGlId(DownloadImage.SNOW);
-                case "Треугольники" -> DownloadImage.getGlId(DownloadImage.TRIANGLE_GLOW);
-                default -> DownloadImage.getGlId(DownloadImage.CIRCLE);
-            };
+            int texture = DownloadImage.getGlId(DownloadImage.CIRCLE);
 
             if (texture == -1) return;
             update();
             Color color = ColorUtils.injectAlpha(colorMode.get().equals("Клиентский") ? staticColor : colorSetting.get(), (int) ((255 * alpha) * size));
 
-            Vec3d fix = Renderer3D.getRenderPosition(new Vec3d(posX, posY, posZ));
+            Vec3d fix = Renderer3D.getRenderPosition(position);
             double x = fix.getX();
             double y = fix.getY();
             double z = fix.getZ();

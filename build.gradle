@@ -47,7 +47,7 @@ configurations {
 }
 
 dependencies {
-	//implementation files('C:\\Users\\Администратор\\Desktop\\nicer\\libs\\reflections-0.10.2.jar')
+	//implementation files('C:\\Users\\Администратор\\Desktop\\bloody_client\\lib\\MediaPlayerInfo-0.1.0.jar')
 
 	// To change the versions see the gradle.properties file
 	minecraft("com.mojang:minecraft:${project.minecraft_version}")
@@ -56,7 +56,6 @@ dependencies {
 	modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
 	modImplementation("org.reflections:reflections:0.10.2")
 	modImplementation("org.ladysnake:satin:1.5.1")
-	//modImplementation("baritone:fabric:${project.minecraft_version}-SNAPSHOT")
 	include("org.ladysnake:satin:1.5.1")
 	libImpl(group: "com.squareup.okhttp3", name: "okhttp", version: "4.10.0")
 	libImpl(group: "org.json", name: "json", version: "20090211")
@@ -64,35 +63,18 @@ dependencies {
 	// Lombok
 	compileOnly(group: "org.projectlombok", name: "lombok", version: "1.18.28")
 	annotationProcessor(group: "org.projectlombok", name: "lombok", version: "1.18.28")
-	//compile group: 'com.sun.jna', name: 'jna', version: '3.0.9'
-//Thanks for using https://jar-download.com
 
+	// Thanks for using https://jar-download.com
 	libImpl(group: "com.github.oshi", name: "oshi-core-java11", version: "5.8.5")
 	libImpl(group: "javazoom", name: "jlayer", version: "1.0.1")
 	modImpl(name: "geckolib-fabric-1.16.5-3.0.107")
-	//libImpl(group: "org.reflections", name: "reflections", version: "0.10.2")
-//Thanks for using https://jar-download.com
-
-	// 3rd party
-	// 	modImpl(group: "io.github.ladysnake", name: "satin", version: "1.9.0") {
-//		transitive = false
-//	}
-
-//	modImpl(name: "renderer")
-//	modImpl(name: "satin-1.15.0")
-//	modImpl(name: "baritone")
-//	modImpl(name: "api")
-//	modImpl(name: "account")
-//	modImpl(name: "versions")
 
 	configurations.libImpl.dependencies.each {
 		implementation(it)
-//		include(it)
 	}
 
 	configurations.modImpl.dependencies.each {
 		modImplementation(it)
-//		implementation(it)
 		include(it)
 	}
 }

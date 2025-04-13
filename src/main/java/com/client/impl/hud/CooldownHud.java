@@ -1,32 +1,25 @@
 package com.client.impl.hud;
 
 import com.client.system.hud.HudFunction;
-import com.client.system.hud.HudManager;
 import com.client.system.textures.DownloadImage;
 import com.client.utils.game.inventory.CooldownManager;
+import com.client.utils.math.animation.Animation;
 import com.client.utils.math.animation.AnimationUtils;
+import com.client.utils.math.animation.Direction;
+import com.client.utils.math.animation.impl.EaseBackIn;
 import com.client.utils.math.rect.FloatRect;
-import com.client.utils.render.DrawMode;
-import com.client.utils.render.TagUtils;
 import com.client.utils.render.wisetree.font.main.IFont;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
-import com.client.utils.render.wisetree.render.render2d.main.TextureGL;
 import com.client.utils.render.wisetree.render.render2d.utils.ScissorUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
@@ -41,9 +34,12 @@ public class CooldownHud extends HudFunction {
     }
 
     public FloatRect potionRect = new FloatRect();
+    private final Animation animation = new EaseBackIn(400, 1, 1);
+    private double sc;
+    private List<Item> newList = new ArrayList<>();
 
     @Override
-    public void draw(float alpha) {
+    public void tick() {
         potionRect.setX(rect.getX());
         potionRect.setW(rect.getW());
         potionRect.setY(rect.getY() + 18);
@@ -56,18 +52,32 @@ public class CooldownHud extends HudFunction {
                     return null;
                 }).toList();
 
-        List<Item> newList = allItems.stream().filter(e -> mc.player.getItemCooldownManager().isCoolingDown(e)).toList();
+        newList = allItems.stream().filter(e -> mc.player.getItemCooldownManager().isCoolingDown(e)).toList();
 
         potionRect.setH(AnimationUtils.fast(potionRect.getH(), newList.isEmpty() ? 0 : newList.size() * 12 + 2));
+
+        if (potionRect.getH() < 2 && newList.isEmpty()) potionRect.setH(0f);
+
         rect.setH(16 + potionRect.getH() + 2);
+
+        animation.setDirection(newList.isEmpty() && !(mc.currentScreen instanceof ChatScreen) ? Direction.BACKWARDS : Direction.FORWARDS);
+
+        sc = animation.getOutput();
+    }
+
+    @Override
+    public void draw(float alpha) {
+        if (sc <= 0.0f) return;
+
+        startScale(sc);
 
         drawNewClientRect(new FloatRect(rect.getX(), rect.getY(), rect.getW(), 16));
 
-        postTask.add(() -> {
-            HudManager.MB.begin(DrawMode.Triangles, VertexFormats.POSITION_COLOR_TEXTURE);
-            HudManager.MB.texQuad(DownloadImage.getGlId(DownloadImage.TIMER), new TextureGL.TextureRegion(rect.getX() + 2.5f, rect.getY() + 2, 12, 12), Color.WHITE);
-            HudManager.MB.end();
-        });
+        GL11.glPushMatrix();
+        GL11.glScalef(1f, 1f, 1f);
+        GL11.glTranslatef(rect.getX() + 2.5f, rect.getY() + 2, 0);
+        GL.drawRoundedTexture(DownloadImage.getGlId(DownloadImage.TIMER), 0, 0, 12, 12, 0);
+        GL11.glPopMatrix();
 
         IFont.drawCenteredXY(IFont.MONTSERRAT_BOLD, "Cooldowns", rect.getCenteredX(), rect.getY() + 8, Color.WHITE, 9);
 
@@ -102,6 +112,8 @@ public class CooldownHud extends HudFunction {
         }
         rect.setW(AnimationUtils.fast(rect.getW().floatValue(), (float) w));
         ScissorUtils.disableScissor();
+
+        endScale();
     }
 
     public static void drawSprite(MatrixStack matrices, int x, int y, int z, int width, int height, float a, Sprite sprite) {

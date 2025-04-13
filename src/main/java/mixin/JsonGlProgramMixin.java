@@ -1,7 +1,6 @@
 package mixin;
 
 import com.client.utils.render.Outlines;
-import com.client.utils.render.OutlinesCompanion;
 import net.minecraft.client.gl.JsonEffectGlShader;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;

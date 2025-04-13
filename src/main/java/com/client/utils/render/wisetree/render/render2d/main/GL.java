@@ -351,38 +351,6 @@ public class GL {
         float[] c2 = ColorUtils.getColorComps(colors[2]);
         float[] c3 = ColorUtils.getColorComps(colors[3]);
 
-//        BufferBuilder bb = Tessellator.getInstance().getBuffer();
-//
-//        RenderSystem.enableBlend();
-//        RenderSystem.disableAlphaTest();
-//        RenderSystem.defaultBlendFunc();
-//        RenderSystem.defaultAlphaFunc();
-//        RenderSystem.enableCull();
-//        AntiAliasing.enable(true, true, true);
-//
-//        bb.begin(GL_TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
-//
-//        double toX = x + width;
-//        double toY = y + height;
-//
-//        double[][] map = new double[][]{new double[]{toX - radius, toY - radius, radius}, new double[]{toX - radius, y + radius, radius}, new double[]{x + radius, y + radius, radius}, new double[]{x + radius, toY - radius, radius}};
-//        for (int i = 0; i < 4; i++) {
-//            double[] current = map[i];
-//            double rad = current[2];
-//            for (double r = i * 90; r < (90 + i * 90); r += 10) {
-//                float rad1 = (float) Math.toRadians(r);
-//                float sin = (float) (Math.sin(rad1) * rad);
-//                float cos = (float) (Math.cos(rad1) * rad);
-//                bb.vertex((float) current[0] + sin, (float) current[1] + cos, 0.0F).color(c[0], c[1], c[2], c[3]);
-//            }
-//            float rad1 = (float) Math.toRadians((360 / 4d + i * 90d));
-//            float sin = (float) (Math.sin(rad1) * rad);
-//            float cos = (float) (Math.cos(rad1) * rad);
-//            bb.vertex((float) current[0] + sin, (float) current[1] + cos, 0.0F).color(c[0], c[1], c[2], c[3]);
-//        }
-//
-//        Tessellator.getInstance().draw();
-//
         RenderSystem.enableDepthTest();
         RenderSystem.enableCull();
         RenderSystem.disableBlend();

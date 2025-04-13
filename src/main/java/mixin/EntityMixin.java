@@ -1,25 +1,20 @@
 package mixin;
 
-import api.main.EventUtils;
-import com.client.event.events.BoundingBoxEvent;
 import com.client.event.events.ChangeSprintEvent;
 import com.client.event.events.GlintRenderEvent;
 import com.client.event.events.InvisibleEvent;
 import com.client.impl.function.combat.HitBox;
 import com.client.impl.function.combat.aura.rotate.RotationHandler;
 import com.client.impl.function.movement.NoPush;
-import com.client.impl.function.visual.Shaders;
 import com.client.impl.function.visual.Freecam;
+import com.client.impl.function.visual.Shaders;
 import com.client.system.function.FunctionManager;
 import com.client.utils.Utils;
 import com.client.utils.render.Outlines;
-import com.client.utils.render.OutlinesCompanion;
 import com.client.utils.render.ScoreboardEvent;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.text.Text;

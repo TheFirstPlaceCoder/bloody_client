@@ -3,6 +3,7 @@ package mixin.screens;
 import com.client.event.events.GetTooltipEvent;
 import com.client.system.textures.DownloadImage;
 import com.client.utils.Utils;
+import com.client.utils.auth.Loader;
 import com.client.utils.math.rect.FloatRect;
 import com.client.utils.render.wisetree.render.render2d.main.GL;
 import com.client.utils.render.wisetree.render.render2d.utils.shader.shaders.BlurShader;
@@ -35,19 +36,21 @@ public class ScreenMixin {
 
     @Inject(method = "renderBackground(Lnet/minecraft/client/util/math/MatrixStack;)V", at = @At(value = "HEAD"), cancellable = true)
     public void renderBackground(MatrixStack matrices, CallbackInfo ci) {
-        if (MinecraftClient.getInstance().world != null) return;
-        ci.cancel();
+        if (!Loader.unHook) {
+            if (MinecraftClient.getInstance().world != null) return;
+            ci.cancel();
 
-        Utils.rescaling(() -> {
-            GL.prepare();
-            GL.drawRoundedTexture(DownloadImage.getGlId(DownloadImage.DEFAULT_MENU), 0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight(), 0);
-            GL.end();
+            Utils.rescaling(() -> {
+                GL.prepare();
+                GL.drawRoundedTexture(DownloadImage.getGlId(DownloadImage.DEFAULT_MENU), 0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight(), 0);
+                GL.end();
 
-            BlurShader.registerRenderCall(() -> {
-                GL.drawRoundedRect(new FloatRect(0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight()), 0, Color.WHITE);
+                BlurShader.registerRenderCall(() -> {
+                    GL.drawRoundedRect(new FloatRect(0, 0, mc.getWindow().getScaledWidth(), mc.getWindow().getScaledHeight()), 0, Color.WHITE);
+                });
+
+                BlurShader.draw(8);
             });
-
-            BlurShader.draw(8);
-        });
+        }
     }
 }
